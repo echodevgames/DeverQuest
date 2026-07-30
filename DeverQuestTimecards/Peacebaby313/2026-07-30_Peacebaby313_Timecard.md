@@ -4,21 +4,61 @@
 **Adventurer:** Ajnaag  
 **Class:** Necromancer · **Level:** 1 · **Guild Rank:** CEO  
 **Date:** July 30, 2026  
-**Sessions:** 2
+**Sessions:** 3
 
 ## Daily Totals
 
-- **Focused Work:** 0h 3m 58s
-- **Paused Time:** 0h 29m 44s
-- **Commit Entries:** 3
+- **Focused Work:** 0h 15m 42s
+- **Paused Time:** 0h 32m 7s
+- **Commit Entries:** 5
 - **Breaks Taken:** 0
-- **Coin Earned:** 0p 0g 0s 20c
-- **Experience Earned:** 20 XP
-- **Ending Coin Purse:** 0p 0g 1s 13c
+- **Coin Earned:** 0p 0g 0s 55c
+- **Experience Earned:** 80 XP
+- **Ending Coin Purse:** 0p 0g 1s 48c
 
 ---
 
-## Session 1 — Im gonna work for six hours
+## Session 1 — Milestone 14
+
+- **Project:** DeverQuest
+- **Department:** Programming
+- **Quest Profile:** New Quest Profile
+- **Profile Spoils:** 0p 0g 0s 10c + 10 XP base; 0p 0g 0s 25c + 50 XP per 10m block
+- **Quest Contract:** Milestone14
+- **Contract Creator:** 
+- **Assigned Adventurer:** 
+- **Priority:** Normal
+- **Due Date:** Unscheduled
+- **Started:** 4:35 PM
+- **Ended:** 4:49 PM
+- **Focused Work:** 0h 11m 43s
+- **Paused Time:** 0h 2m 22s
+
+### Goal
+
+Milestone 14 — Quest Contracts and Assignment Board
+
+### Reserved Encounter
+
+First quest
+
+### Commit Journal
+
+- **4:48 PM** [Git Commit] `+0h 11m 43s` — Quest profiles seems to work, im wanting to check in my data if its telling me that I have completed this quest. i should have it set to 2 5 mins focuses for the total of 10 mins to complete... | Branch: `main` | Commit: `99642b8`
+- **4:48 PM** [Git Push] `+0h 11m 43s` — Pushed commits to origin/main | Branch: `main` | Commit: `99642b8`
+
+### Closing Notes
+
+Commit and pushed
+
+### Reward Journal
+
+- **Quest Completion:** +0p 0g 0s 10c · +10 XP — Quest successfully turned in
+- **Work Block:** +0p 0g 0s 25c · +50 XP — 1 completed work block(s)
+
+---
+
+## Session 2 — Im gonna work for six hours
 
 - **Project:** DeverQuest
 - **Department:** Programming
@@ -45,7 +85,7 @@ I'm starting a new quest
 
 ---
 
-## Session 2 — Profiles
+## Session 3 — Profiles
 
 - **Project:** DeverQuest
 - **Department:** Programming

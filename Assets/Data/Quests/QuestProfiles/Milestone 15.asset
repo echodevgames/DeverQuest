@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c81d16d8f2ba5540bdb8e680604dad0, type: 3}
+  m_Name: Milestone 15
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestProfile
+  profileId: c42d6b2395d34d998bafdd5aafddd3e3
+  displayName: Milestone15
+  description: "Update the Security\t\t\t\t"
+  availableToMembers: 1
+  minimumAdventurerLevel: 1
+  projectName: DeverQuest
+  taskName: DeverQuestPathway
+  department: Programming
+  goalTemplate: Do your job.
+  suggestedFocusMinutes: 50
+  baseCopper: 5
+  baseExperience: 20
+  workBlockMinutes: 10
+  copperPerWorkBlock: 25
+  experiencePerWorkBlock: 50
