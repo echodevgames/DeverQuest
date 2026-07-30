@@ -10,9 +10,9 @@
       }
     },
     "com.echodevgames.deverquest": {
-      "version": "file:C:/Users/Jesse/Downloads/com.echodevgames.deverquest",
+      "version": "file:com.echodevgames.deverquest",
       "depth": 0,
-      "source": "local",
+      "source": "embedded",
       "dependencies": {}
     },
     "com.unity.burst": {
