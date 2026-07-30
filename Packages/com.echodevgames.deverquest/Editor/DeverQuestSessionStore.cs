@@ -225,10 +225,19 @@ namespace EchoDevGames.DeverQuest
             }
 
             long nowTicks = DateTime.UtcNow.Ticks;
-            ActiveSession.accumulatedPausedSeconds +=
-                GetSecondsBetween(
+            double pausedSeconds = GetSecondsBetween(
                     ActiveSession.lastStateChangeUtcTicks,
                     nowTicks);
+            ActiveSession.accumulatedPausedSeconds += pausedSeconds;
+            if (ActiveSession.pauseReason == "Idle Detection" ||
+                ActiveSession.pauseReason == "Unity Project Lost Focus")
+            {
+                ActiveSession.idleUnverifiedSeconds += pausedSeconds;
+            }
+            else
+            {
+                ActiveSession.meditationSeconds += pausedSeconds;
+            }
 
             ActiveSession.lastStateChangeUtcTicks = nowTicks;
             ActiveSession.state = DeverQuestSessionState.Running;
@@ -604,6 +613,16 @@ namespace EchoDevGames.DeverQuest
                 ActiveSession.state == DeverQuestSessionState.Paused)
             {
                 ActiveSession.accumulatedPausedSeconds += elapsedSeconds;
+                if (ActiveSession.pauseReason == "Idle Detection" ||
+                    ActiveSession.pauseReason ==
+                    "Unity Project Lost Focus")
+                {
+                    ActiveSession.idleUnverifiedSeconds += elapsedSeconds;
+                }
+                else
+                {
+                    ActiveSession.meditationSeconds += elapsedSeconds;
+                }
             }
         }
 

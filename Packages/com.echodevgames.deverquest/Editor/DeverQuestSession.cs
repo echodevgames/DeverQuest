@@ -113,6 +113,9 @@ namespace EchoDevGames.DeverQuest
 
         public double accumulatedFocusedSeconds;
         public double accumulatedPausedSeconds;
+        public double meditationSeconds;
+        public double idleUnverifiedSeconds;
+        public double approvedBreakSeconds;
         public bool pausedByEditorShutdown;
         public string pauseReason = string.Empty;
         public bool idlePauseAcknowledged = true;
@@ -216,6 +219,11 @@ namespace EchoDevGames.DeverQuest
 
             accumulatedPausedSeconds =
                 Math.Max(0d, accumulatedPausedSeconds);
+            meditationSeconds = Math.Max(0d, meditationSeconds);
+            idleUnverifiedSeconds =
+                Math.Max(0d, idleUnverifiedSeconds);
+            approvedBreakSeconds =
+                Math.Max(0d, approvedBreakSeconds);
         }
     }
 }

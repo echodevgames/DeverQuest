@@ -22,7 +22,7 @@ namespace EchoDevGames.DeverQuest
     [Serializable]
     internal sealed class DeverQuestProfile
     {
-        public const int CurrentDataVersion = 10;
+        public const int CurrentDataVersion = 11;
 
         public int dataVersion = CurrentDataVersion;
         public bool setupComplete;
@@ -81,6 +81,11 @@ namespace EchoDevGames.DeverQuest
         public List<int> focusCheckInScheduleMinutes =
             new List<int> { 15, 30, 45, 60 };
         public string gitRepositoryOverridePath = string.Empty;
+        public bool chronicleIntegrityEnabled = true;
+        public int chronicleMaxSessions = 12;
+        public int chronicleMaxKilobytes = 512;
+        public int suspiciousQuestMinutes = 240;
+        public int suspiciousDailyQuestCount = 8;
 
         public void Sanitize()
         {
@@ -165,6 +170,15 @@ namespace EchoDevGames.DeverQuest
                 baseQuestExperience = 10;
             }
 
+            if (dataVersion < 11)
+            {
+                chronicleIntegrityEnabled = true;
+                chronicleMaxSessions = 12;
+                chronicleMaxKilobytes = 512;
+                suspiciousQuestMinutes = 240;
+                suspiciousDailyQuestCount = 8;
+            }
+
             developerName = developerName?.Trim() ?? string.Empty;
             timecardRootPath = timecardRootPath?.Trim() ?? string.Empty;
             lastProjectName = lastProjectName?.Trim() ?? string.Empty;
@@ -217,6 +231,11 @@ namespace EchoDevGames.DeverQuest
             baseQuestCopper = Math.Max(0, baseQuestCopper);
             baseQuestExperience =
                 Math.Max(0, baseQuestExperience);
+            chronicleMaxSessions = Math.Max(1, chronicleMaxSessions);
+            chronicleMaxKilobytes = Math.Max(32, chronicleMaxKilobytes);
+            suspiciousQuestMinutes = Math.Max(0, suspiciousQuestMinutes);
+            suspiciousDailyQuestCount =
+                Math.Max(0, suspiciousDailyQuestCount);
             if (!Enum.IsDefined(typeof(DeverQuestTheme), theme))
             {
                 theme = DeverQuestTheme.EchoNeon;

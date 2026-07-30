@@ -1,5 +1,44 @@
 # DeverQuest User Guide
 
+## Guild Accounts and Authority
+
+Version 0.16.0 migrates the existing Adventurer to the founding CEO account.
+Open **Guild Accounts and Authority** and secure that account with a local
+passcode of at least six characters. Level, XP, coin, class, and character
+identity are preserved.
+
+Bosses and CEOs can create accounts. Set a temporary passcode and, for Project
+Leaders, provide comma-separated Project names matching Contract Project
+values. Members can perform normal Quest input and turn-in. Project Leaders
+can manage Contracts and corrections only for their assigned Projects.
+
+Local passcodes are salted and derived rather than stored as plaintext. They
+protect DeverQuest UI actions, but do not replace operating-system security or
+a future shared Guild identity service.
+
+## Chronicle Integrity and Review
+
+Version 0.15.0 divides long days into numbered Chronicles. Configure automatic
+rollover by Quest count or file size in Profile, or use **History and
+Reporting → Start New Chronicle** before the next Quest is completed.
+
+History reports each structured Chronicle as:
+
+- **Verified** — the current JSON and correction journal match the latest
+  chained seal.
+- **Modified** — a sealed record or its hash chain changed.
+- **Legacy** — the record predates integrity seals.
+- **Unavailable** — verification could not read the required files.
+
+Use **Request Correction** instead of editing a completed Quest. Corrections
+append the author, timestamp, reason, and proposed corrected record. Guild
+leadership can approve or return pending requests. The original Quest remains
+unchanged in every case.
+
+The `.deverquest.json` file is the sealed source record. Markdown is a
+regenerated reading copy. Local hashes provide tamper evidence, not independent
+authority; shared Guild records are required for that later security boundary.
+
 DeverQuest is an editor-only Unity companion for deliberate work sessions,
 timecards, wellness, earned rewards, music, goals, and reporting.
 

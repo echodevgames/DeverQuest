@@ -1,5 +1,69 @@
 # Changelog
 
+## [0.16.0] - 2026-07-30
+
+### Added
+
+- Local Guild accounts created by authenticated Guild leadership.
+- PBKDF2-derived local passcode protection with per-account random salts.
+- Automatic migration of the existing Adventurer into the founding CEO
+  account without resetting XP, level, coin, or lifetime totals.
+- Per-account Adventurer progression, identity, class, Guild Rank, and Project
+  assignments.
+- Guild login/logout flow and locked identity fields.
+- CEO, Boss, Project Leader, and Member permission enforcement.
+- Project-scoped Contract and correction authority for Project Leaders.
+- Local authority audit entries for login, account creation, Contract state,
+  correction review, settings changes, migration, and profile reset actions.
+
+### Permission Matrix
+
+- CEO: all local Guild actions.
+- Boss: all local Guild actions except destructive record or program deletion.
+- Project Leader: Contract, correction, and Project management only for
+  explicitly assigned Projects.
+- Member: Quest input, check-in, check-out, notes, and turn-in.
+
+### Security Boundary
+
+- Passcodes protect actions through the DeverQuest interface and are never
+  stored as plaintext.
+- Local administrators and users with unrestricted access to the machine can
+  still alter Editor preferences. Shared authoritative identity remains
+  reserved for the Guild service milestone.
+
+## [0.15.0] - 2026-07-30
+
+### Added
+
+- Numbered same-day Chronicles with automatic rollover by Quest count or
+  JSON size and a manual **Start New Chronicle** action.
+- SHA-256 integrity seals stored in an append-only, chained audit journal.
+- Verified, Modified, Legacy, and Unavailable integrity states in History.
+- Append-only correction requests that preserve the original Quest record.
+- Leadership approval and return actions for pending correction requests.
+- Correction author, reason, proposed record, timestamps, reviewer, and
+  disposition in JSON sidecars and generated Markdown.
+- Configurable flags for unusually long Quests and unusually frequent daily
+  Quest activity. Flags request review and never automatically reject time.
+- Focused, Meditation, Approved Break, Idle/Unverified, and Legacy
+  Unclassified time reporting.
+
+### Compatibility
+
+- Existing daily records remain readable and are labeled Legacy until a new
+  integrity-aware write creates a seal.
+- Chronicle 1 retains the original filename. Later Chronicles use numbered
+  filenames and therefore never overwrite Chronicle 1.
+
+### Security Boundary
+
+- Local integrity seals expose accidental or casual record edits; they are not
+  server authority and cannot prevent a user with full local access from
+  replacing both a record and its audit journal.
+- The structured `.deverquest.json` file is the sealed source record.
+  Markdown remains a human-readable generated report.
+
 ## [0.14.0] - 2026-07-30
 
 ### Added

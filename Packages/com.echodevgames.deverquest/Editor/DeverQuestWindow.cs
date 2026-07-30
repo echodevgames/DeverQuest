@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -43,6 +44,7 @@ namespace EchoDevGames.DeverQuest
         private string rewardMessage = string.Empty;
         private bool historyFoldout;
         private bool contractBoardFoldout = true;
+        private bool guildAdministrationFoldout = true;
         private DeverQuestHistoryRange historyRange =
             DeverQuestHistoryRange.Last7Days;
         private string historyProjectFilter = string.Empty;
@@ -52,7 +54,21 @@ namespace EchoDevGames.DeverQuest
         private string historyEndDate =
             DateTime.Now.ToString("yyyy-MM-dd");
         private string historyMessage = string.Empty;
+        private string correctionDataPath = string.Empty;
+        private string correctionSessionId = string.Empty;
+        private string correctionSessionTitle = string.Empty;
+        private string correctionReason = string.Empty;
+        private string correctionValue = string.Empty;
         private string focusScheduleText = string.Empty;
+        private string guildLoginName = string.Empty;
+        private string guildPasscode = string.Empty;
+        private string newGuildDeveloper = string.Empty;
+        private string newGuildCharacter = string.Empty;
+        private string newGuildClass = "Warrior";
+        private string newGuildRank = "Member";
+        private string newGuildProjects = string.Empty;
+        private string newGuildPasscode = string.Empty;
+        private string guildMessage = string.Empty;
         private DeverQuestGitStatus gitStatus;
         private string gitMessage = string.Empty;
         private bool gitOperationInProgress;
@@ -168,7 +184,11 @@ namespace EchoDevGames.DeverQuest
 
             if (profile.setupComplete)
             {
-                if (profile.compactMode)
+                if (!DeverQuestGuildAccountService.IsAuthenticated)
+                {
+                    DrawGuildLogin();
+                }
+                else if (profile.compactMode)
                 {
                     DrawCompactDashboard(profile);
                 }
@@ -196,6 +216,181 @@ namespace EchoDevGames.DeverQuest
             EditorGUILayout.LabelField(
                 "Accept quests, build your legend, and earn your downtime.",
                 wrappedLabelStyle);
+        }
+
+        private void DrawGuildLogin()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                "Enter the Guild Hall",
+                EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Choose your administrator-created Guild account and enter " +
+                "its local passcode.",
+                MessageType.Info);
+            string[] names = DeverQuestGuildAccountService.Accounts
+                .Where(account => !account.disabled)
+                .Select(account => account.developerName)
+                .ToArray();
+            int index = Mathf.Max(0,
+                Array.IndexOf(names, guildLoginName));
+            if (names.Length > 0)
+            {
+                guildLoginName = names[
+                    EditorGUILayout.Popup("Developer", index, names)];
+            }
+            guildPasscode = EditorGUILayout.PasswordField(
+                "Passcode", guildPasscode);
+            if (GUILayout.Button("Enter Guild Hall"))
+            {
+                if (DeverQuestGuildAccountService.Login(
+                        guildLoginName,
+                        guildPasscode,
+                        out string error))
+                {
+                    guildPasscode = string.Empty;
+                    guildMessage = "Guild identity verified.";
+                }
+                else
+                {
+                    guildMessage = error;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(guildMessage))
+            {
+                EditorGUILayout.HelpBox(
+                    guildMessage,
+                    MessageType.Warning);
+            }
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawGuildAdministration()
+        {
+            DeverQuestGuildAccount account =
+                DeverQuestGuildAccountService.CurrentAccount;
+            if (account == null)
+            {
+                return;
+            }
+            guildAdministrationFoldout = EditorGUILayout.Foldout(
+                guildAdministrationFoldout,
+                "Guild Accounts and Authority",
+                true);
+            if (!guildAdministrationFoldout)
+            {
+                return;
+            }
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                $"{account.developerName} · {account.guildRank}",
+                EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(
+                "Assigned Projects",
+                account.assignedProjects.Count == 0
+                    ? "All Guild projects (rank permitting)"
+                    : string.Join(", ", account.assignedProjects));
+
+            if (DeverQuestGuildAccountService.RequiresPasscodeSetup)
+            {
+                EditorGUILayout.HelpBox(
+                    "Your existing Adventurer was migrated as the founding " +
+                    "CEO. Set a local passcode now to lock the identity and " +
+                    "permissions.",
+                    MessageType.Warning);
+                guildPasscode = EditorGUILayout.PasswordField(
+                    "New Passcode", guildPasscode);
+                if (GUILayout.Button("Secure Founding Account"))
+                {
+                    if (DeverQuestGuildAccountService
+                        .SecureCurrentAccount(
+                            guildPasscode, out string error))
+                    {
+                        guildPasscode = string.Empty;
+                        guildMessage =
+                            "Founding CEO account secured.";
+                    }
+                    else
+                    {
+                        guildMessage = error;
+                    }
+                }
+            }
+
+            if (DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild))
+            {
+                EditorGUILayout.Space(6f);
+                EditorGUILayout.LabelField(
+                    "Create Adventurer Account",
+                    EditorStyles.boldLabel);
+                newGuildDeveloper = EditorGUILayout.TextField(
+                    "Developer", newGuildDeveloper);
+                newGuildCharacter = EditorGUILayout.TextField(
+                    "Adventurer", newGuildCharacter);
+                newGuildClass = DrawStringPopup(
+                    "Class", newGuildClass,
+                    DeverQuestAdventurerService.Classes);
+                newGuildRank = DrawStringPopup(
+                    "Guild Rank", newGuildRank,
+                    DeverQuestAdventurerService.GuildRanks);
+                newGuildProjects = EditorGUILayout.TextField(
+                    new GUIContent(
+                        "Projects",
+                        "Comma-separated Project assignments. Required for " +
+                        "Project Leaders."),
+                    newGuildProjects);
+                newGuildPasscode = EditorGUILayout.PasswordField(
+                    "Temporary Passcode", newGuildPasscode);
+                if (GUILayout.Button("Create Guild Account"))
+                {
+                    if (DeverQuestGuildAccountService.CreateAccount(
+                            newGuildDeveloper,
+                            newGuildCharacter,
+                            newGuildClass,
+                            newGuildRank,
+                            newGuildProjects.Split(','),
+                            newGuildPasscode,
+                            out string error))
+                    {
+                        guildMessage =
+                            $"Created account for {newGuildDeveloper}.";
+                        newGuildDeveloper = string.Empty;
+                        newGuildCharacter = string.Empty;
+                        newGuildProjects = string.Empty;
+                        newGuildPasscode = string.Empty;
+                    }
+                    else
+                    {
+                        guildMessage = error;
+                    }
+                }
+            }
+
+            EditorGUILayout.Space(6f);
+            EditorGUILayout.LabelField(
+                "Recent Authority Audit",
+                EditorStyles.boldLabel);
+            foreach (DeverQuestGuildAuditEntry entry
+                     in DeverQuestGuildAccountService.AuditEntries.Take(8))
+            {
+                EditorGUILayout.LabelField(
+                    $"{entry.actorName}: {entry.action} → {entry.target}",
+                    EditorStyles.wordWrappedMiniLabel);
+            }
+
+            if (!string.IsNullOrWhiteSpace(guildMessage))
+            {
+                EditorGUILayout.HelpBox(
+                    guildMessage, MessageType.Info);
+            }
+            if (GUILayout.Button("Leave Guild Hall"))
+            {
+                DeverQuestGuildAccountService.Logout();
+                guildMessage = string.Empty;
+            }
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(8f);
         }
 
         private void DrawFirstTimeSetup()
@@ -292,6 +487,7 @@ namespace EchoDevGames.DeverQuest
             DrawRewardSetup(profile);
             DrawPlaylistSetup(profile);
             DrawPolishSetup(profile);
+            DrawChronicleIntegritySetup(profile);
             DrawProjectDefaultsSetup(profile);
 
             EditorGUILayout.Space(14f);
@@ -372,6 +568,9 @@ namespace EchoDevGames.DeverQuest
 
             profile.setupComplete = true;
             DeverQuestSettingsStore.Save();
+            DeverQuestGuildAccountService
+                .RefreshUnsecuredFounderIdentity(
+                    profile.developerName);
 
             EditorUtility.DisplayDialog(
                 "DeverQuest Setup Complete",
@@ -440,6 +639,7 @@ namespace EchoDevGames.DeverQuest
 
             DrawGoalsAndStreaks(profile);
             DrawAdventurerSheet();
+            DrawGuildAdministration();
             DrawWellnessReminder();
             DrawPlaylistPlayer();
             EditorGUILayout.Space(10f);
@@ -748,6 +948,7 @@ namespace EchoDevGames.DeverQuest
 
             DrawWalletStatistics();
             DrawHistoryDays(days);
+            DrawNewChronicleControl(profile);
             DrawHistoryExport(profile, days);
 
             if (!string.IsNullOrWhiteSpace(historyMessage))
@@ -858,7 +1059,7 @@ namespace EchoDevGames.DeverQuest
                     adventurer.totalCopperSpent));
         }
 
-        private static void DrawHistoryDays(
+        private void DrawHistoryDays(
             IReadOnlyList<DeverQuestHistoryDay> days)
         {
             EditorGUILayout.Space(10f);
@@ -888,8 +1089,30 @@ namespace EchoDevGames.DeverQuest
                     EditorStyles.boldLabel);
 
                 EditorGUILayout.LabelField(
+                    $"Chronicle {Math.Max(1, day.Record.chronicleIndex)} · " +
+                    $"Integrity: {day.IntegrityStatus}");
+                EditorGUILayout.HelpBox(
+                    day.IntegrityMessage,
+                    day.IntegrityStatus ==
+                    DeverQuestIntegrityStatus.Modified
+                        ? MessageType.Warning
+                        : MessageType.None);
+
+                EditorGUILayout.LabelField(
                     $"{summary.SessionCount} session(s) · " +
                     $"{FormatDuration(summary.FocusedSeconds)} focused");
+                int dailyLimit = DeverQuestSettingsStore.Profile
+                    .suspiciousDailyQuestCount;
+                if (day.SuspiciousSessionCount > 0 ||
+                    day.SuspiciousFrequency)
+                {
+                    EditorGUILayout.HelpBox(
+                        $"{day.SuspiciousSessionCount} unusually long " +
+                        $"Quest(s); daily frequency threshold " +
+                        $"{dailyLimit}. Flagged for leadership review, not " +
+                        "automatically rejected.",
+                        MessageType.Warning);
+                }
 
                 EditorGUILayout.BeginHorizontal();
 
@@ -910,7 +1133,163 @@ namespace EchoDevGames.DeverQuest
                 }
 
                 EditorGUILayout.EndHorizontal();
+
+                foreach (DeverQuestSession session
+                         in day.Record.sessions)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(
+                        session.taskName,
+                        $"{FormatDuration(session.accumulatedFocusedSeconds)} " +
+                        "focused");
+                    if (GUILayout.Button(
+                            "Request Correction",
+                            GUILayout.Width(132f)))
+                    {
+                        correctionDataPath = day.DataPath;
+                        correctionSessionId = session.sessionId;
+                        correctionSessionTitle = session.taskName;
+                        correctionReason = string.Empty;
+                        correctionValue = string.Empty;
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+
+                DrawCorrectionEditor(day);
                 EditorGUILayout.EndVertical();
+            }
+        }
+
+        private void DrawCorrectionEditor(DeverQuestHistoryDay day)
+        {
+            if (correctionDataPath == day.DataPath &&
+                !string.IsNullOrWhiteSpace(correctionSessionId))
+            {
+                EditorGUILayout.Space(5f);
+                EditorGUILayout.LabelField(
+                    $"Correction: {correctionSessionTitle}",
+                    EditorStyles.boldLabel);
+                correctionReason = EditorGUILayout.TextField(
+                    "Reason", correctionReason);
+                correctionValue = EditorGUILayout.TextArea(
+                    correctionValue, GUILayout.MinHeight(48f));
+                using (new EditorGUI.DisabledScope(
+                           string.IsNullOrWhiteSpace(correctionReason) ||
+                           string.IsNullOrWhiteSpace(correctionValue)))
+                {
+                    if (GUILayout.Button(
+                            "Append Correction Request"))
+                    {
+                        DeverQuestChronicleIntegrityService.AddCorrection(
+                            day.DataPath,
+                            correctionSessionId,
+                            correctionSessionTitle,
+                            DeverQuestSettingsStore.Profile.developerName,
+                            correctionReason,
+                            correctionValue);
+                        DeverQuestTimecardWriter.TryRegenerate(
+                            day.DataPath, out string regenerateError);
+                        historyMessage =
+                            string.IsNullOrWhiteSpace(regenerateError)
+                                ? "Correction request appended."
+                                : regenerateError;
+                        correctionSessionId = string.Empty;
+                        DeverQuestHistoryService.Refresh(
+                            DeverQuestSettingsStore.Profile);
+                    }
+                }
+            }
+
+            List<DeverQuestCorrection> corrections =
+                DeverQuestChronicleIntegrityService.LoadCorrections(
+                    day.DataPath);
+            foreach (DeverQuestCorrection correction in corrections)
+            {
+                DeverQuestSession correctedSession =
+                    day.Record.sessions.FirstOrDefault(
+                        item => item.sessionId ==
+                                correction.sessionId);
+                string correctionProject =
+                    correctedSession?.projectName ?? string.Empty;
+                bool leadership =
+                    DeverQuestGuildAccountService.HasPermission(
+                        DeverQuestGuildPermission.ReviewCorrections,
+                        correctionProject);
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField(
+                    $"{correction.sessionTitle} · {correction.status}",
+                    EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(
+                    correction.reason,
+                    EditorStyles.wordWrappedLabel);
+                EditorGUILayout.LabelField(
+                    correction.correctedValue,
+                    EditorStyles.wordWrappedLabel);
+                if (leadership && correction.status == "Pending")
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    if (GUILayout.Button("Approve"))
+                    {
+                        ReviewCorrection(
+                            day, correction, "Approved");
+                    }
+                    if (GUILayout.Button("Return"))
+                    {
+                        ReviewCorrection(
+                            day, correction, "Returned");
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+                EditorGUILayout.EndVertical();
+            }
+        }
+
+        private void ReviewCorrection(
+            DeverQuestHistoryDay day,
+            DeverQuestCorrection correction,
+            string status)
+        {
+            DeverQuestSession correctedSession =
+                day.Record.sessions.FirstOrDefault(
+                    item => item.sessionId == correction.sessionId);
+            DeverQuestChronicleIntegrityService.ReviewCorrection(
+                day.DataPath,
+                correction.correctionId,
+                status,
+                DeverQuestSettingsStore.Profile.developerName,
+                correctedSession?.projectName ?? string.Empty);
+            DeverQuestTimecardWriter.TryRegenerate(
+                day.DataPath, out string error);
+            historyMessage = string.IsNullOrWhiteSpace(error)
+                ? $"Correction {status.ToLowerInvariant()}."
+                : error;
+            DeverQuestHistoryService.Refresh(
+                DeverQuestSettingsStore.Profile);
+        }
+
+        private void DrawNewChronicleControl(DeverQuestProfile profile)
+        {
+            EditorGUILayout.Space(10f);
+            EditorGUILayout.LabelField(
+                "Chronicle Rollover",
+                EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Start a fresh numbered Chronicle for today. Existing " +
+                "Chronicles are never overwritten.",
+                MessageType.Info);
+            if (GUILayout.Button("Start New Chronicle"))
+            {
+                string developerFolder =
+                    DeverQuestPathUtility.GetDeveloperFolder(
+                        profile.timecardRootPath,
+                        profile.developerName);
+                int index =
+                    DeverQuestChronicleIntegrityService
+                        .StartNewChronicle(
+                            developerFolder,
+                            DateTime.Now.ToString("yyyy-MM-dd"));
+                historyMessage =
+                    $"Chronicle {index} will receive the next completed Quest.";
             }
         }
 
@@ -1113,6 +1492,43 @@ namespace EchoDevGames.DeverQuest
                         "When disabled, reminders never force a closed " +
                         "DeverQuest window to open."),
                     profile.autoOpenWindowForReminders);
+        }
+
+        private static void DrawChronicleIntegritySetup(
+            DeverQuestProfile profile)
+        {
+            EditorGUILayout.Space(10f);
+            EditorGUILayout.LabelField(
+                "Chronicle Integrity and Review",
+                EditorStyles.boldLabel);
+            profile.chronicleIntegrityEnabled =
+                EditorGUILayout.Toggle(
+                    new GUIContent(
+                        "Integrity Seals",
+                        "Creates a SHA-256 audit chain. This reveals casual " +
+                        "edits; it is not an authoritative server signature."),
+                    profile.chronicleIntegrityEnabled);
+            profile.chronicleMaxSessions =
+                EditorGUILayout.IntField(
+                    "Quests per Chronicle",
+                    profile.chronicleMaxSessions);
+            profile.chronicleMaxKilobytes =
+                EditorGUILayout.IntField(
+                    "Chronicle Size (KB)",
+                    profile.chronicleMaxKilobytes);
+            profile.suspiciousQuestMinutes =
+                EditorGUILayout.IntField(
+                    "Flag Quest at (min)",
+                    profile.suspiciousQuestMinutes);
+            profile.suspiciousDailyQuestCount =
+                EditorGUILayout.IntField(
+                    "Flag Daily Quest Count",
+                    profile.suspiciousDailyQuestCount);
+            EditorGUILayout.HelpBox(
+                "Integrity hashes reveal changes but cannot stop a person " +
+                "with local file access from replacing files. Authoritative " +
+                "records require a future shared Guild service.",
+                MessageType.Info);
         }
 
         private static void DrawProjectDefaultsSetup(
@@ -1389,25 +1805,17 @@ namespace EchoDevGames.DeverQuest
 
             DeverQuestAdventurer adventurer =
                 DeverQuestAdventurerService.Adventurer;
-            EditorGUI.BeginChangeCheck();
-            adventurer.characterName = EditorGUILayout.TextField(
-                "Character Name",
-                adventurer.characterName);
-            adventurer.guildName = EditorGUILayout.TextField(
-                "Guild",
-                adventurer.guildName);
-            adventurer.characterClass = DrawStringPopup(
-                "Class",
-                adventurer.characterClass,
-                DeverQuestAdventurerService.Classes);
-            adventurer.guildRank = DrawStringPopup(
-                "Guild Rank",
-                adventurer.guildRank,
-                DeverQuestAdventurerService.GuildRanks);
-            if (EditorGUI.EndChangeCheck())
-            {
-                DeverQuestAdventurerService.Save();
-            }
+            EditorGUILayout.LabelField(
+                "Character Name", adventurer.characterName);
+            EditorGUILayout.LabelField("Guild", adventurer.guildName);
+            EditorGUILayout.LabelField(
+                "Class", adventurer.characterClass);
+            EditorGUILayout.LabelField(
+                "Guild Rank", adventurer.guildRank);
+            EditorGUILayout.HelpBox(
+                "Identity, class, and Guild Rank are locked to the active " +
+                "administrator-created Guild account.",
+                MessageType.Info);
         }
 
         private void DrawRewardsPanel(DeverQuestProfile profile)
@@ -1674,7 +2082,11 @@ namespace EchoDevGames.DeverQuest
             DeverQuestAdventurer adventurer =
                 DeverQuestAdventurerService.Adventurer;
             bool canCreateCustomQuest =
-                adventurer.guildRank != "Member";
+                DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageContracts,
+                    newProjectName) ||
+                DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild);
 
             EditorGUI.BeginChangeCheck();
             selectedQuestContract =
@@ -2015,6 +2427,10 @@ namespace EchoDevGames.DeverQuest
                 {
                     continue;
                 }
+                bool canManageContract =
+                    DeverQuestGuildAccountService.HasPermission(
+                        DeverQuestGuildPermission.ManageContracts,
+                        contract.projectName);
 
                 bool assigned =
                     contract.openToAnyMember ||
@@ -2032,7 +2448,7 @@ namespace EchoDevGames.DeverQuest
                      DeverQuestContractStatus.Accepted ||
                      contract.status ==
                      DeverQuestContractStatus.Active);
-                if (!canManage && !memberVisible)
+                if (!canManageContract && !memberVisible)
                 {
                     continue;
                 }
@@ -2059,7 +2475,7 @@ namespace EchoDevGames.DeverQuest
                     selectedQuestContract = contract;
                     appliedQuestContractId = string.Empty;
                     ApplySelectedQuestContract();
-                    if (!canManage &&
+                    if (!canManageContract &&
                         contract.status ==
                         DeverQuestContractStatus.Offered)
                     {
@@ -2068,7 +2484,7 @@ namespace EchoDevGames.DeverQuest
                             DeverQuestContractStatus.Accepted);
                     }
                 }
-                if (canManage)
+                if (canManageContract)
                 {
                     if ((contract.status ==
                          DeverQuestContractStatus.Draft ||
@@ -3169,12 +3585,28 @@ namespace EchoDevGames.DeverQuest
                 "Profile",
                 EditorStyles.boldLabel);
 
+            bool canManageGuild =
+                DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild);
+            if (!canManageGuild)
+            {
+                EditorGUILayout.HelpBox(
+                    "Guild settings are read-only for this account.",
+                    MessageType.Info);
+            }
+            using (new EditorGUI.DisabledScope(!canManageGuild))
+            {
             EditorGUI.BeginChangeCheck();
             DrawPolishSetup(profile);
+            DrawChronicleIntegritySetup(profile);
             if (EditorGUI.EndChangeCheck())
             {
                 profile.Sanitize();
                 DeverQuestSettingsStore.Save();
+                DeverQuestGuildAccountService.AddAudit(
+                    "Guild Settings Updated",
+                    profile.developerName,
+                    "Appearance and Chronicle settings changed.");
                 Repaint();
             }
 
@@ -3206,6 +3638,10 @@ namespace EchoDevGames.DeverQuest
             {
                 if (GUILayout.Button("Reconfigure Profile"))
                 {
+                    DeverQuestGuildAccountService.AddAudit(
+                        "Profile Reconfiguration",
+                        profile.developerName,
+                        "First-time setup was reopened.");
                     profile.setupComplete = false;
                     DeverQuestSettingsStore.Save();
                     Repaint();
@@ -3228,10 +3664,15 @@ namespace EchoDevGames.DeverQuest
 
                     if (confirmed)
                     {
+                        DeverQuestGuildAccountService.AddAudit(
+                            "Profile Reset",
+                            profile.developerName,
+                            "Local DeverQuest settings were reset.");
                         DeverQuestSettingsStore.ResetProfile();
                         Repaint();
                     }
                 }
+            }
             }
         }
 

@@ -1,5 +1,25 @@
 # DeverQuest Developer Companion
 
+Current package version: **0.16.0**
+
+## Guild Accounts and Authority
+
+Guild leadership can create locally protected Adventurer accounts with locked
+identity, class, Guild Rank, progression, and Project assignments. CEO, Boss,
+Project Leader, and Member permissions are enforced at Contract, correction,
+settings, and work-input boundaries. Existing Adventurer data migrates into
+the founding CEO account.
+
+## Chronicle Integrity and Review
+
+DeverQuest can divide a workday into numbered Chronicles, seal their
+structured records with a chained SHA-256 audit journal, append correction
+requests without replacing original Quest records, and flag unusual activity
+for human review. Existing records remain compatible and appear as Legacy.
+
+Integrity seals are local tamper evidence, not authoritative security. A
+future shared Guild service is required for independently controlled records.
+
 DeverQuest is an editor-only Unity productivity utility for deliberate focus
 sessions, developer timecards, break reminders, rewards, and music playlists.
 

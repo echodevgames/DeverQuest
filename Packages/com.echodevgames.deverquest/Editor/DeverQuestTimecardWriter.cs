@@ -15,6 +15,7 @@ namespace EchoDevGames.DeverQuest
     {
         public string developerName = string.Empty;
         public string localDate = string.Empty;
+        public int chronicleIndex = 1;
         public List<DeverQuestSession> sessions =
             new List<DeverQuestSession>();
     }
@@ -58,12 +59,12 @@ namespace EchoDevGames.DeverQuest
                     DeverQuestPathUtility.MakeSafeFolderName(
                         profile.developerName);
 
-                string baseFileName =
-                    $"{dateKey}_{safeDeveloperName}_Timecard";
-
-                markdownPath = Path.Combine(
-                    developerFolder,
-                    baseFileName + ".md");
+                int chronicleIndex =
+                    DeverQuestChronicleIntegrityService
+                        .GetRequestedChronicleIndex(
+                            developerFolder, dateKey);
+                string baseFileName = BuildBaseFileName(
+                    dateKey, safeDeveloperName, chronicleIndex);
 
                 string dataPath = Path.Combine(
                     developerFolder,
@@ -74,6 +75,28 @@ namespace EchoDevGames.DeverQuest
                         dataPath,
                         profile.developerName,
                         dateKey);
+                record.chronicleIndex = chronicleIndex;
+
+                if (ShouldRollOver(profile, dataPath, record,
+                        completedSession.sessionId))
+                {
+                    chronicleIndex =
+                        DeverQuestChronicleIntegrityService
+                            .StartNewChronicle(
+                                developerFolder, dateKey);
+                    baseFileName = BuildBaseFileName(
+                        dateKey, safeDeveloperName, chronicleIndex);
+                    dataPath = Path.Combine(
+                        developerFolder,
+                        baseFileName + ".deverquest.json");
+                    record = CreateRecord(
+                        profile.developerName, dateKey);
+                    record.chronicleIndex = chronicleIndex;
+                }
+
+                markdownPath = Path.Combine(
+                    developerFolder,
+                    baseFileName + ".md");
 
                 int existingIndex = record.sessions.FindIndex(
                     session => session != null &&
@@ -100,12 +123,25 @@ namespace EchoDevGames.DeverQuest
 
                 string markdown = BuildMarkdown(
                     record,
-                    completedLocal.Date);
+                    completedLocal.Date,
+                    DeverQuestChronicleIntegrityService
+                        .LoadCorrections(dataPath));
 
                 File.WriteAllText(
                     markdownPath,
                     markdown,
                     new UTF8Encoding(false));
+
+                if (profile.chronicleIntegrityEnabled)
+                {
+                    DeverQuestChronicleIntegrityService.Seal(
+                        dataPath,
+                        profile.developerName,
+                        existingIndex >= 0
+                            ? "Chronicle Rewritten"
+                            : "Quest Appended",
+                        completedSession.sessionId);
+                }
 
                 return true;
             }
@@ -156,13 +192,47 @@ namespace EchoDevGames.DeverQuest
             {
                 developerName = developerName,
                 localDate = dateKey,
+                chronicleIndex = 1,
                 sessions = new List<DeverQuestSession>()
             };
         }
 
+        internal static bool TryRegenerate(
+            string dataPath,
+            out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            try
+            {
+                DeverQuestDailyRecord record =
+                    JsonUtility.FromJson<DeverQuestDailyRecord>(
+                        File.ReadAllText(dataPath));
+                DateTime date = DateTime.ParseExact(
+                    record.localDate, "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture);
+                string suffix = ".deverquest.json";
+                string markdownPath = dataPath.EndsWith(suffix)
+                    ? dataPath.Substring(
+                        0, dataPath.Length - suffix.Length) + ".md"
+                    : Path.ChangeExtension(dataPath, ".md");
+                File.WriteAllText(markdownPath,
+                    BuildMarkdown(record, date,
+                        DeverQuestChronicleIntegrityService
+                            .LoadCorrections(dataPath)),
+                    new UTF8Encoding(false));
+                return true;
+            }
+            catch (Exception exception)
+            {
+                errorMessage = exception.Message;
+                return false;
+            }
+        }
+
         private static string BuildMarkdown(
             DeverQuestDailyRecord record,
-            DateTime localDate)
+            DateTime localDate,
+            IReadOnlyList<DeverQuestCorrection> corrections)
         {
             double totalFocused = record.sessions.Sum(
                 session => session.accumulatedFocusedSeconds);
@@ -205,6 +275,8 @@ namespace EchoDevGames.DeverQuest
                 $"**Level:** {adventurer.level} · " +
                 $"**Guild Rank:** {Escape(adventurer.guildRank)}  ");
             builder.AppendLine($"**Date:** {localDate:MMMM d, yyyy}  ");
+            builder.AppendLine(
+                $"**Chronicle:** {Math.Max(1, record.chronicleIndex)}  ");
             builder.AppendLine($"**Sessions:** {record.sessions.Count}");
             builder.AppendLine();
             builder.AppendLine("## Daily Totals");
@@ -235,11 +307,84 @@ namespace EchoDevGames.DeverQuest
                 AppendSession(builder, record.sessions[index], index + 1);
             }
 
+            AppendCorrections(builder, corrections);
+
             builder.AppendLine();
             builder.AppendLine(
                 "_Generated by DeverQuest Developer Companion._");
 
             return builder.ToString();
+        }
+
+        private static void AppendCorrections(
+            StringBuilder builder,
+            IReadOnlyList<DeverQuestCorrection> corrections)
+        {
+            if (corrections == null || corrections.Count == 0)
+            {
+                return;
+            }
+            builder.AppendLine();
+            builder.AppendLine("## Chronicle Corrections");
+            builder.AppendLine();
+            builder.AppendLine(
+                "_Corrections are appended; original Quest records remain unchanged._");
+            foreach (DeverQuestCorrection correction in corrections)
+            {
+                builder.AppendLine();
+                builder.AppendLine(
+                    $"### {Escape(correction.sessionTitle)} — " +
+                    $"{Escape(correction.status)}");
+                builder.AppendLine();
+                builder.AppendLine(
+                    $"- **Requested By:** {Escape(correction.requestedBy)}");
+                builder.AppendLine(
+                    $"- **Requested:** {Escape(correction.requestedUtc)}");
+                builder.AppendLine(
+                    $"- **Reason:** {Escape(correction.reason)}");
+                builder.AppendLine(
+                    $"- **Corrected Record:** " +
+                    $"{EscapeMultiline(correction.correctedValue)}");
+                if (!string.IsNullOrWhiteSpace(correction.reviewedBy))
+                {
+                    builder.AppendLine(
+                        $"- **Reviewed By:** " +
+                        $"{Escape(correction.reviewedBy)}");
+                }
+            }
+        }
+
+        private static string BuildBaseFileName(
+            string dateKey,
+            string safeDeveloperName,
+            int chronicleIndex)
+        {
+            string baseName =
+                $"{dateKey}_{safeDeveloperName}_Timecard";
+            return chronicleIndex <= 1
+                ? baseName
+                : $"{baseName}_Chronicle_{chronicleIndex:00}";
+        }
+
+        private static bool ShouldRollOver(
+            DeverQuestProfile profile,
+            string dataPath,
+            DeverQuestDailyRecord record,
+            string sessionId)
+        {
+            if (record.sessions.Any(
+                    item => item != null &&
+                            item.sessionId == sessionId))
+            {
+                return false;
+            }
+            if (record.sessions.Count >= profile.chronicleMaxSessions)
+            {
+                return true;
+            }
+            return File.Exists(dataPath) &&
+                   new FileInfo(dataPath).Length >=
+                   profile.chronicleMaxKilobytes * 1024L;
         }
 
         private static void AppendSession(
@@ -296,6 +441,26 @@ namespace EchoDevGames.DeverQuest
                 $"- **Focused Work:** {FormatDuration(session.accumulatedFocusedSeconds)}");
             builder.AppendLine(
                 $"- **Paused Time:** {FormatDuration(session.accumulatedPausedSeconds)}");
+            double classifiedPaused =
+                session.meditationSeconds +
+                session.approvedBreakSeconds +
+                session.idleUnverifiedSeconds;
+            double legacyUnclassified =
+                Math.Max(0d,
+                    session.accumulatedPausedSeconds -
+                    classifiedPaused);
+            builder.AppendLine(
+                $"- **Time Classification:** Focused " +
+                $"{FormatDuration(session.accumulatedFocusedSeconds)} · " +
+                $"Meditation {FormatDuration(session.meditationSeconds)} · " +
+                $"Approved Break " +
+                $"{FormatDuration(session.approvedBreakSeconds)} · " +
+                $"Idle/Unverified " +
+                $"{FormatDuration(session.idleUnverifiedSeconds)}" +
+                (legacyUnclassified > 0d
+                    ? $" · Legacy Unclassified " +
+                      $"{FormatDuration(legacyUnclassified)}"
+                    : string.Empty));
 
             if (!string.IsNullOrWhiteSpace(session.goal))
             {

@@ -182,6 +182,7 @@ namespace EchoDevGames.DeverQuest
             EditorPrefs.SetString(
                 AdventurerKey,
                 JsonUtility.ToJson(Adventurer));
+            DeverQuestGuildAccountService.SyncFromAdventurer();
         }
 
         private static void Load()

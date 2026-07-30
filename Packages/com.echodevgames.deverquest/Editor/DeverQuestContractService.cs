@@ -1,6 +1,7 @@
 //----- DeverQuestContractService.cs START -----
 
 using UnityEditor;
+using UnityEngine;
 
 namespace EchoDevGames.DeverQuest
 {
@@ -15,9 +16,29 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
 
+            bool leadershipAction =
+                status == DeverQuestContractStatus.Offered ||
+                status == DeverQuestContractStatus.Returned ||
+                status == DeverQuestContractStatus.Approved ||
+                status == DeverQuestContractStatus.Completed;
+            if (leadershipAction &&
+                !DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageContracts,
+                    contract.projectName))
+            {
+                Debug.LogWarning(
+                    "[DeverQuest] Current Guild account cannot manage " +
+                    $"Contracts for {contract.projectName}.");
+                return;
+            }
+
             contract.status = status;
             EditorUtility.SetDirty(contract);
             AssetDatabase.SaveAssets();
+            DeverQuestGuildAccountService.AddAudit(
+                "Contract " + status,
+                contract.contractTitle,
+                contract.projectName);
         }
 
         public static bool SetStatus(
