@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0f7b6a35f487634680b6890c9c714b4, type: 3}
+  m_Name: Cloth Pants
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestEquipment
+  equipmentId: 7c083eaa5ca14750b83fc83c4b36a955
+  displayName: Cloth Pants
+  description: Cloth Pants
+  slot: 1
+  armorClassBonus: 2
+  abilityBonusType: 3
+  abilityBonus: 0
+  minimumLevel: 1

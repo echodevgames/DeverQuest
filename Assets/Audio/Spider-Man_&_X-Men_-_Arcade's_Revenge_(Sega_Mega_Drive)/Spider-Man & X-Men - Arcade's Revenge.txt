@@ -1,0 +1,49 @@
+***********************************************
+* VGM music package                           *
+* https://vgmrips.net/                        *
+***********************************************
+Game name:           Spider-Man & X-Men:
+                     Arcade's Revenge
+System:              Sega Mega Drive / Genesis
+Music hardware:      YM2612
+
+Music author:        Geoff Follin,
+                     Tim Follin,
+                     Tony Williams
+Game developer:      Software Creations
+Game publisher:      Flying Edge
+Game release date:   1993
+
+Package created by:  DJ Squarewave
+Package version:     1.07
+
+Song list, in approximate game order:
+Song name                           Length:
+                                    Total  Loop
+01 Title Theme                      1:31   -
+02 Interlude ~ Briefings            1:25   1:23
+03 Spider-Man                       3:44   3:40
+04 Wolverine                        2:56   2:55
+05 Cyclops                          3:46   3:40
+06 Storm                            4:10   4:08
+07 Gambit                           4:05   3:56
+08 Final Stage                      1:22   0:13
+09 Ending Theme                     1:21   -
+10 Game Over                        0:04   -
+11 High Score Table                 1:47   1:04
+
+Total Length                       26:13  47:12
+
+
+Notes:
+Tagged by MisterHarlequin.
+
+Release notes from project2612; names/dates lost:
+1.05 Sound Images is Tony Williams
+
+
+Package history:
+1.06 2022-01-04 andlabs: Fixed txt file for
+ vgmrips.
+1.07 2022-04-16 The789Guy: Identified
+ usage of unknown track.

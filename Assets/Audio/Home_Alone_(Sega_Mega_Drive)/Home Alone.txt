@@ -1,0 +1,230 @@
+***********************************************
+* VGM music package                           *
+* https://vgmrips.net/                        *
+***********************************************
+Game name:           Home Alone
+System:              Sega Mega Drive / Genesis
+Music hardware:      YM2612, SEGA VDP PSG
+
+Music author:        Clifford Falls,
+                     Rolf Weber
+Game developer:      Brian A. Rice, Inc.
+Game publisher:      Sega
+Game release date:   1992-11 (E) / 1992-12 (U)
+
+Package created by:  BuskinCothurn, RN22
+Package version:     2.31
+
+Song list, in approximate game order:
+Song name                           Length:
+                                    Total  Loop
+01 Title Screen                     0:30   -
+02 Options Menu                     0:45   0:28
+03 Outside                          1:48   1:44
+04 Entrance                         0:03   -
+05 Blueprints, Traps                1:06   1:02
+06 Weapons Inventory                1:19   1:15
+07 Old Man Marley's House           1:03   1:01
+08 Colonial House                   1:40   1:36
+09 Country House                    0:42   0:40
+10 McCallister Mansion              2:00   1:00
+11 Ultra Modern House               1:46   1:28
+12 Good Ending, Staff Roll          1:13   -
+13 Title Screen (Extended)          0:30   0:15
+14 Good Ending, Staff Roll
+   (Extended)                       1:13   1:13
+
+Total Length                       15:39  27:22
+
+
+Notes:
+This game was based on the original movie,
+Home Alone, Kevin's been left "home alone"
+while his family are going on a vacation.
+So, Kevin took his hands to fight against
+burglars Harry and Marv. In the movie,
+Kevin guard his house, and set booby traps
+inside to keep Harry and Marv stealing items.
+But in this game, different houses are guarded
+by Kevin. This game uses GEMS sound driver for
+the music and sounds, same as my Kawasaki VGM
+pack.
+
+
+So, basically. BuskinCothurn did a full VGM
+pack of this game, Home Alone. The difference
+between BuskinCothurn's Ver 1.00 pack, and My
+Ver 2.00 pack, is much longer time length.
+Why? To give the tracks more consistent loops
+and looks like it ripped from that game.
+Although, andlabs did mentioned this.
+
+-The composer field in the pack (Rolf Weber,
+Cliff Falls) does not match the composer
+field in the .txt file (Steve Collett,
+Nick Stroud). According to the game's credits
+it should be the former (and it should also
+be Clifford Falls for consistency with the
+packs already on the site).
+
+Edit: Re-ripped all the tracks of this game
+and give accurate tagging, based on
+BuskinCothurn's tracks, and Sega Retro.
+
+The timing on Weapons Inventory seems wonky,
+noticeable at the start of every measure when
+the two rapid notes in the bell-ish lead come
+in.
+
+Edit: Maybe it's just the driver? I've had no
+problems logging this track. Also, on the
+second loop. I've trimmed the second bell-ish
+drum part with the help of vgmlpfnd. Although
+the first loop was seem to have a bell-ish
+drum part in the beginning of the track, while
+the second loop part, there's no bell-ish drum
+part played on that loop.
+
+Is it just me or is the timing on the opening
+chord / first chord of the loop of McCallister
+Mansion off? This doesn't seem like a looping
+issue this time since it's also apparent on
+the first go...
+
+Edit: There's the second part of this track
+which finding exact loop points is very
+difficult, I use vgmlpfnd as a guide on where
+do I put the exact loop. So, it might be off.
+But, who knows?
+
+There appears to be a brief pause at Country
+House's loop point. There might be a shorter
+one on Ultra Modern House as well?
+
+Edit: Yes, it is. On what I hear during
+logging, there's a short pause on track
+09's Country House. Don't know what cause
+about it. I did check each loops on Audacity
+by using duplication method. It means that I
+have to trim every end of the loop. And I
+confirmed that, There's a short pause on this
+track, and I can't fix it by myself. Probably,
+GEMS driver caused this issue. I have no
+choice, but to keep it as original. Since it
+is what it is supposed to be a short pause on
+that track, and I can't do anything about it,
+even when I tried to remove it, there's some
+note errors at the start, you know what I
+mean.
+
+About Track 11's Ultra Modern House. I think,
+there's no brief pause when I logged it. It
+plays like normal. Again, maybe the GEMS
+driver? Also, I've included the "In-game
+version of this track, since what I believe
+that this track loops up to 12.
+
+
+Almost 8 months, since BuskinCothurn
+didn't update this VGM pack, so I had to
+do it by myself, it's because the musics
+of this game is so good to hear in my
+perspective.
+
+Track Names are taken from the sound test
+of the game, and BuskinCothurn's VGM pack.
+Track orders are based on the sound test.
+
+Note: Track 07's chime notes is off and
+delayed every part of that track, I mean
+the whole song of this is just goes slowly
+moves the chime notes into the another part
+of the song. And on my first attempt doing
+this, it took me 5 hours on trying to log it.
+And I can almost hear the higher chime notes
+played at the beginning of the track, on the
+second part of the track after the first
+wah-wah part. The tricky part is, to find
+where the exact loop points I need to trim.
+Also, that thing is huge. 5 hours of logging
+this track gives me at around 666MB for my
+first attempt. My best solution is, I'll try
+to log it 24 hours on my cousin's PC. As long
+as it didn't shuts off randomly. Just for you,
+VGM listeners. I'll just put the full VGM rip
+pack on my MEGA.nz link. You can find it on
+the external links section. VGMRips version
+may not include this In-game track. Like I
+said, this thing is huge. But not right now.
+Maybe on the next update of this VGM pack.
+Maybe Ver 2.50? I'll just update it onto
+the submissions thread of this pack. Or if
+this thing listed to the site, I'll just
+edit the external links on the front page of
+this VGM pack.
+
+Except.....
+
+Track 05's Blueprint. There's a part where,
+drums get silenced. So i've included it in
+VGMrips.
+
+I included the looped version of Track 12's
+Good Ending and Staff Roll. Why, I'm jamming
+to this song, and I'm so bored repeating this
+over and over. So I'll add the custom loop of
+this track without clicking repeat over and
+over, and it just goes infinitely playing this
+track.
+
+Took me 3 days to re-rip this, and trying to
+find the exact loop. And research about this
+game. Because what depends on the track, is
+randomly playing notes, Like Track 08 and 11.
+I had some problems trimming this music. But,
+I'm trying my best to make this VGM pack alook
+more like the game's music itself.
+
+Ver 2.10 update:
+Thank god, I fixed track 12 and 14's loop
+points, and I just knew something was off.
+I just watched the whole gameplay of this game
+and the staff roll music was cutted off when I
+use vgm_sptd. 
+
+Ver 2.30 update:
+Re-optvgm'ed and re-vgm_cmp'ed.
+
+
+Generated by BlastEm 0.6.3 
+(pre-dc4268a778bc) AUG-23-2022.
+-RN22.
+
+Size reduction:
+1. optvgm: 79.6 MB -> 50.0 MB (62.8 %)
+2. vgm_cmp: 50.0 MB -> 11.1 MB (22.3 %)
+Total: 79.6 MB -> 11.1 MB (14.0 %)
+
+External links:
+Sega Retro:
+ https://segaretro.org/Home_Alone
+Wikipedia: 
+ https://en.wikipedia.org/wiki/Home_Alone_(video_game)
+
+
+Package history:
+1.00 2021-12-23 BuskinCothurn: Initial
+ release.
+2.00 2022-08-30 RN22: Fully re-ripped on
+ BlastEm, screenshot taken on Sega Retro,
+ Fixed errors including the composer,
+ added external links, added accurate
+ description on notes section, reduced
+ volume gain, and added extended tracks.
+2.10 2022-09-05 RN22: Fixed track 12 and 14's
+ loop points. Changed tagging on track 05, and
+ in-game version of that track.
+2.30 2022-11-18 RN22: Re-sized reduction.
+2.31 2023-06-10 andlabs: Updated the
+ handle of the original pack author,
+ on their request.

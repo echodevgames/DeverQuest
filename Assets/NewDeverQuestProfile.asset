@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50c046ee1bb6e9f4aa16412efb430faa, type: 3}
+  m_Name: NewDeverQuestProfile
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestProfile
+  profileId: 1a05e522d9954210b42dc0d9dd58e4d8
+  displayName: New Quest Profile
+  description: 
+  availableToMembers: 1
+  minimumAdventurerLevel: 1
+  projectName: 
+  taskName: 
+  department: Programming
+  goalTemplate: 
+  suggestedFocusMinutes: 50
+  baseCopper: 10
+  baseExperience: 10
+  workBlockMinutes: 30
+  copperPerWorkBlock: 25
+  experiencePerWorkBlock: 50

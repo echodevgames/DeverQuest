@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94d364b1d2c383442b4a4db50228f911, type: 3}
+  m_Name: NewQuestContract
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
+  contractId: 0c2e842ca7af449eaa86384bf8d9a75f
+  contractTitle: New Quest Contract
+  status: 3
+  priority: 2
+  createdBy: Ajnaag
+  assignedAdventurer: Ajnaag
+  openToAnyMember: 1
+  minimumAdventurerLevel: 1
+  dueDate: ever
+  questProfile: {fileID: 11400000, guid: d82df38bb07cb754baa5b9f9fe57174e, type: 2}
+  projectName: 
+  taskName: 
+  department: Programming
+  objective: 
+  deliverables: 
+  suggestedFocusMinutes: 50
+  baseCopper: 10
+  baseExperience: 10
+  workBlockMinutes: 30
+  copperPerWorkBlock: 25
+  experiencePerWorkBlock: 50
+  encounterProfileId: 
+  encounterNotes: 
