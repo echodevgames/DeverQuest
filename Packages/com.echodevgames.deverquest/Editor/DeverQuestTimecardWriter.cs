@@ -259,6 +259,19 @@ namespace EchoDevGames.DeverQuest
             builder.AppendLine();
             builder.AppendLine($"- **Project:** {Escape(session.projectName)}");
             builder.AppendLine($"- **Department:** {Escape(session.category)}");
+            if (session.usesQuestProfile)
+            {
+                builder.AppendLine(
+                    $"- **Quest Profile:** " +
+                    $"{Escape(session.questProfileName)}");
+                builder.AppendLine(
+                    $"- **Profile Spoils:** " +
+                    $"{DeverQuestAdventurerService.FormatCoins(session.questBaseCopper)} " +
+                    $"+ {session.questBaseExperience} XP base; " +
+                    $"{DeverQuestAdventurerService.FormatCoins(session.questCopperPerWorkBlock)} " +
+                    $"+ {session.questExperiencePerWorkBlock} XP per " +
+                    $"{session.questWorkBlockMinutes}m block");
+            }
             builder.AppendLine($"- **Started:** {start:h:mm tt}");
             builder.AppendLine($"- **Ended:** {completed:h:mm tt}");
             builder.AppendLine(
@@ -287,6 +300,10 @@ namespace EchoDevGames.DeverQuest
             {
                 foreach (DeverQuestCommitEntry entry in session.commitEntries)
                 {
+                    string entryType =
+                        string.IsNullOrWhiteSpace(entry.entryType)
+                            ? "Legacy Entry"
+                            : entry.entryType;
                     DateTime created = new DateTime(
                             entry.createdUtcTicks,
                             DateTimeKind.Utc)
@@ -294,7 +311,7 @@ namespace EchoDevGames.DeverQuest
 
                     builder.Append(
                         $"- **{created:h:mm tt}** " +
-                        $"[{Escape(entry.entryType)}] " +
+                        $"[{Escape(entryType)}] " +
                         $"`+{FormatDuration(entry.focusedSecondsAtEntry)}` — " +
                         Escape(entry.comment));
 

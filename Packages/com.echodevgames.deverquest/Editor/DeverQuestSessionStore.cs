@@ -67,7 +67,8 @@ namespace EchoDevGames.DeverQuest
             string projectName,
             string taskName,
             string category,
-            string goal)
+            string goal,
+            DeverQuestQuestProfile questProfile = null)
         {
             if (HasActiveSession)
             {
@@ -86,6 +87,37 @@ namespace EchoDevGames.DeverQuest
                 taskName = taskName,
                 category = category,
                 goal = goal,
+                usesQuestProfile = questProfile != null,
+                questProfileId =
+                    questProfile == null
+                        ? string.Empty
+                        : questProfile.ProfileId,
+                questProfileName =
+                    questProfile == null
+                        ? string.Empty
+                        : questProfile.displayName,
+                questSuggestedFocusMinutes =
+                    questProfile == null
+                        ? 0
+                        : questProfile.suggestedFocusMinutes,
+                questBaseCopper =
+                    questProfile == null ? 0 : questProfile.baseCopper,
+                questBaseExperience =
+                    questProfile == null
+                        ? 0
+                        : questProfile.baseExperience,
+                questWorkBlockMinutes =
+                    questProfile == null
+                        ? 0
+                        : questProfile.workBlockMinutes,
+                questCopperPerWorkBlock =
+                    questProfile == null
+                        ? 0
+                        : questProfile.copperPerWorkBlock,
+                questExperiencePerWorkBlock =
+                    questProfile == null
+                        ? 0
+                        : questProfile.experiencePerWorkBlock,
                 state = DeverQuestSessionState.Running,
                 startedUtcTicks = nowTicks,
                 lastStateChangeUtcTicks = nowTicks

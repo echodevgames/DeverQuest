@@ -22,7 +22,7 @@ namespace EchoDevGames.DeverQuest
     [Serializable]
     internal sealed class DeverQuestProfile
     {
-        public const int CurrentDataVersion = 9;
+        public const int CurrentDataVersion = 10;
 
         public int dataVersion = CurrentDataVersion;
         public bool setupComplete;
@@ -60,6 +60,8 @@ namespace EchoDevGames.DeverQuest
         public int experiencePerWorkBlock = 50;
         public int dailyCopperBonus = 100;
         public int dailyExperienceBonus = 100;
+        public int baseQuestCopper = 10;
+        public int baseQuestExperience = 10;
 
         public bool autoPlayMusicOnSessionStart;
         public bool pauseMusicWithSession = true;
@@ -157,6 +159,12 @@ namespace EchoDevGames.DeverQuest
                 dailyExperienceBonus = 100;
             }
 
+            if (dataVersion < 10)
+            {
+                baseQuestCopper = 10;
+                baseQuestExperience = 10;
+            }
+
             developerName = developerName?.Trim() ?? string.Empty;
             timecardRootPath = timecardRootPath?.Trim() ?? string.Empty;
             lastProjectName = lastProjectName?.Trim() ?? string.Empty;
@@ -206,6 +214,9 @@ namespace EchoDevGames.DeverQuest
             dailyCopperBonus = Math.Max(0, dailyCopperBonus);
             dailyExperienceBonus =
                 Math.Max(0, dailyExperienceBonus);
+            baseQuestCopper = Math.Max(0, baseQuestCopper);
+            baseQuestExperience =
+                Math.Max(0, baseQuestExperience);
             if (!Enum.IsDefined(typeof(DeverQuestTheme), theme))
             {
                 theme = DeverQuestTheme.EchoNeon;

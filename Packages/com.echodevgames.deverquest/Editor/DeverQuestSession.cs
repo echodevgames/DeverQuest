@@ -84,6 +84,15 @@ namespace EchoDevGames.DeverQuest
         public string taskName = string.Empty;
         public string category = string.Empty;
         public string goal = string.Empty;
+        public bool usesQuestProfile;
+        public string questProfileId = string.Empty;
+        public string questProfileName = string.Empty;
+        public int questSuggestedFocusMinutes;
+        public int questBaseCopper;
+        public int questBaseExperience;
+        public int questWorkBlockMinutes;
+        public int questCopperPerWorkBlock;
+        public int questExperiencePerWorkBlock;
 
         public DeverQuestSessionState state =
             DeverQuestSessionState.None;
@@ -129,6 +138,18 @@ namespace EchoDevGames.DeverQuest
             taskName = taskName?.Trim() ?? string.Empty;
             category = category?.Trim() ?? string.Empty;
             goal = goal?.Trim() ?? string.Empty;
+            questProfileId = questProfileId?.Trim() ?? string.Empty;
+            questProfileName = questProfileName?.Trim() ?? string.Empty;
+            questSuggestedFocusMinutes =
+                Math.Max(0, questSuggestedFocusMinutes);
+            questBaseCopper = Math.Max(0, questBaseCopper);
+            questBaseExperience = Math.Max(0, questBaseExperience);
+            questWorkBlockMinutes =
+                Math.Max(0, questWorkBlockMinutes);
+            questCopperPerWorkBlock =
+                Math.Max(0, questCopperPerWorkBlock);
+            questExperiencePerWorkBlock =
+                Math.Max(0, questExperiencePerWorkBlock);
             pauseReason = pauseReason?.Trim() ?? string.Empty;
             if (state == DeverQuestSessionState.Running ||
                 (pauseReason != "Idle Detection" &&

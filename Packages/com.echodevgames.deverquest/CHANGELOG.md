@@ -1,5 +1,58 @@
 # Changelog
 
+## [0.13.0] - 2026-07-30
+
+### Added
+
+- Reusable DeverQuest Quest Profile ScriptableObject assets.
+- Unlimited administrator-authored profiles containing identity, project,
+  task, department, objective, suggested duration, eligibility, coin, XP, and
+  work-block payout rules.
+- Create Quest Profile and Inspect Selected Profile actions for Guild
+  leadership.
+- Member eligibility rules for approved profiles and minimum Adventurer level.
+- Quest Profile identity, suggested focus time, and projected profile spoils
+  in the active workflow.
+- Immutable Quest Profile snapshots in session data and generated Chronicles.
+
+### Permissions
+
+- Members must select an available, level-appropriate Quest Profile.
+- Project Leaders, Bosses, and CEOs can create profiles and accept custom
+  Quests.
+- Guild Rank remains locally managed in this foundation release; authoritative
+  accounts and administrative locking are reserved for the Guild
+  Administration milestone.
+
+### Compatibility
+
+- Existing custom Quests continue using the global reward configuration.
+- Editing a Quest Profile never changes an already accepted or completed
+  Quest because payout values are copied into the session snapshot.
+
+## [0.12.2] - 2026-07-30
+
+### Changed
+
+- Quest Turn-In is now two focused steps instead of six:
+  Chronicle review followed by Spoils and completion.
+- Git commit/push controls, Quest Log review, and Closing Notes share the
+  Chronicle step.
+- The second step previews rewards and completes the Quest with one explicit
+  Claim Spoils action.
+- The temporary manual coin-spending control has been removed. Coin remains
+  earn-only until the Guild Shop provides meaningful purchases.
+
+### Added
+
+- Configurable base coin and XP for every completed Quest.
+- Work-block and Daily Decree rewards stack on the base Quest payout.
+
+### Fixed
+
+- Older commit records with an empty provenance value now print as
+  `[Legacy Entry]` instead of `[]`.
+
 ## [0.12.1] - 2026-07-30
 
 ### Fixed

@@ -120,11 +120,34 @@ namespace EchoDevGames.DeverQuest
 
             EnsureDefaults();
 
+            int baseCopper = session.usesQuestProfile
+                ? session.questBaseCopper
+                : profile.baseQuestCopper;
+            int baseExperience = session.usesQuestProfile
+                ? session.questBaseExperience
+                : profile.baseQuestExperience;
+            int workBlockMinutes = session.usesQuestProfile
+                ? Math.Max(1, session.questWorkBlockMinutes)
+                : profile.rewardWorkBlockMinutes;
+            int copperPerBlock = session.usesQuestProfile
+                ? session.questCopperPerWorkBlock
+                : profile.copperPerWorkBlock;
+            int experiencePerBlock = session.usesQuestProfile
+                ? session.questExperiencePerWorkBlock
+                : profile.experiencePerWorkBlock;
+
+            AwardProgression(
+                session,
+                baseCopper,
+                baseExperience,
+                "Quest Completion",
+                "Quest successfully turned in");
+
             Wallet.unrewardedWorkSeconds +=
                 session.accumulatedFocusedSeconds;
 
             double blockSeconds =
-                Math.Max(60d, profile.rewardWorkBlockMinutes * 60d);
+                Math.Max(60d, workBlockMinutes * 60d);
 
             int completedBlocks =
                 (int)Math.Floor(
@@ -137,8 +160,8 @@ namespace EchoDevGames.DeverQuest
 
                 AwardProgression(
                     session,
-                    completedBlocks * (long)profile.copperPerWorkBlock,
-                    completedBlocks * (long)profile.experiencePerWorkBlock,
+                    completedBlocks * (long)copperPerBlock,
+                    completedBlocks * (long)experiencePerBlock,
                     "Work Block",
                     $"{completedBlocks} completed work block(s)");
             }

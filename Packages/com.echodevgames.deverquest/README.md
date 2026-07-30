@@ -72,6 +72,9 @@ You can also install it through Unity's Package Manager by choosing
 - Persistent character class, Guild Rank, XP, level, and lifetime progression
 - Coin rewards displayed as copper, silver, gold, and platinum at 100:1
 - Configurable work-block and Daily Decree coin/XP awards
+- Administrator-authored Quest Profile assets with reusable objectives,
+  eligibility, duration, and payout rules
+- Member profile selection plus leadership custom-Quest permissions
 - Duplicate-award protection
 - Reusable AudioClip playlist assets
 - Playback, navigation, shuffle, repeat, and volume controls

@@ -130,6 +130,10 @@ copper and displayed using 100 copper per silver, 100 silver per gold, and 100
 gold per platinum. Daily Decrees can award additional coin and XP. Session
 processing is protected against duplicate awards.
 
+Every completed Quest can also award configurable base coin and XP, ensuring
+short intentional Quests still advance the Adventurer. Coin remains earn-only
+until the Guild Shop milestone introduces meaningful purchases.
+
 ## Adventurer Character Sheet
 
 Configure an Adventurer name, Guild, class, and Guild Rank in setup. Classes
@@ -139,6 +143,19 @@ records level-up events in the daily ledger.
 
 Remaining legacy reward balances migrate once at one reward minute per copper.
 Historical reward transactions remain visible as legacy minutes.
+
+## Quest Profiles
+
+Project Leaders, Bosses, and CEOs can create unlimited Quest Profile assets
+from the Accept Quest panel or through `Assets → Create → DeverQuest → Quest
+Profile`. Each profile can define its project, task, department, objective,
+suggested focus duration, minimum level, Member availability, base coin and XP,
+and work-block payout.
+
+Members must select an available profile for which they meet the minimum level.
+Leadership can also accept custom Quests. DeverQuest copies the selected
+profile's values into the session when the Quest is accepted, so later asset
+edits never rewrite historical payouts or Chronicles.
 
 ## Playlists
 

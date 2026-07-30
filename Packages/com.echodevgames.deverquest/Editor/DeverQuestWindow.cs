@@ -13,12 +13,8 @@ namespace EchoDevGames.DeverQuest
     {
         private enum QuestTurnInStep
         {
-            ReviewQuest = 0,
-            ReviewGit = 1,
-            ReviewLog = 2,
-            ClosingNotes = 3,
-            Rewards = 4,
-            Confirm = 5
+            Chronicle = 0,
+            Rewards = 1
         }
 
         private const float MinimumWindowWidth = 430f;
@@ -34,13 +30,14 @@ namespace EchoDevGames.DeverQuest
         private string newTaskName = string.Empty;
         private string newCategory = "Programming";
         private string newGoal = string.Empty;
+        private DeverQuestQuestProfile selectedQuestProfile;
+        private string appliedQuestProfileId = string.Empty;
         private string commitComment = string.Empty;
         private string commitBranch = string.Empty;
         private string commitHash = string.Empty;
         private string closingNotes = string.Empty;
         private bool showFinalization;
         private bool resumeIfFinalizationCancelled;
-        private int spendCopper;
         private string rewardMessage = string.Empty;
         private bool historyFoldout;
         private DeverQuestHistoryRange historyRange =
@@ -57,7 +54,7 @@ namespace EchoDevGames.DeverQuest
         private string gitMessage = string.Empty;
         private bool gitOperationInProgress;
         private QuestTurnInStep turnInStep =
-            QuestTurnInStep.ReviewQuest;
+            QuestTurnInStep.Chronicle;
 
         [MenuItem("Tools/DeverQuest/Developer Companion")]
         public static void Open()
@@ -1368,6 +1365,16 @@ namespace EchoDevGames.DeverQuest
                     EditorGUILayout.IntField(
                         "Decree XP",
                         profile.dailyExperienceBonus);
+
+                profile.baseQuestCopper =
+                    EditorGUILayout.IntField(
+                        "Base Quest Copper",
+                        profile.baseQuestCopper);
+
+                profile.baseQuestExperience =
+                    EditorGUILayout.IntField(
+                        "Base Quest XP",
+                        profile.baseQuestExperience);
             }
 
             profile.Sanitize();
@@ -1445,39 +1452,10 @@ namespace EchoDevGames.DeverQuest
                     MessageType.Info);
             }
 
-            EditorGUILayout.Space(6f);
             EditorGUILayout.HelpBox(
-                "The Guild Shop arrives in a later milestone. This manual " +
-                "spend control supports testing and approved off-ledger " +
-                "rewards until shop items are available.",
+                "Coin can be spent when the Guild Shop opens in a future " +
+                "milestone. Until then, your Coin Purse is earn-only.",
                 MessageType.Info);
-            spendCopper = EditorGUILayout.IntField(
-                "Spend Copper",
-                spendCopper);
-            if (GUILayout.Button("Spend Approved Coin"))
-            {
-                if (DeverQuestAdventurerService.SpendCopper(
-                        spendCopper,
-                        out string error))
-                {
-                    rewardMessage =
-                        $"Spent {DeverQuestAdventurerService.FormatCoins(spendCopper)}.";
-                    DeverQuestSessionStore.AddRewardTransaction(
-                        new DeverQuestRewardTransaction
-                        {
-                            categoryName = "Coin Purse",
-                            transactionType = "Spent",
-                            copper = -spendCopper,
-                            createdUtcTicks = DateTime.UtcNow.Ticks,
-                            note = "Approved coin expenditure"
-                        });
-                    spendCopper = 0;
-                }
-                else
-                {
-                    rewardMessage = error;
-                }
-            }
         }
 
         private static void DrawAdventurerSheet()
@@ -1690,7 +1668,68 @@ namespace EchoDevGames.DeverQuest
                 "Focused time begins only when you press Accept Quest.",
                 MessageType.Info);
 
-            using (new EditorGUI.DisabledScope(profile.lockProjectName))
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            bool canCreateCustomQuest =
+                adventurer.guildRank != "Member";
+
+            EditorGUI.BeginChangeCheck();
+            selectedQuestProfile =
+                (DeverQuestQuestProfile)EditorGUILayout.ObjectField(
+                    "Quest Profile",
+                    selectedQuestProfile,
+                    typeof(DeverQuestQuestProfile),
+                    false);
+            if (EditorGUI.EndChangeCheck())
+            {
+                ApplySelectedQuestProfile();
+            }
+
+            if (canCreateCustomQuest)
+            {
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Create Quest Profile…"))
+                {
+                    CreateQuestProfileAsset();
+                }
+                if (selectedQuestProfile != null &&
+                    GUILayout.Button("Inspect Selected Profile"))
+                {
+                    Selection.activeObject = selectedQuestProfile;
+                    EditorGUIUtility.PingObject(selectedQuestProfile);
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+            else if (selectedQuestProfile == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "Members must select an approved Quest Profile before " +
+                    "accepting a Quest.",
+                    MessageType.Warning);
+            }
+
+            bool profileUnavailable =
+                !canCreateCustomQuest &&
+                selectedQuestProfile != null &&
+                (!selectedQuestProfile.availableToMembers ||
+                 adventurer.level <
+                 selectedQuestProfile.minimumAdventurerLevel);
+            if (profileUnavailable)
+            {
+                EditorGUILayout.HelpBox(
+                    !selectedQuestProfile.availableToMembers
+                        ? "This Quest Profile is reserved for Guild leadership."
+                        : $"Requires Adventurer Level " +
+                          $"{selectedQuestProfile.minimumAdventurerLevel}.",
+                    MessageType.Warning);
+            }
+
+            bool lockQuestFields =
+                !canCreateCustomQuest &&
+                selectedQuestProfile != null;
+
+            using (new EditorGUI.DisabledScope(
+                       profile.lockProjectName || lockQuestFields))
             {
                 newProjectName = EditorGUILayout.TextField(
                     "Project",
@@ -1699,22 +1738,38 @@ namespace EchoDevGames.DeverQuest
                         : newProjectName);
             }
 
-            newTaskName = EditorGUILayout.TextField(
-                "Task / Milestone",
-                newTaskName);
+            using (new EditorGUI.DisabledScope(lockQuestFields))
+            {
+                newTaskName = EditorGUILayout.TextField(
+                    "Task / Milestone",
+                    newTaskName);
 
-            newCategory = EditorGUILayout.TextField(
-                "Department",
-                newCategory);
+                newCategory = EditorGUILayout.TextField(
+                    "Department",
+                    newCategory);
 
-            EditorGUILayout.LabelField("Quest Goal");
-            newGoal = EditorGUILayout.TextArea(
-                newGoal,
-                GUILayout.MinHeight(54f));
+                EditorGUILayout.LabelField("Quest Goal");
+                newGoal = EditorGUILayout.TextArea(
+                    newGoal,
+                    GUILayout.MinHeight(54f));
+            }
+
+            if (selectedQuestProfile != null)
+            {
+                EditorGUILayout.LabelField(
+                    "Profile Spoils",
+                    $"{DeverQuestAdventurerService.FormatCoins(selectedQuestProfile.baseCopper)} " +
+                    $"+ {selectedQuestProfile.baseExperience} XP base · " +
+                    $"{DeverQuestAdventurerService.FormatCoins(selectedQuestProfile.copperPerWorkBlock)} " +
+                    $"+ {selectedQuestProfile.experiencePerWorkBlock} XP " +
+                    $"per {selectedQuestProfile.workBlockMinutes}m block");
+            }
 
             bool canStart =
                 !string.IsNullOrWhiteSpace(newProjectName) &&
-                !string.IsNullOrWhiteSpace(newTaskName);
+                !string.IsNullOrWhiteSpace(newTaskName) &&
+                !profileUnavailable &&
+                (canCreateCustomQuest || selectedQuestProfile != null);
 
             using (new EditorGUI.DisabledScope(!canStart))
             {
@@ -1730,11 +1785,64 @@ namespace EchoDevGames.DeverQuest
                         newProjectName,
                         newTaskName,
                         newCategory,
-                        newGoal);
+                        newGoal,
+                        selectedQuestProfile);
 
                     Repaint();
                 }
             }
+        }
+
+        private void ApplySelectedQuestProfile()
+        {
+            if (selectedQuestProfile == null)
+            {
+                appliedQuestProfileId = string.Empty;
+                return;
+            }
+
+            if (appliedQuestProfileId ==
+                selectedQuestProfile.ProfileId)
+            {
+                return;
+            }
+
+            appliedQuestProfileId = selectedQuestProfile.ProfileId;
+            if (!string.IsNullOrWhiteSpace(
+                    selectedQuestProfile.projectName))
+            {
+                newProjectName = selectedQuestProfile.projectName;
+            }
+            if (!string.IsNullOrWhiteSpace(
+                    selectedQuestProfile.taskName))
+            {
+                newTaskName = selectedQuestProfile.taskName;
+            }
+            newCategory = selectedQuestProfile.department;
+            newGoal = selectedQuestProfile.goalTemplate;
+        }
+
+        private void CreateQuestProfileAsset()
+        {
+            string path = EditorUtility.SaveFilePanelInProject(
+                "Create DeverQuest Quest Profile",
+                "NewDeverQuestProfile",
+                "asset",
+                "Choose where this Guild Quest Profile should be saved.");
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+
+            DeverQuestQuestProfile questProfile =
+                CreateInstance<DeverQuestQuestProfile>();
+            AssetDatabase.CreateAsset(questProfile, path);
+            AssetDatabase.SaveAssets();
+            selectedQuestProfile = questProfile;
+            appliedQuestProfileId = string.Empty;
+            ApplySelectedQuestProfile();
+            Selection.activeObject = questProfile;
+            EditorGUIUtility.PingObject(questProfile);
         }
 
         private void DrawActiveSession()
@@ -1803,6 +1911,15 @@ namespace EchoDevGames.DeverQuest
             DrawReadOnlyValue("Project", session.projectName);
             DrawReadOnlyValue("Task", session.taskName);
             DrawReadOnlyValue("Department", session.category);
+            if (session.usesQuestProfile)
+            {
+                DrawReadOnlyValue(
+                    "Quest Profile",
+                    session.questProfileName);
+                DrawReadOnlyValue(
+                    "Suggested Focus",
+                    $"{session.questSuggestedFocusMinutes} minutes");
+            }
             DrawReadOnlyValue(
                 "Started",
                 DeverQuestSessionStore
@@ -2402,7 +2519,7 @@ namespace EchoDevGames.DeverQuest
             }
 
             showFinalization = true;
-            turnInStep = QuestTurnInStep.ReviewQuest;
+            turnInStep = QuestTurnInStep.Chronicle;
             closingNotes = string.Empty;
             Repaint();
         }
@@ -2412,7 +2529,7 @@ namespace EchoDevGames.DeverQuest
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.LabelField(
-                $"Quest Turn-In · Step {(int)turnInStep + 1} of 6",
+                $"Quest Turn-In · Step {(int)turnInStep + 1} of 2",
                 EditorStyles.boldLabel);
 
             EditorGUILayout.HelpBox(
@@ -2420,44 +2537,62 @@ namespace EchoDevGames.DeverQuest
                 "closing notes. Continue Working will resume it.",
                 MessageType.Info);
 
-            DrawTurnInStep(session);
-
-            EditorGUILayout.BeginHorizontal();
-
-            using (new EditorGUI.DisabledScope(
-                       turnInStep == QuestTurnInStep.ReviewQuest))
+            if (turnInStep == QuestTurnInStep.Chronicle)
             {
-                if (GUILayout.Button("Back"))
+                EditorGUILayout.LabelField(
+                    "Review Chronicle",
+                    EditorStyles.boldLabel);
+                DrawReadOnlyValue("Quest", session.taskName);
+                DrawReadOnlyValue(
+                    "Focused",
+                    FormatDuration(
+                        DeverQuestSessionStore.GetFocusedSeconds()));
+
+                EditorGUILayout.Space(6f);
+                EditorGUILayout.LabelField("Final Quest Log Entry");
+                commitComment = EditorGUILayout.TextArea(
+                    commitComment,
+                    GUILayout.MinHeight(54f));
+                DrawGitPanel();
+                DrawQuestLogReview(session);
+
+                EditorGUILayout.Space(6f);
+                EditorGUILayout.LabelField(
+                    "Closing Notes",
+                    EditorStyles.boldLabel);
+                closingNotes = EditorGUILayout.TextArea(
+                    closingNotes,
+                    GUILayout.MinHeight(72f));
+
+                if (GUILayout.Button(
+                        "Review Spoils",
+                        GUILayout.Height(32f)))
                 {
-                    turnInStep =
-                        (QuestTurnInStep)((int)turnInStep - 1);
+                    turnInStep = QuestTurnInStep.Rewards;
                 }
             }
-
-            if (turnInStep < QuestTurnInStep.Confirm)
+            else
             {
-                string nextLabel =
-                    turnInStep == QuestTurnInStep.ReviewGit &&
-                    gitStatus != null &&
-                    gitStatus.IsRepository &&
-                    !gitStatus.IsClean
-                        ? "Continue With Pending Changes"
-                        : "Next";
-                if (GUILayout.Button(nextLabel))
+                DrawRewardPreview(session);
+                EditorGUILayout.HelpBox(
+                    "Claiming these spoils completes the Quest and writes " +
+                    "today's Chronicle.",
+                    MessageType.Info);
+
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Back to Chronicle"))
                 {
-                    turnInStep =
-                        (QuestTurnInStep)((int)turnInStep + 1);
+                    turnInStep = QuestTurnInStep.Chronicle;
                 }
+                if (GUILayout.Button(
+                        "Claim Spoils and Complete Quest",
+                        GUILayout.Height(34f)))
+                {
+                    FinalizeSession();
+                    GUIUtility.ExitGUI();
+                }
+                EditorGUILayout.EndHorizontal();
             }
-            else if (GUILayout.Button(
-                         "Turn In Quest and Write Ledger",
-                         GUILayout.Height(34f)))
-            {
-                FinalizeSession();
-                GUIUtility.ExitGUI();
-            }
-
-            EditorGUILayout.EndHorizontal();
 
             if (GUILayout.Button("Return to Quest"))
             {
@@ -2465,98 +2600,6 @@ namespace EchoDevGames.DeverQuest
             }
 
             EditorGUILayout.EndVertical();
-        }
-
-        private void DrawTurnInStep(DeverQuestSession session)
-        {
-            switch (turnInStep)
-            {
-                case QuestTurnInStep.ReviewQuest:
-                    EditorGUILayout.LabelField(
-                        "Review Quest",
-                        EditorStyles.boldLabel);
-                    DrawReadOnlyValue("Project", session.projectName);
-                    DrawReadOnlyValue("Task", session.taskName);
-                    DrawReadOnlyValue("Department", session.category);
-                    DrawReadOnlyValue(
-                        "Focused",
-                        FormatDuration(
-                            DeverQuestSessionStore.GetFocusedSeconds()));
-                    DrawReadOnlyValue(
-                        "Meditation",
-                        FormatDuration(
-                            DeverQuestSessionStore.GetPausedSeconds()));
-                    if (!string.IsNullOrWhiteSpace(session.goal))
-                    {
-                        EditorGUILayout.LabelField(
-                            "Objective",
-                            session.goal,
-                            wrappedLabelStyle);
-                    }
-                    break;
-
-                case QuestTurnInStep.ReviewGit:
-                    EditorGUILayout.LabelField(
-                        "Review Git",
-                        EditorStyles.boldLabel);
-                    EditorGUILayout.LabelField(
-                        "Commit Message");
-                    commitComment = EditorGUILayout.TextArea(
-                        commitComment,
-                        GUILayout.MinHeight(54f));
-                    DrawGitPanel();
-                    if (gitStatus != null &&
-                        gitStatus.IsRepository &&
-                        !gitStatus.IsClean)
-                    {
-                        EditorGUILayout.HelpBox(
-                            "Git still has pending changes. You may commit " +
-                            "them here, return to the Quest, or continue " +
-                            "without committing.",
-                            MessageType.Warning);
-                    }
-                    break;
-
-                case QuestTurnInStep.ReviewLog:
-                    DrawQuestLogReview(session);
-                    break;
-
-                case QuestTurnInStep.ClosingNotes:
-                    EditorGUILayout.LabelField(
-                        "Closing Notes",
-                        EditorStyles.boldLabel);
-                    closingNotes = EditorGUILayout.TextArea(
-                        closingNotes,
-                        GUILayout.MinHeight(90f));
-                    break;
-
-                case QuestTurnInStep.Rewards:
-                    DrawRewardPreview(session);
-                    break;
-
-                case QuestTurnInStep.Confirm:
-                    EditorGUILayout.LabelField(
-                        "Confirm Quest Turn-In",
-                        EditorStyles.boldLabel);
-                    EditorGUILayout.HelpBox(
-                        "This will complete the Quest, process rewards, " +
-                        "and write or update today's Quest Ledger.",
-                        MessageType.Info);
-                    DrawReadOnlyValue(
-                        "Focused",
-                        FormatDuration(
-                            DeverQuestSessionStore.GetFocusedSeconds()));
-                    DrawReadOnlyValue(
-                        "Quest Log Entries",
-                        (session.commitEntries?.Count ?? 0).ToString());
-                    EditorGUILayout.LabelField(
-                        "Closing Notes",
-                        string.IsNullOrWhiteSpace(closingNotes)
-                            ? "No closing notes recorded."
-                            : closingNotes,
-                        wrappedLabelStyle);
-                    break;
-            }
         }
 
         private void DrawQuestLogReview(
@@ -2584,7 +2627,9 @@ namespace EchoDevGames.DeverQuest
                             ? $"Git Push {entry.commitHash}"
                         : entry.entryType == "Linked Commit Note"
                             ? $"Linked to {entry.commitHash}"
-                            : entry.entryType;
+                    : string.IsNullOrWhiteSpace(entry.entryType)
+                        ? "Legacy Entry"
+                        : entry.entryType;
                 EditorGUILayout.LabelField(
                     gitLabel,
                     $"{entry.comment} · {entry.branch}",
@@ -2610,8 +2655,23 @@ namespace EchoDevGames.DeverQuest
                 DeverQuestRewardService.Wallet
                     .unrewardedWorkSeconds +
                 DeverQuestSessionStore.GetFocusedSeconds();
+            int workBlockMinutes = session.usesQuestProfile
+                ? Math.Max(1, session.questWorkBlockMinutes)
+                : profile.rewardWorkBlockMinutes;
+            int copperPerBlock = session.usesQuestProfile
+                ? session.questCopperPerWorkBlock
+                : profile.copperPerWorkBlock;
+            int experiencePerBlock = session.usesQuestProfile
+                ? session.questExperiencePerWorkBlock
+                : profile.experiencePerWorkBlock;
+            int baseCopper = session.usesQuestProfile
+                ? session.questBaseCopper
+                : profile.baseQuestCopper;
+            int baseExperience = session.usesQuestProfile
+                ? session.questBaseExperience
+                : profile.baseQuestExperience;
             double blockSeconds =
-                Math.Max(60d, profile.rewardWorkBlockMinutes * 60d);
+                Math.Max(60d, workBlockMinutes * 60d);
             int blocks =
                 (int)Math.Floor(totalWorkSeconds / blockSeconds);
 
@@ -2619,9 +2679,17 @@ namespace EchoDevGames.DeverQuest
                 "Completed Work Blocks",
                 blocks.ToString());
             long copper =
-                blocks * (long)profile.copperPerWorkBlock;
+                baseCopper +
+                blocks * (long)copperPerBlock;
             long experience =
-                blocks * (long)profile.experiencePerWorkBlock;
+                baseExperience +
+                blocks * (long)experiencePerBlock;
+            if (session.usesQuestProfile)
+            {
+                EditorGUILayout.LabelField(
+                    "Quest Profile",
+                    session.questProfileName);
+            }
             EditorGUILayout.LabelField(
                 "Projected Coin",
                 $"+{DeverQuestAdventurerService.FormatCoins(copper)}");
@@ -2639,7 +2707,7 @@ namespace EchoDevGames.DeverQuest
         private void CancelTurnIn()
         {
             showFinalization = false;
-            turnInStep = QuestTurnInStep.ReviewQuest;
+            turnInStep = QuestTurnInStep.Chronicle;
 
             if (resumeIfFinalizationCancelled &&
                 DeverQuestSessionStore.HasActiveSession)
@@ -2672,6 +2740,8 @@ namespace EchoDevGames.DeverQuest
             newCategory = session.category;
             newTaskName = string.Empty;
             newGoal = string.Empty;
+            appliedQuestProfileId = string.Empty;
+            ApplySelectedQuestProfile();
             commitComment = string.Empty;
             commitHash = string.Empty;
             closingNotes = string.Empty;
