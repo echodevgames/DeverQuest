@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.14.0] - 2026-07-30
+
+### Added
+
+- Quest Contract ScriptableObject assets for actual assigned studio work.
+- Contract creator, assignee, open assignment, minimum level, priority, due
+  date, deliverables, project, department, objective, and snapshotted spoils.
+- Guild Assignment Board visible from the Accept Quest panel.
+- Draft, Offered, Accepted, Active, Submitted, Approved, Returned, and
+  Completed Contract states.
+- Leadership actions to offer, return, approve, and complete Contracts.
+- Member selection of assigned or open, level-appropriate Contracts.
+- Reserved Encounter Profile identifier and encounter notes for the later
+  battle milestone.
+- Contract identity, assignment, deliverables, and encounter reservations in
+  active Quests and generated Chronicles.
+
+### Lifecycle
+
+- Selecting an Offered Contract as a Member accepts it.
+- Starting Contract work makes it Active.
+- Turning in Contract work makes it Submitted.
+- Abandoning Contract work returns it for leadership review.
+- Leadership can approve or return a submission and complete an approved
+  Contract.
+
+### Integrity
+
+- Contract and Quest Profile terms are copied into the session when work
+  begins, preventing later asset edits from changing historical records.
+- Profile-specific work-block carry no longer crosses between different Quest
+  Profiles or Contracts.
+
 ## [0.13.0] - 2026-07-30
 
 ### Added

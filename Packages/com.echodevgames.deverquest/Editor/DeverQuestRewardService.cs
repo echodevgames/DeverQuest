@@ -143,20 +143,34 @@ namespace EchoDevGames.DeverQuest
                 "Quest Completion",
                 "Quest successfully turned in");
 
-            Wallet.unrewardedWorkSeconds +=
-                session.accumulatedFocusedSeconds;
-
             double blockSeconds =
                 Math.Max(60d, workBlockMinutes * 60d);
 
+            double rewardableSeconds;
+            if (session.usesQuestProfile)
+            {
+                rewardableSeconds =
+                    session.accumulatedFocusedSeconds;
+            }
+            else
+            {
+                Wallet.unrewardedWorkSeconds +=
+                    session.accumulatedFocusedSeconds;
+                rewardableSeconds =
+                    Wallet.unrewardedWorkSeconds;
+            }
+
             int completedBlocks =
                 (int)Math.Floor(
-                    Wallet.unrewardedWorkSeconds / blockSeconds);
+                    rewardableSeconds / blockSeconds);
 
             if (completedBlocks > 0)
             {
-                Wallet.unrewardedWorkSeconds -=
-                    completedBlocks * blockSeconds;
+                if (!session.usesQuestProfile)
+                {
+                    Wallet.unrewardedWorkSeconds -=
+                        completedBlocks * blockSeconds;
+                }
 
                 AwardProgression(
                     session,

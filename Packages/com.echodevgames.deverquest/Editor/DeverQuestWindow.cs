@@ -32,6 +32,8 @@ namespace EchoDevGames.DeverQuest
         private string newGoal = string.Empty;
         private DeverQuestQuestProfile selectedQuestProfile;
         private string appliedQuestProfileId = string.Empty;
+        private DeverQuestQuestContract selectedQuestContract;
+        private string appliedQuestContractId = string.Empty;
         private string commitComment = string.Empty;
         private string commitBranch = string.Empty;
         private string commitHash = string.Empty;
@@ -40,6 +42,7 @@ namespace EchoDevGames.DeverQuest
         private bool resumeIfFinalizationCancelled;
         private string rewardMessage = string.Empty;
         private bool historyFoldout;
+        private bool contractBoardFoldout = true;
         private DeverQuestHistoryRange historyRange =
             DeverQuestHistoryRange.Last7Days;
         private string historyProjectFilter = string.Empty;
@@ -1674,6 +1677,63 @@ namespace EchoDevGames.DeverQuest
                 adventurer.guildRank != "Member";
 
             EditorGUI.BeginChangeCheck();
+            selectedQuestContract =
+                (DeverQuestQuestContract)EditorGUILayout.ObjectField(
+                    "Quest Contract",
+                    selectedQuestContract,
+                    typeof(DeverQuestQuestContract),
+                    false);
+            if (EditorGUI.EndChangeCheck())
+            {
+                ApplySelectedQuestContract();
+            }
+
+            bool contractAssignedToAdventurer =
+                selectedQuestContract != null &&
+                (selectedQuestContract.openToAnyMember ||
+                 string.Equals(
+                     selectedQuestContract.assignedAdventurer,
+                     adventurer.characterName,
+                     StringComparison.OrdinalIgnoreCase));
+            bool contractStatusAvailable =
+                selectedQuestContract != null &&
+                (selectedQuestContract.status ==
+                 DeverQuestContractStatus.Offered ||
+                 selectedQuestContract.status ==
+                 DeverQuestContractStatus.Accepted ||
+                 (canCreateCustomQuest &&
+                  selectedQuestContract.status ==
+                  DeverQuestContractStatus.Draft));
+            bool contractUnavailable =
+                selectedQuestContract != null &&
+                (!contractStatusAvailable ||
+                 (!canCreateCustomQuest &&
+                  (!contractAssignedToAdventurer ||
+                   adventurer.level <
+                   selectedQuestContract.minimumAdventurerLevel)));
+
+            if (!canCreateCustomQuest && selectedQuestContract == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "Members must select an assigned or open Quest Contract.",
+                    MessageType.Warning);
+            }
+            else if (contractUnavailable)
+            {
+                EditorGUILayout.HelpBox(
+                    !contractStatusAvailable
+                        ? $"This Contract is {selectedQuestContract.status} " +
+                          "and cannot currently be accepted."
+                        : !contractAssignedToAdventurer
+                            ? "This Contract is assigned to another Adventurer."
+                            : $"Requires Adventurer Level " +
+                              $"{selectedQuestContract.minimumAdventurerLevel}.",
+                    MessageType.Warning);
+            }
+
+            using (new EditorGUI.DisabledScope(!canCreateCustomQuest))
+            {
+            EditorGUI.BeginChangeCheck();
             selectedQuestProfile =
                 (DeverQuestQuestProfile)EditorGUILayout.ObjectField(
                     "Quest Profile",
@@ -1684,6 +1744,7 @@ namespace EchoDevGames.DeverQuest
             {
                 ApplySelectedQuestProfile();
             }
+            }
 
             if (canCreateCustomQuest)
             {
@@ -1692,6 +1753,10 @@ namespace EchoDevGames.DeverQuest
                 {
                     CreateQuestProfileAsset();
                 }
+                if (GUILayout.Button("Create Quest Contract…"))
+                {
+                    CreateQuestContractAsset(adventurer);
+                }
                 if (selectedQuestProfile != null &&
                     GUILayout.Button("Inspect Selected Profile"))
                 {
@@ -1699,17 +1764,19 @@ namespace EchoDevGames.DeverQuest
                     EditorGUIUtility.PingObject(selectedQuestProfile);
                 }
                 EditorGUILayout.EndHorizontal();
+                if (selectedQuestContract != null &&
+                    GUILayout.Button("Inspect Selected Contract"))
+                {
+                    Selection.activeObject = selectedQuestContract;
+                    EditorGUIUtility.PingObject(selectedQuestContract);
+                }
             }
-            else if (selectedQuestProfile == null)
-            {
-                EditorGUILayout.HelpBox(
-                    "Members must select an approved Quest Profile before " +
-                    "accepting a Quest.",
-                    MessageType.Warning);
-            }
+
+            DrawContractBoard(adventurer, canCreateCustomQuest);
 
             bool profileUnavailable =
                 !canCreateCustomQuest &&
+                selectedQuestContract == null &&
                 selectedQuestProfile != null &&
                 (!selectedQuestProfile.availableToMembers ||
                  adventurer.level <
@@ -1726,7 +1793,7 @@ namespace EchoDevGames.DeverQuest
 
             bool lockQuestFields =
                 !canCreateCustomQuest &&
-                selectedQuestProfile != null;
+                selectedQuestContract != null;
 
             using (new EditorGUI.DisabledScope(
                        profile.lockProjectName || lockQuestFields))
@@ -1764,12 +1831,27 @@ namespace EchoDevGames.DeverQuest
                     $"+ {selectedQuestProfile.experiencePerWorkBlock} XP " +
                     $"per {selectedQuestProfile.workBlockMinutes}m block");
             }
+            if (selectedQuestContract != null)
+            {
+                EditorGUILayout.LabelField(
+                    "Contract",
+                    $"{selectedQuestContract.status} · " +
+                    $"{selectedQuestContract.priority} · Due " +
+                    $"{(string.IsNullOrWhiteSpace(selectedQuestContract.dueDate) ? "Unscheduled" : selectedQuestContract.dueDate)}");
+                EditorGUILayout.LabelField(
+                    "Assigned To",
+                    selectedQuestContract.openToAnyMember
+                        ? "Any eligible Member"
+                        : selectedQuestContract.assignedAdventurer);
+            }
 
             bool canStart =
                 !string.IsNullOrWhiteSpace(newProjectName) &&
                 !string.IsNullOrWhiteSpace(newTaskName) &&
                 !profileUnavailable &&
-                (canCreateCustomQuest || selectedQuestProfile != null);
+                !contractUnavailable &&
+                (canCreateCustomQuest ||
+                 selectedQuestContract != null);
 
             using (new EditorGUI.DisabledScope(!canStart))
             {
@@ -1786,11 +1868,46 @@ namespace EchoDevGames.DeverQuest
                         newTaskName,
                         newCategory,
                         newGoal,
-                        selectedQuestProfile);
+                        selectedQuestProfile,
+                        selectedQuestContract);
+
+                    if (selectedQuestContract != null)
+                    {
+                        DeverQuestContractService.SetStatus(
+                            selectedQuestContract,
+                            DeverQuestContractStatus.Active);
+                    }
 
                     Repaint();
                 }
             }
+        }
+
+        private void ApplySelectedQuestContract()
+        {
+            if (selectedQuestContract == null)
+            {
+                appliedQuestContractId = string.Empty;
+                return;
+            }
+
+            if (appliedQuestContractId ==
+                selectedQuestContract.ContractId)
+            {
+                return;
+            }
+
+            appliedQuestContractId =
+                selectedQuestContract.ContractId;
+            selectedQuestProfile =
+                selectedQuestContract.questProfile;
+            appliedQuestProfileId = selectedQuestProfile == null
+                ? string.Empty
+                : selectedQuestProfile.ProfileId;
+            newProjectName = selectedQuestContract.projectName;
+            newTaskName = selectedQuestContract.taskName;
+            newCategory = selectedQuestContract.department;
+            newGoal = selectedQuestContract.objective;
         }
 
         private void ApplySelectedQuestProfile()
@@ -1843,6 +1960,163 @@ namespace EchoDevGames.DeverQuest
             ApplySelectedQuestProfile();
             Selection.activeObject = questProfile;
             EditorGUIUtility.PingObject(questProfile);
+        }
+
+        private void CreateQuestContractAsset(
+            DeverQuestAdventurer adventurer)
+        {
+            string path = EditorUtility.SaveFilePanelInProject(
+                "Create DeverQuest Quest Contract",
+                "NewQuestContract",
+                "asset",
+                "Choose where this assigned work Contract should be saved.");
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+
+            DeverQuestQuestContract contract =
+                CreateInstance<DeverQuestQuestContract>();
+            contract.InitializeFromProfile(
+                selectedQuestProfile,
+                adventurer.characterName);
+            AssetDatabase.CreateAsset(contract, path);
+            AssetDatabase.SaveAssets();
+            selectedQuestContract = contract;
+            appliedQuestContractId = string.Empty;
+            ApplySelectedQuestContract();
+            Selection.activeObject = contract;
+            EditorGUIUtility.PingObject(contract);
+        }
+
+        private void DrawContractBoard(
+            DeverQuestAdventurer adventurer,
+            bool canManage)
+        {
+            contractBoardFoldout = EditorGUILayout.Foldout(
+                contractBoardFoldout,
+                "Guild Assignment Board",
+                true);
+            if (!contractBoardFoldout)
+            {
+                return;
+            }
+
+            string[] guids =
+                AssetDatabase.FindAssets("t:DeverQuestQuestContract");
+            int visibleCount = 0;
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                DeverQuestQuestContract contract =
+                    AssetDatabase.LoadAssetAtPath<DeverQuestQuestContract>(
+                        path);
+                if (contract == null)
+                {
+                    continue;
+                }
+
+                bool assigned =
+                    contract.openToAnyMember ||
+                    string.Equals(
+                        contract.assignedAdventurer,
+                        adventurer.characterName,
+                        StringComparison.OrdinalIgnoreCase);
+                bool memberVisible =
+                    assigned &&
+                    adventurer.level >=
+                    contract.minimumAdventurerLevel &&
+                    (contract.status ==
+                     DeverQuestContractStatus.Offered ||
+                     contract.status ==
+                     DeverQuestContractStatus.Accepted ||
+                     contract.status ==
+                     DeverQuestContractStatus.Active);
+                if (!canManage && !memberVisible)
+                {
+                    continue;
+                }
+
+                visibleCount++;
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField(
+                    contract.contractTitle,
+                    $"{contract.status} · {contract.priority}");
+                EditorGUILayout.LabelField(
+                    "Assignee",
+                    contract.openToAnyMember
+                        ? "Any eligible Member"
+                        : contract.assignedAdventurer);
+                EditorGUILayout.LabelField(
+                    "Due",
+                    string.IsNullOrWhiteSpace(contract.dueDate)
+                        ? "Unscheduled"
+                        : contract.dueDate);
+
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Select"))
+                {
+                    selectedQuestContract = contract;
+                    appliedQuestContractId = string.Empty;
+                    ApplySelectedQuestContract();
+                    if (!canManage &&
+                        contract.status ==
+                        DeverQuestContractStatus.Offered)
+                    {
+                        DeverQuestContractService.SetStatus(
+                            contract,
+                            DeverQuestContractStatus.Accepted);
+                    }
+                }
+                if (canManage)
+                {
+                    if ((contract.status ==
+                         DeverQuestContractStatus.Draft ||
+                         contract.status ==
+                         DeverQuestContractStatus.Returned) &&
+                        GUILayout.Button("Offer"))
+                    {
+                        DeverQuestContractService.SetStatus(
+                            contract,
+                            DeverQuestContractStatus.Offered);
+                    }
+                    else if (contract.status ==
+                             DeverQuestContractStatus.Submitted)
+                    {
+                        if (GUILayout.Button("Return"))
+                        {
+                            DeverQuestContractService.SetStatus(
+                                contract,
+                                DeverQuestContractStatus.Returned);
+                        }
+                        if (GUILayout.Button("Approve"))
+                        {
+                            DeverQuestContractService.SetStatus(
+                                contract,
+                                DeverQuestContractStatus.Approved);
+                        }
+                    }
+                    else if (contract.status ==
+                             DeverQuestContractStatus.Approved &&
+                             GUILayout.Button("Complete"))
+                    {
+                        DeverQuestContractService.SetStatus(
+                            contract,
+                            DeverQuestContractStatus.Completed);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.EndVertical();
+            }
+
+            if (visibleCount == 0)
+            {
+                EditorGUILayout.LabelField(
+                    canManage
+                        ? "No Quest Contracts have been created."
+                        : "No Contracts are currently assigned to you.",
+                    EditorStyles.miniLabel);
+            }
         }
 
         private void DrawActiveSession()
@@ -1920,6 +2194,25 @@ namespace EchoDevGames.DeverQuest
                     "Suggested Focus",
                     $"{session.questSuggestedFocusMinutes} minutes");
             }
+            if (session.usesQuestContract)
+            {
+                DrawReadOnlyValue(
+                    "Quest Contract",
+                    session.questContractTitle);
+                DrawReadOnlyValue(
+                    "Assignment",
+                    $"{session.questContractAssignee} · " +
+                    $"{session.questContractPriority} · Due " +
+                    $"{(string.IsNullOrWhiteSpace(session.questContractDueDate) ? "Unscheduled" : session.questContractDueDate)}");
+                if (!string.IsNullOrWhiteSpace(
+                        session.questContractDeliverables))
+                {
+                    EditorGUILayout.LabelField(
+                        "Deliverables",
+                        session.questContractDeliverables,
+                        wrappedLabelStyle);
+                }
+            }
             DrawReadOnlyValue(
                 "Started",
                 DeverQuestSessionStore
@@ -1994,6 +2287,12 @@ namespace EchoDevGames.DeverQuest
 
                 if (discard)
                 {
+                    if (session.usesQuestContract)
+                    {
+                        DeverQuestContractService.SetStatus(
+                            session.questContractId,
+                            DeverQuestContractStatus.Returned);
+                    }
                     DeverQuestSessionStore.DiscardSession();
                     Repaint();
                 }
@@ -2543,6 +2842,15 @@ namespace EchoDevGames.DeverQuest
                     "Review Chronicle",
                     EditorStyles.boldLabel);
                 DrawReadOnlyValue("Quest", session.taskName);
+                if (session.usesQuestContract)
+                {
+                    DrawReadOnlyValue(
+                        "Contract",
+                        session.questContractTitle);
+                    DrawReadOnlyValue(
+                        "Deliverables",
+                        session.questContractDeliverables);
+                }
                 DrawReadOnlyValue(
                     "Focused",
                     FormatDuration(
@@ -2652,9 +2960,11 @@ namespace EchoDevGames.DeverQuest
             }
 
             double totalWorkSeconds =
-                DeverQuestRewardService.Wallet
-                    .unrewardedWorkSeconds +
-                DeverQuestSessionStore.GetFocusedSeconds();
+                session.usesQuestProfile
+                    ? DeverQuestSessionStore.GetFocusedSeconds()
+                    : DeverQuestRewardService.Wallet
+                          .unrewardedWorkSeconds +
+                      DeverQuestSessionStore.GetFocusedSeconds();
             int workBlockMinutes = session.usesQuestProfile
                 ? Math.Max(1, session.questWorkBlockMinutes)
                 : profile.rewardWorkBlockMinutes;
@@ -2734,6 +3044,13 @@ namespace EchoDevGames.DeverQuest
                 DeverQuestSettingsStore.Profile,
                 session);
 
+            if (session.usesQuestContract)
+            {
+                DeverQuestContractService.SetStatus(
+                    session.questContractId,
+                    DeverQuestContractStatus.Submitted);
+            }
+
             WriteTimecard(session);
 
             newProjectName = session.projectName;
@@ -2741,6 +3058,8 @@ namespace EchoDevGames.DeverQuest
             newTaskName = string.Empty;
             newGoal = string.Empty;
             appliedQuestProfileId = string.Empty;
+            selectedQuestContract = null;
+            appliedQuestContractId = string.Empty;
             ApplySelectedQuestProfile();
             commitComment = string.Empty;
             commitHash = string.Empty;

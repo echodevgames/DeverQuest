@@ -75,6 +75,9 @@ You can also install it through Unity's Package Manager by choosing
 - Administrator-authored Quest Profile assets with reusable objectives,
   eligibility, duration, and payout rules
 - Member profile selection plus leadership custom-Quest permissions
+- Actual Quest Contract assets with assignments, deliverables, priorities, due
+  dates, lifecycle states, and a Guild Assignment Board
+- Reserved Encounter hooks for future dice-driven Quest battles
 - Duplicate-award protection
 - Reusable AudioClip playlist assets
 - Playback, navigation, shuffle, repeat, and volume controls

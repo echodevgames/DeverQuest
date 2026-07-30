@@ -272,6 +272,24 @@ namespace EchoDevGames.DeverQuest
                     $"+ {session.questExperiencePerWorkBlock} XP per " +
                     $"{session.questWorkBlockMinutes}m block");
             }
+            if (session.usesQuestContract)
+            {
+                builder.AppendLine(
+                    $"- **Quest Contract:** " +
+                    $"{Escape(session.questContractTitle)}");
+                builder.AppendLine(
+                    $"- **Contract Creator:** " +
+                    $"{Escape(session.questContractCreator)}");
+                builder.AppendLine(
+                    $"- **Assigned Adventurer:** " +
+                    $"{Escape(session.questContractAssignee)}");
+                builder.AppendLine(
+                    $"- **Priority:** " +
+                    $"{Escape(session.questContractPriority)}");
+                builder.AppendLine(
+                    $"- **Due Date:** " +
+                    $"{Escape(string.IsNullOrWhiteSpace(session.questContractDueDate) ? "Unscheduled" : session.questContractDueDate)}");
+            }
             builder.AppendLine($"- **Started:** {start:h:mm tt}");
             builder.AppendLine($"- **Ended:** {completed:h:mm tt}");
             builder.AppendLine(
@@ -285,6 +303,43 @@ namespace EchoDevGames.DeverQuest
                 builder.AppendLine("### Goal");
                 builder.AppendLine();
                 builder.AppendLine(EscapeMultiline(session.goal));
+            }
+
+            if (session.usesQuestContract &&
+                !string.IsNullOrWhiteSpace(
+                    session.questContractDeliverables))
+            {
+                builder.AppendLine();
+                builder.AppendLine("### Contract Deliverables");
+                builder.AppendLine();
+                builder.AppendLine(
+                    EscapeMultiline(
+                        session.questContractDeliverables));
+            }
+
+            if (session.usesQuestContract &&
+                (!string.IsNullOrWhiteSpace(
+                     session.questEncounterProfileId) ||
+                 !string.IsNullOrWhiteSpace(
+                     session.questEncounterNotes)))
+            {
+                builder.AppendLine();
+                builder.AppendLine("### Reserved Encounter");
+                builder.AppendLine();
+                if (!string.IsNullOrWhiteSpace(
+                        session.questEncounterProfileId))
+                {
+                    builder.AppendLine(
+                        $"- **Encounter Profile:** " +
+                        $"{Escape(session.questEncounterProfileId)}");
+                }
+                if (!string.IsNullOrWhiteSpace(
+                        session.questEncounterNotes))
+                {
+                    builder.AppendLine(
+                        EscapeMultiline(
+                            session.questEncounterNotes));
+                }
             }
 
             builder.AppendLine();

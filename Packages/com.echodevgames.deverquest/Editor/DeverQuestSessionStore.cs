@@ -68,7 +68,8 @@ namespace EchoDevGames.DeverQuest
             string taskName,
             string category,
             string goal,
-            DeverQuestQuestProfile questProfile = null)
+            DeverQuestQuestProfile questProfile = null,
+            DeverQuestQuestContract questContract = null)
         {
             if (HasActiveSession)
             {
@@ -87,37 +88,95 @@ namespace EchoDevGames.DeverQuest
                 taskName = taskName,
                 category = category,
                 goal = goal,
-                usesQuestProfile = questProfile != null,
+                usesQuestProfile =
+                    questProfile != null || questContract != null,
                 questProfileId =
-                    questProfile == null
+                    questContract != null
+                        ? questContract.questProfile == null
+                            ? string.Empty
+                            : questContract.questProfile.ProfileId
+                        : questProfile == null
                         ? string.Empty
                         : questProfile.ProfileId,
                 questProfileName =
-                    questProfile == null
+                    questContract != null
+                        ? questContract.questProfile == null
+                            ? string.Empty
+                            : questContract.questProfile.displayName
+                        : questProfile == null
                         ? string.Empty
                         : questProfile.displayName,
                 questSuggestedFocusMinutes =
-                    questProfile == null
+                    questContract != null
+                        ? questContract.suggestedFocusMinutes
+                        : questProfile == null
                         ? 0
                         : questProfile.suggestedFocusMinutes,
                 questBaseCopper =
-                    questProfile == null ? 0 : questProfile.baseCopper,
+                    questContract != null
+                        ? questContract.baseCopper
+                        : questProfile == null ? 0 : questProfile.baseCopper,
                 questBaseExperience =
-                    questProfile == null
+                    questContract != null
+                        ? questContract.baseExperience
+                        : questProfile == null
                         ? 0
                         : questProfile.baseExperience,
                 questWorkBlockMinutes =
-                    questProfile == null
+                    questContract != null
+                        ? questContract.workBlockMinutes
+                        : questProfile == null
                         ? 0
                         : questProfile.workBlockMinutes,
                 questCopperPerWorkBlock =
-                    questProfile == null
+                    questContract != null
+                        ? questContract.copperPerWorkBlock
+                        : questProfile == null
                         ? 0
                         : questProfile.copperPerWorkBlock,
                 questExperiencePerWorkBlock =
-                    questProfile == null
+                    questContract != null
+                        ? questContract.experiencePerWorkBlock
+                        : questProfile == null
                         ? 0
                         : questProfile.experiencePerWorkBlock,
+                usesQuestContract = questContract != null,
+                questContractId =
+                    questContract == null
+                        ? string.Empty
+                        : questContract.ContractId,
+                questContractTitle =
+                    questContract == null
+                        ? string.Empty
+                        : questContract.contractTitle,
+                questContractCreator =
+                    questContract == null
+                        ? string.Empty
+                        : questContract.createdBy,
+                questContractAssignee =
+                    questContract == null
+                        ? string.Empty
+                        : questContract.assignedAdventurer,
+                questContractPriority =
+                    questContract == null
+                        ? string.Empty
+                        : questContract.priority.ToString(),
+                questContractDueDate =
+                    questContract == null
+                        ? string.Empty
+                        : questContract.dueDate,
+                questContractDeliverables =
+                    questContract == null
+                        ? string.Empty
+                        : questContract.deliverables,
+                questEncounterProfileId =
+                    questContract == null
+                        ? string.Empty
+                        : questContract.encounterProfileId,
+                questEncounterNotes =
+                    questContract == null
+                        ? string.Empty
+                        : questContract.encounterNotes,
                 state = DeverQuestSessionState.Running,
                 startedUtcTicks = nowTicks,
                 lastStateChangeUtcTicks = nowTicks

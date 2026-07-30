@@ -157,6 +157,22 @@ Leadership can also accept custom Quests. DeverQuest copies the selected
 profile's values into the session when the Quest is accepted, so later asset
 edits never rewrite historical payouts or Chronicles.
 
+## Quest Contracts and Assignment Board
+
+A Quest Profile is a reusable template. A Quest Contract is the actual studio
+assignment created from that template. Leadership can create Contract assets
+from the Accept Quest panel or `Assets → Create → DeverQuest → Quest Contract`.
+
+Contracts include creator, assignee, open-Member availability, minimum level,
+priority, due date, deliverables, real work details, snapshotted spoils, and
+reserved Encounter fields. The Guild Assignment Board supports Draft, Offered,
+Accepted, Active, Submitted, Approved, Returned, and Completed states.
+
+Members select Contracts assigned to their Adventurer or open to any eligible
+Member. Starting work makes the Contract Active; Turn-In submits it for
+leadership review. Abandonment returns it. Leadership can offer, return,
+approve, and complete Contracts from the board.
+
 ## Playlists
 
 Create a DeverQuest playlist asset from the player, add AudioClips in its

@@ -93,6 +93,16 @@ namespace EchoDevGames.DeverQuest
         public int questWorkBlockMinutes;
         public int questCopperPerWorkBlock;
         public int questExperiencePerWorkBlock;
+        public bool usesQuestContract;
+        public string questContractId = string.Empty;
+        public string questContractTitle = string.Empty;
+        public string questContractCreator = string.Empty;
+        public string questContractAssignee = string.Empty;
+        public string questContractPriority = string.Empty;
+        public string questContractDueDate = string.Empty;
+        public string questContractDeliverables = string.Empty;
+        public string questEncounterProfileId = string.Empty;
+        public string questEncounterNotes = string.Empty;
 
         public DeverQuestSessionState state =
             DeverQuestSessionState.None;
@@ -150,6 +160,23 @@ namespace EchoDevGames.DeverQuest
                 Math.Max(0, questCopperPerWorkBlock);
             questExperiencePerWorkBlock =
                 Math.Max(0, questExperiencePerWorkBlock);
+            questContractId = questContractId?.Trim() ?? string.Empty;
+            questContractTitle =
+                questContractTitle?.Trim() ?? string.Empty;
+            questContractCreator =
+                questContractCreator?.Trim() ?? string.Empty;
+            questContractAssignee =
+                questContractAssignee?.Trim() ?? string.Empty;
+            questContractPriority =
+                questContractPriority?.Trim() ?? string.Empty;
+            questContractDueDate =
+                questContractDueDate?.Trim() ?? string.Empty;
+            questContractDeliverables =
+                questContractDeliverables?.Trim() ?? string.Empty;
+            questEncounterProfileId =
+                questEncounterProfileId?.Trim() ?? string.Empty;
+            questEncounterNotes =
+                questEncounterNotes?.Trim() ?? string.Empty;
             pauseReason = pauseReason?.Trim() ?? string.Empty;
             if (state == DeverQuestSessionState.Running ||
                 (pauseReason != "Idle Detection" &&
