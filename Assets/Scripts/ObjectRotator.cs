@@ -2,15 +2,31 @@ using UnityEngine;
 
 public class ObjectRotator : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    //a script to rotate and float any object it's on
+    [Header("References")]
+    [SerializeField] private GameObject rotated;
+    [SerializeField] private float speed;
+
+
+    private void Awake()
     {
+        if(rotated == null)
+            return; 
+        rotated.SetActive(false);
         
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+        if (rotated == null) return;
+        if (!rotated == gameObject)
+        {
+            rotated = gameObject; 
+        }
     }
+
+
+
+
+
 }
