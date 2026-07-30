@@ -1,0 +1,17 @@
+{
+  "name": "com.echodevgames.deverquest",
+  "version": "0.12.1",
+  "displayName": "DeverQuest Developer Companion",
+  "description": "A medieval productivity RPG for Unity with deliberate work quests, adventurer progression, ledgers, wellness reminders, Git, and playlists.",
+  "unity": "2022.3",
+  "author": {
+    "name": "EchoDevGames"
+  },
+  "keywords": [
+    "productivity",
+    "timer",
+    "timecard",
+    "editor"
+  ],
+  "_fingerprint": "0bfdfb3f7b6821b93133d9b9d351ca3a"
+}
