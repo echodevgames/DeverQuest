@@ -9,6 +9,12 @@
         "com.unity.timeline": "1.6.0"
       }
     },
+    "com.echodevgames.deverquest": {
+      "version": "file:C:/Users/Jesse/Downloads/com.echodevgames.deverquest",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.burst": {
       "version": "1.8.27",
       "depth": 2,
