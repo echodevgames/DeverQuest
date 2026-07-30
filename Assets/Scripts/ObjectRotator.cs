@@ -16,6 +16,7 @@ public class ObjectRotator : MonoBehaviour
         
     }
 
+
     private void Update()
     {
         if (rotated == null) return;
