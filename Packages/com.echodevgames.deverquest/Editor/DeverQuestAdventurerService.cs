@@ -1,6 +1,7 @@
 //----- DeverQuestAdventurerService.cs START -----
 
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,9 +21,31 @@ namespace EchoDevGames.DeverQuest
         public long copperBalance;
         public long totalCopperEarned;
         public long totalCopperSpent;
+        public int strength = 10;
+        public int dexterity = 10;
+        public int constitution = 10;
+        public int intelligence = 10;
+        public int wisdom = 10;
+        public int charisma = 10;
+        public int hitDie = 8;
+        public int maximumHitPoints = 8;
+        public int currentHitPoints = 8;
+        public List<string> proficientSaves =
+            new List<string>();
+        public List<string> statusEffects =
+            new List<string>();
+        public List<string> equippedEquipmentIds =
+            new List<string>();
+        public List<string> knownSpellIds =
+            new List<string>();
 
         public void Sanitize()
         {
+            if (dataVersion < 2)
+            {
+                DeverQuestAdventurerService.ApplyClassFoundation(
+                    this, characterClass, false);
+            }
             characterName = characterName?.Trim() ?? string.Empty;
             guildName = guildName?.Trim() ?? string.Empty;
             guildRank = guildRank?.Trim() ?? string.Empty;
@@ -33,7 +56,29 @@ namespace EchoDevGames.DeverQuest
             copperBalance = Math.Max(0L, copperBalance);
             totalCopperEarned = Math.Max(0L, totalCopperEarned);
             totalCopperSpent = Math.Max(0L, totalCopperSpent);
-            dataVersion = 1;
+            strength = ClampAbility(strength);
+            dexterity = ClampAbility(dexterity);
+            constitution = ClampAbility(constitution);
+            intelligence = ClampAbility(intelligence);
+            wisdom = ClampAbility(wisdom);
+            charisma = ClampAbility(charisma);
+            hitDie = Math.Max(4, hitDie);
+            maximumHitPoints = Math.Max(1, maximumHitPoints);
+            currentHitPoints =
+                Math.Min(maximumHitPoints,
+                    Math.Max(0, currentHitPoints));
+            proficientSaves = proficientSaves ??
+                               new List<string>();
+            statusEffects = statusEffects ?? new List<string>();
+            equippedEquipmentIds = equippedEquipmentIds ??
+                                   new List<string>();
+            knownSpellIds = knownSpellIds ?? new List<string>();
+            dataVersion = 2;
+        }
+
+        private static int ClampAbility(int value)
+        {
+            return Math.Min(30, Math.Max(1, value));
         }
     }
 
@@ -98,6 +143,87 @@ namespace EchoDevGames.DeverQuest
             return Math.Max(100L, level * 100L);
         }
 
+        public static void ApplyClassFoundation(
+            DeverQuestAdventurer target,
+            string characterClass,
+            bool resetVitals)
+        {
+            if (target == null)
+            {
+                return;
+            }
+            target.characterClass =
+                string.IsNullOrWhiteSpace(characterClass)
+                    ? "Warrior"
+                    : characterClass;
+            int[] scores;
+            string[] saves;
+            switch (target.characterClass)
+            {
+                case "Necromancer":
+                case "Wizard":
+                    scores = new[] { 8, 14, 14, 16, 12, 10 };
+                    target.hitDie = 6;
+                    saves = new[] { "Intelligence", "Wisdom" };
+                    break;
+                case "Sorcerer":
+                case "Bard":
+                    scores = new[] { 8, 14, 14, 10, 12, 16 };
+                    target.hitDie = 6;
+                    saves = new[] { "Constitution", "Charisma" };
+                    break;
+                case "Rogue":
+                case "Ranger":
+                    scores = new[] { 10, 16, 14, 12, 14, 8 };
+                    target.hitDie = 8;
+                    saves = new[] { "Dexterity", "Intelligence" };
+                    break;
+                case "Cleric":
+                case "Druid":
+                    scores = new[] { 10, 12, 14, 8, 16, 10 };
+                    target.hitDie = 8;
+                    saves = new[] { "Wisdom", "Charisma" };
+                    break;
+                case "Paladin":
+                    scores = new[] { 16, 10, 14, 8, 10, 14 };
+                    target.hitDie = 10;
+                    saves = new[] { "Wisdom", "Charisma" };
+                    break;
+                case "Monk":
+                    scores = new[] { 12, 16, 14, 8, 16, 8 };
+                    target.hitDie = 8;
+                    saves = new[] { "Strength", "Dexterity" };
+                    break;
+                default:
+                    scores = new[] { 16, 12, 16, 8, 10, 10 };
+                    target.hitDie = 10;
+                    saves = new[] { "Strength", "Constitution" };
+                    break;
+            }
+            target.strength = scores[0];
+            target.dexterity = scores[1];
+            target.constitution = scores[2];
+            target.intelligence = scores[3];
+            target.wisdom = scores[4];
+            target.charisma = scores[5];
+            target.proficientSaves =
+                new List<string>(saves);
+            int constitutionModifier =
+                DeverQuestRulesService.AbilityModifier(
+                    target.constitution);
+            int calculatedMaximum =
+                Math.Max(1,
+                    target.hitDie + constitutionModifier +
+                    Math.Max(0, target.level - 1) *
+                    (target.hitDie / 2 + 1 +
+                     constitutionModifier));
+            target.maximumHitPoints = calculatedMaximum;
+            if (resetVitals || target.currentHitPoints <= 0)
+            {
+                target.currentHitPoints = calculatedMaximum;
+            }
+        }
+
         public static DeverQuestProgressionResult Award(
             long copper,
             long experience)
@@ -118,6 +244,15 @@ namespace EchoDevGames.DeverQuest
                 target.currentExperience -=
                     ExperienceForNextLevel(target.level);
                 target.level++;
+                int constitutionModifier =
+                    DeverQuestRulesService.AbilityModifier(
+                        target.constitution);
+                int hitPointGain = Math.Max(
+                    1,
+                    target.hitDie / 2 + 1 +
+                    constitutionModifier);
+                target.maximumHitPoints += hitPointGain;
+                target.currentHitPoints += hitPointGain;
             }
 
             Save();

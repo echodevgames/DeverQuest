@@ -274,6 +274,13 @@ namespace EchoDevGames.DeverQuest
                 $"**Class:** {Escape(adventurer.characterClass)} · " +
                 $"**Level:** {adventurer.level} · " +
                 $"**Guild Rank:** {Escape(adventurer.guildRank)}  ");
+            builder.AppendLine(
+                $"**Character Rules:** " +
+                $"HP {adventurer.currentHitPoints}/" +
+                $"{adventurer.maximumHitPoints} · " +
+                $"AC {DeverQuestRulesService.ArmorClass(adventurer)} · " +
+                $"Proficiency +" +
+                $"{DeverQuestRulesService.ProficiencyBonus(adventurer.level)}  ");
             builder.AppendLine($"**Date:** {localDate:MMMM d, yyyy}  ");
             builder.AppendLine(
                 $"**Chronicle:** {Math.Max(1, record.chronicleIndex)}  ");

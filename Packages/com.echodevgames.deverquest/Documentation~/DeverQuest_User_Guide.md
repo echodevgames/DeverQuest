@@ -1,5 +1,25 @@
 # DeverQuest User Guide
 
+## Character Sheet and Rules Engine
+
+Version 0.17.0 automatically gives existing Adventurers a class foundation.
+This does not reset level, XP, coin, rank, or identity. The Character Sheet
+shows ability scores and modifiers, HP, Armor Class, proficiency, saving
+throws, class features, statuses, equipped items, and known spells.
+
+The Rules Laboratory resolves checks from a recorded seed. Use the same
+character, seed, ability, proficiency setting, Daily Decree modifier, and DC
+to reproduce the same result.
+
+Guild leadership can create Equipment and Spell assets from the Rules
+Laboratory. Equipment can add AC or an ability bonus and occupies a defined
+slot. Spells record casting ability, level, dice, status effect, and minimum
+character level. The Guild Shop will replace direct administrative grants with
+the real purchase and inventory loop in Milestone 18.
+
+Daily Decree Campaign Rules define a recommended level, Story/Standard/Heroic/
+Mythic difficulty label, and a modifier applied to deterministic checks.
+
 ## Guild Accounts and Authority
 
 Version 0.16.0 migrates the existing Adventurer to the founding CEO account.

@@ -37,13 +37,26 @@ namespace EchoDevGames.DeverQuest
         public long copperBalance;
         public long totalCopperEarned;
         public long totalCopperSpent;
+        public int strength = 10;
+        public int dexterity = 10;
+        public int constitution = 10;
+        public int intelligence = 10;
+        public int wisdom = 10;
+        public int charisma = 10;
+        public int hitDie = 8;
+        public int maximumHitPoints = 8;
+        public int currentHitPoints = 8;
+        public List<string> proficientSaves = new List<string>();
+        public List<string> statusEffects = new List<string>();
+        public List<string> equippedEquipmentIds = new List<string>();
+        public List<string> knownSpellIds = new List<string>();
         public bool disabled;
     }
 
     [Serializable]
     internal sealed class DeverQuestGuildAccountCollection
     {
-        public int dataVersion = 1;
+        public int dataVersion = 2;
         public List<DeverQuestGuildAccount> accounts =
             new List<DeverQuestGuildAccount>();
     }
@@ -285,6 +298,14 @@ namespace EchoDevGames.DeverQuest
                         .Distinct(StringComparer.OrdinalIgnoreCase)
                         .ToList() ?? new List<string>()
                 };
+            DeverQuestAdventurer foundation =
+                new DeverQuestAdventurer
+                {
+                    characterClass = characterClass
+                };
+            DeverQuestAdventurerService.ApplyClassFoundation(
+                foundation, characterClass, true);
+            CopyRules(foundation, account);
             SetPasscode(account, temporaryPasscode);
             collection.accounts.Add(account);
             Save();
@@ -313,6 +334,7 @@ namespace EchoDevGames.DeverQuest
             account.copperBalance = adventurer.copperBalance;
             account.totalCopperEarned = adventurer.totalCopperEarned;
             account.totalCopperSpent = adventurer.totalCopperSpent;
+            CopyRules(adventurer, account);
             Save();
         }
 
@@ -366,6 +388,7 @@ namespace EchoDevGames.DeverQuest
                     totalCopperEarned = old.totalCopperEarned,
                     totalCopperSpent = old.totalCopperSpent
                 };
+            CopyRules(old, founder);
             collection.accounts.Add(founder);
             EditorPrefs.SetString(CurrentAccountKey, founder.accountId);
             Save();
@@ -391,7 +414,58 @@ namespace EchoDevGames.DeverQuest
             adventurer.copperBalance = account.copperBalance;
             adventurer.totalCopperEarned = account.totalCopperEarned;
             adventurer.totalCopperSpent = account.totalCopperSpent;
+            CopyRules(account, adventurer);
             DeverQuestAdventurerService.Save();
+        }
+
+        private static void CopyRules(
+            DeverQuestAdventurer source,
+            DeverQuestGuildAccount target)
+        {
+            target.strength = source.strength;
+            target.dexterity = source.dexterity;
+            target.constitution = source.constitution;
+            target.intelligence = source.intelligence;
+            target.wisdom = source.wisdom;
+            target.charisma = source.charisma;
+            target.hitDie = source.hitDie;
+            target.maximumHitPoints = source.maximumHitPoints;
+            target.currentHitPoints = source.currentHitPoints;
+            target.proficientSaves =
+                new List<string>(source.proficientSaves);
+            target.statusEffects =
+                new List<string>(source.statusEffects);
+            target.equippedEquipmentIds =
+                new List<string>(source.equippedEquipmentIds);
+            target.knownSpellIds =
+                new List<string>(source.knownSpellIds);
+        }
+
+        private static void CopyRules(
+            DeverQuestGuildAccount source,
+            DeverQuestAdventurer target)
+        {
+            target.strength = source.strength;
+            target.dexterity = source.dexterity;
+            target.constitution = source.constitution;
+            target.intelligence = source.intelligence;
+            target.wisdom = source.wisdom;
+            target.charisma = source.charisma;
+            target.hitDie = source.hitDie;
+            target.maximumHitPoints = source.maximumHitPoints;
+            target.currentHitPoints = source.currentHitPoints;
+            target.proficientSaves =
+                new List<string>(source.proficientSaves ??
+                                 new List<string>());
+            target.statusEffects =
+                new List<string>(source.statusEffects ??
+                                 new List<string>());
+            target.equippedEquipmentIds =
+                new List<string>(source.equippedEquipmentIds ??
+                                 new List<string>());
+            target.knownSpellIds =
+                new List<string>(source.knownSpellIds ??
+                                 new List<string>());
         }
 
         private static void SetPasscode(
@@ -463,6 +537,28 @@ namespace EchoDevGames.DeverQuest
                 audit = JsonUtility.FromJson<DeverQuestGuildAuditLog>(
                             EditorPrefs.GetString(AuditKey, string.Empty)) ??
                         new DeverQuestGuildAuditLog();
+                if (collection.dataVersion < 2)
+                {
+                    foreach (DeverQuestGuildAccount account
+                             in collection.accounts)
+                    {
+                        DeverQuestAdventurer foundation =
+                            new DeverQuestAdventurer
+                            {
+                                characterClass =
+                                    account.characterClass,
+                                level = account.level
+                            };
+                        DeverQuestAdventurerService
+                            .ApplyClassFoundation(
+                                foundation,
+                                account.characterClass,
+                                true);
+                        CopyRules(foundation, account);
+                    }
+                    collection.dataVersion = 2;
+                    Save();
+                }
             }
             catch
             {

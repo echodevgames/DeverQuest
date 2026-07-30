@@ -19,10 +19,18 @@ namespace EchoDevGames.DeverQuest
         SystemWideInput = 1
     }
 
+    internal enum DeverQuestCampaignDifficulty
+    {
+        Story = 0,
+        Standard = 1,
+        Heroic = 2,
+        Mythic = 3
+    }
+
     [Serializable]
     internal sealed class DeverQuestProfile
     {
-        public const int CurrentDataVersion = 11;
+        public const int CurrentDataVersion = 12;
 
         public int dataVersion = CurrentDataVersion;
         public bool setupComplete;
@@ -86,6 +94,10 @@ namespace EchoDevGames.DeverQuest
         public int chronicleMaxKilobytes = 512;
         public int suspiciousQuestMinutes = 240;
         public int suspiciousDailyQuestCount = 8;
+        public int dailyDecreeRecommendedLevel = 1;
+        public DeverQuestCampaignDifficulty campaignDifficulty =
+            DeverQuestCampaignDifficulty.Standard;
+        public int dailyDecreeCheckModifier;
 
         public void Sanitize()
         {
@@ -179,6 +191,14 @@ namespace EchoDevGames.DeverQuest
                 suspiciousDailyQuestCount = 8;
             }
 
+            if (dataVersion < 12)
+            {
+                dailyDecreeRecommendedLevel = 1;
+                campaignDifficulty =
+                    DeverQuestCampaignDifficulty.Standard;
+                dailyDecreeCheckModifier = 0;
+            }
+
             developerName = developerName?.Trim() ?? string.Empty;
             timecardRootPath = timecardRootPath?.Trim() ?? string.Empty;
             lastProjectName = lastProjectName?.Trim() ?? string.Empty;
@@ -236,6 +256,11 @@ namespace EchoDevGames.DeverQuest
             suspiciousQuestMinutes = Math.Max(0, suspiciousQuestMinutes);
             suspiciousDailyQuestCount =
                 Math.Max(0, suspiciousDailyQuestCount);
+            dailyDecreeRecommendedLevel =
+                Math.Max(1, dailyDecreeRecommendedLevel);
+            dailyDecreeCheckModifier =
+                Math.Min(10, Math.Max(-10,
+                    dailyDecreeCheckModifier));
             if (!Enum.IsDefined(typeof(DeverQuestTheme), theme))
             {
                 theme = DeverQuestTheme.EchoNeon;

@@ -5,21 +5,114 @@
 **Class:** Necromancer · **Level:** 2 · **Guild Rank:** CEO  
 **Date:** July 30, 2026  
 **Chronicle:** 1  
-**Sessions:** 4
+**Sessions:** 7
 
 ## Daily Totals
 
-- **Focused Work:** 0h 28m 39s
-- **Paused Time:** 0h 32m 50s
-- **Commit Entries:** 9
+- **Focused Work:** 0h 31m 31s
+- **Paused Time:** 0h 33m 41s
+- **Commit Entries:** 13
 - **Breaks Taken:** 0
-- **Coin Earned:** 0p 0g 0s 90c
-- **Experience Earned:** 140 XP
-- **Ending Coin Purse:** 0p 0g 1s 83c
+- **Coin Earned:** 0p 0g 1s 10c
+- **Experience Earned:** 190 XP
+- **Ending Coin Purse:** 0p 0g 2s 3c
 
 ---
 
-## Session 1 — Milestone 15 updates
+## Session 1 — DeverQuestPathway
+
+- **Project:** DeverQuest
+- **Department:** Programming
+- **Quest Profile:** New Quest Profile
+- **Profile Spoils:** 0p 0g 0s 5c + 20 XP base; 0p 0g 0s 25c + 50 XP per 10m block
+- **Started:** 5:24 PM
+- **Ended:** 5:24 PM
+- **Focused Work:** 0h 0m 4s
+- **Paused Time:** 0h 0m 5s
+- **Time Classification:** Focused 0h 0m 4s · Meditation 0h 0m 5s · Approved Break 0h 0m 0s · Idle/Unverified 0h 0m 0s
+
+### Commit Journal
+
+- No commit entries recorded.
+
+### Closing Notes
+
+No closing notes recorded.
+
+### Reward Journal
+
+- **Quest Completion:** +0p 0g 0s 5c · +20 XP — Quest successfully turned in
+
+---
+
+## Session 2 — DeverQuestPathway
+
+- **Project:** DeverQuest
+- **Department:** Programming
+- **Quest Profile:** New Quest Profile
+- **Profile Spoils:** 0p 0g 0s 5c + 20 XP base; 0p 0g 0s 25c + 50 XP per 10m block
+- **Started:** 5:23 PM
+- **Ended:** 5:24 PM
+- **Focused Work:** 0h 1m 10s
+- **Paused Time:** 0h 0m 18s
+- **Time Classification:** Focused 0h 1m 10s · Meditation 0h 0m 18s · Approved Break 0h 0m 0s · Idle/Unverified 0h 0m 0s
+
+### Commit Journal
+
+- **5:24 PM** [Quest Log Note] `+0h 1m 4s` — i think that once your character is created and on a missin, the guild hall should be collapsible behind a button i think pausing the mission shouldnt happen until the very lat completed quest... instead of while im writing my commits and everything | Branch: `main`
+- **5:24 PM** [Linked Commit Note] `+0h 1m 9s` — i think that once your character is created and on a missin, the guild hall should be collapsible behind a button i think pausing the mission shouldnt happen until the very lat completed quest... instead of while im writing my commits and everything | Branch: `main` | Commit: `e159cdf`
+
+### Closing Notes
+
+17 here we come !
+
+### Reward Journal
+
+- **Quest Completion:** +0p 0g 0s 5c · +20 XP — Quest successfully turned in
+
+---
+
+## Session 3 — Milestone 17
+
+- **Project:** DeverQuest
+- **Department:** Programming
+- **Quest Profile:** New Quest Profile
+- **Profile Spoils:** 0p 0g 0s 10c + 10 XP base; 0p 0g 0s 25c + 50 XP per 10m block
+- **Quest Contract:** Milestone14
+- **Contract Creator:** 
+- **Assigned Adventurer:** 
+- **Priority:** Normal
+- **Due Date:** Unscheduled
+- **Started:** 5:20 PM
+- **Ended:** 5:22 PM
+- **Focused Work:** 0h 1m 36s
+- **Paused Time:** 0h 0m 27s
+- **Time Classification:** Focused 0h 1m 36s · Meditation 0h 0m 27s · Approved Break 0h 0m 0s · Idle/Unverified 0h 0m 0s
+
+### Goal
+
+Lets goo Milestone 17
+
+### Reserved Encounter
+
+First quest
+
+### Commit Journal
+
+- **5:22 PM** [Git Commit] `+0h 1m 34s` — i think that once your character is created and on a missin, the guild hall should be collapsible behind a button | Branch: `main` | Commit: `e159cdf`
+- **5:22 PM** [Git Push] `+0h 1m 36s` — Pushed commits to origin/main | Branch: `main` | Commit: `e159cdf`
+
+### Closing Notes
+
+No closing notes recorded.
+
+### Reward Journal
+
+- **Quest Completion:** +0p 0g 0s 10c · +10 XP — Quest successfully turned in
+
+---
+
+## Session 4 — Milestone 15 updates
 
 - **Project:** DeverQuest
 - **Department:** Programming
@@ -66,7 +159,7 @@ SO FAR SO GOOD!
 
 ---
 
-## Session 2 — Milestone 14
+## Session 5 — Milestone 14
 
 - **Project:** DeverQuest
 - **Department:** Programming
@@ -107,7 +200,7 @@ Commit and pushed
 
 ---
 
-## Session 3 — Im gonna work for six hours
+## Session 6 — Im gonna work for six hours
 
 - **Project:** DeverQuest
 - **Department:** Programming
@@ -135,7 +228,7 @@ I'm starting a new quest
 
 ---
 
-## Session 4 — Profiles
+## Session 7 — Profiles
 
 - **Project:** DeverQuest
 - **Department:** Programming

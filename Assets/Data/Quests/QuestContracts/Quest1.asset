@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: ae6c3665791847bf94ee8696e06470a6
   contractTitle: Milestone14
-  status: 3
+  status: 1
   priority: 1
   createdBy: 
   assignedAdventurer: 

@@ -1,6 +1,13 @@
 # DeverQuest Developer Companion
 
-Current package version: **0.16.0**
+Current package version: **0.17.0**
+
+## Character Sheet and Rules Engine
+
+Adventurers now have class-based ability scores, HP, AC, saving throws,
+proficiency, class features, statuses, equipment, and spells. Seeded checks
+and dice expressions are deterministic so later Quest encounters can record
+and reproduce their results.
 
 ## Guild Accounts and Authority
 

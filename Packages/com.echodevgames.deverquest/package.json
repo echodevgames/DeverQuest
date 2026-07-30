@@ -1,6 +1,6 @@
 {
   "name": "com.echodevgames.deverquest",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "displayName": "DeverQuest Developer Companion",
   "description": "A medieval productivity RPG for Unity with deliberate work quests, adventurer progression, ledgers, wellness reminders, Git, and playlists.",
   "unity": "2022.3",
@@ -13,5 +13,5 @@
     "timecard",
     "editor"
   ],
-  "_fingerprint": "e3928f75b65be42f0d9c3c99850bdf5d"
+  "_fingerprint": "f2f642ca01d9260c8ccc90785a78c380"
 }

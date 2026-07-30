@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.17.0] - 2026-07-30
+
+### Added
+
+- Versioned character rules data with Strength, Dexterity, Constitution,
+  Intelligence, Wisdom, and Charisma.
+- Character HP, maximum HP, class hit die, Armor Class, proficiency bonus,
+  saving-throw proficiencies, class features, and status effects.
+- Class-specific migration foundations for existing and newly created
+  Adventurers, including Necromancer rules for Ajnaag.
+- Level-up HP progression alongside the existing XP progression.
+- Equipment ScriptableObjects with slots, AC bonuses, ability bonuses, and
+  minimum levels.
+- Spell ScriptableObjects with spell level, casting ability, damage dice,
+  status effects, and minimum character levels.
+- Equipped item and known spell persistence per Guild account.
+- Administrator actions to grant/equip items and teach spells.
+- Deterministic seeded d20 checks with ability, proficiency, Daily Decree,
+  total, DC, and success/failure reporting.
+- Deterministic standard dice-expression resolution for future combat.
+- Daily Decree recommended level, campaign difficulty, and check modifier.
+- Character rules summary in generated Chronicles.
+
+### Migration
+
+- Existing XP, level, coin, class, rank, and identity remain intact.
+- Guild accounts created in 0.16.0 receive their class foundation when first
+  loaded by 0.17.0.
+
+### Encounter Boundary
+
+- This milestone establishes character mechanics and reproducible rules.
+  Enemies, initiative, damage exchanges, and battle rewards remain reserved
+  for the Encounter milestone.
+
 ## [0.16.0] - 2026-07-30
 
 ### Added

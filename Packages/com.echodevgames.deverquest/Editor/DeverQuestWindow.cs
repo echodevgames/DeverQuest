@@ -69,6 +69,14 @@ namespace EchoDevGames.DeverQuest
         private string newGuildProjects = string.Empty;
         private string newGuildPasscode = string.Empty;
         private string guildMessage = string.Empty;
+        private DeverQuestAbility rulesAbility =
+            DeverQuestAbility.Intelligence;
+        private int rulesDifficultyClass = 12;
+        private bool rulesProficient = true;
+        private string rulesSeed = "Ajnaag-Test-1";
+        private string rulesResult = string.Empty;
+        private DeverQuestEquipment selectedRulesEquipment;
+        private DeverQuestSpell selectedRulesSpell;
         private DeverQuestGitStatus gitStatus;
         private string gitMessage = string.Empty;
         private bool gitOperationInProgress;
@@ -485,9 +493,11 @@ namespace EchoDevGames.DeverQuest
 
             DrawWellnessSetup(profile);
             DrawRewardSetup(profile);
+            DrawCampaignRulesSetup(profile);
             DrawPlaylistSetup(profile);
             DrawPolishSetup(profile);
             DrawChronicleIntegritySetup(profile);
+            DrawCampaignRulesSetup(profile);
             DrawProjectDefaultsSetup(profile);
 
             EditorGUILayout.Space(14f);
@@ -639,6 +649,7 @@ namespace EchoDevGames.DeverQuest
 
             DrawGoalsAndStreaks(profile);
             DrawAdventurerSheet();
+            DrawRulesLaboratory(profile);
             DrawGuildAdministration();
             DrawWellnessReminder();
             DrawPlaylistPlayer();
@@ -816,6 +827,12 @@ namespace EchoDevGames.DeverQuest
             EditorGUILayout.LabelField(
                 "Daily Decree and Questing Streaks",
                 EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(
+                $"{profile.campaignDifficulty} campaign · " +
+                $"Recommended Level " +
+                $"{profile.dailyDecreeRecommendedLevel} · " +
+                $"Checks {(profile.dailyDecreeCheckModifier >= 0 ? "+" : string.Empty)}" +
+                $"{profile.dailyDecreeCheckModifier}");
 
             if (profile.dailyWorkGoalMinutes <= 0)
             {
@@ -1905,7 +1922,238 @@ namespace EchoDevGames.DeverQuest
                 "Coin Purse",
                 DeverQuestAdventurerService.FormatCoins(
                     adventurer.copperBalance));
+            EditorGUILayout.LabelField(
+                "Hit Points",
+                $"{adventurer.currentHitPoints} / " +
+                $"{adventurer.maximumHitPoints} · d{adventurer.hitDie}");
+            EditorGUILayout.LabelField(
+                "Armor Class",
+                DeverQuestRulesService.ArmorClass(adventurer).ToString());
+            EditorGUILayout.LabelField(
+                "Proficiency",
+                $"+{DeverQuestRulesService.ProficiencyBonus(adventurer.level)}");
+            EditorGUILayout.Space(4f);
+            DrawAbility(
+                "STR", adventurer,
+                DeverQuestAbility.Strength);
+            DrawAbility(
+                "DEX", adventurer,
+                DeverQuestAbility.Dexterity);
+            DrawAbility(
+                "CON", adventurer,
+                DeverQuestAbility.Constitution);
+            DrawAbility(
+                "INT", adventurer,
+                DeverQuestAbility.Intelligence);
+            DrawAbility(
+                "WIS", adventurer,
+                DeverQuestAbility.Wisdom);
+            DrawAbility(
+                "CHA", adventurer,
+                DeverQuestAbility.Charisma);
+            EditorGUILayout.LabelField(
+                "Saving Throw Proficiencies",
+                string.Join(", ", adventurer.proficientSaves));
+            EditorGUILayout.LabelField(
+                "Class Features",
+                string.Join(", ",
+                    DeverQuestRulesService.ClassFeatures(adventurer)));
+            EditorGUILayout.LabelField(
+                "Status Effects",
+                adventurer.statusEffects.Count == 0
+                    ? "None"
+                    : string.Join(", ", adventurer.statusEffects));
+            List<string> equipment =
+                DeverQuestRulesService.EquippedNames(adventurer);
+            List<string> spells =
+                DeverQuestRulesService.KnownSpellNames(adventurer);
+            EditorGUILayout.LabelField(
+                "Equipment",
+                equipment.Count == 0
+                    ? "None"
+                    : string.Join(", ", equipment));
+            EditorGUILayout.LabelField(
+                "Known Spells",
+                spells.Count == 0
+                    ? "None"
+                    : string.Join(", ", spells));
             EditorGUILayout.EndVertical();
+        }
+
+        private static void DrawAbility(
+            string label,
+            DeverQuestAdventurer adventurer,
+            DeverQuestAbility ability)
+        {
+            int score = DeverQuestRulesService.GetAbilityScore(
+                adventurer, ability);
+            int modifier =
+                DeverQuestRulesService.AbilityModifier(score);
+            EditorGUILayout.LabelField(
+                label,
+                $"{score} ({(modifier >= 0 ? "+" : string.Empty)}" +
+                $"{modifier})");
+        }
+
+        private void DrawRulesLaboratory(
+            DeverQuestProfile profile)
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                "Rules Laboratory",
+                EditorStyles.boldLabel);
+            rulesAbility =
+                (DeverQuestAbility)EditorGUILayout.EnumPopup(
+                    "Ability", rulesAbility);
+            rulesDifficultyClass = EditorGUILayout.IntField(
+                "Difficulty Class", rulesDifficultyClass);
+            rulesProficient = EditorGUILayout.Toggle(
+                "Proficient", rulesProficient);
+            rulesSeed = EditorGUILayout.TextField(
+                new GUIContent(
+                    "Recorded Seed",
+                    "The same character, rules, and seed produce the same " +
+                    "roll so future encounters can be audited."),
+                rulesSeed);
+            if (GUILayout.Button("Resolve Deterministic Check"))
+            {
+                DeverQuestRuleResult result =
+                    DeverQuestRulesService.ResolveCheck(
+                        DeverQuestAdventurerService.Adventurer,
+                        rulesAbility,
+                        rulesProficient,
+                        rulesDifficultyClass,
+                        rulesSeed,
+                        profile.dailyDecreeCheckModifier);
+                rulesResult =
+                    $"{(result.Success ? "SUCCESS" : "FAILURE")} · " +
+                    $"{result.Formula} vs DC {result.DifficultyClass}";
+            }
+            if (!string.IsNullOrWhiteSpace(rulesResult))
+            {
+                EditorGUILayout.HelpBox(
+                    rulesResult,
+                    MessageType.Info);
+            }
+            if (DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild))
+            {
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Create Equipment Asset…"))
+                {
+                    CreateCharacterAsset<DeverQuestEquipment>(
+                        "NewDeverQuestEquipment");
+                }
+                if (GUILayout.Button("Create Spell Asset…"))
+                {
+                    CreateCharacterAsset<DeverQuestSpell>(
+                        "NewDeverQuestSpell");
+                }
+                EditorGUILayout.EndHorizontal();
+                selectedRulesEquipment =
+                    (DeverQuestEquipment)EditorGUILayout.ObjectField(
+                        "Equipment",
+                        selectedRulesEquipment,
+                        typeof(DeverQuestEquipment),
+                        false);
+                using (new EditorGUI.DisabledScope(
+                           selectedRulesEquipment == null ||
+                           (selectedRulesEquipment != null &&
+                            DeverQuestAdventurerService.Adventurer.level <
+                            selectedRulesEquipment.minimumLevel)))
+                {
+                    if (GUILayout.Button("Grant and Equip"))
+                    {
+                        DeverQuestAdventurer character =
+                            DeverQuestAdventurerService.Adventurer;
+                        DeverQuestRulesService.Equip(
+                            character, selectedRulesEquipment);
+                        DeverQuestAdventurerService.Save();
+                        DeverQuestGuildAccountService.AddAudit(
+                            "Equipment Granted",
+                            character.characterName,
+                            selectedRulesEquipment.displayName);
+                    }
+                }
+                selectedRulesSpell =
+                    (DeverQuestSpell)EditorGUILayout.ObjectField(
+                        "Spell",
+                        selectedRulesSpell,
+                        typeof(DeverQuestSpell),
+                        false);
+                using (new EditorGUI.DisabledScope(
+                           selectedRulesSpell == null ||
+                           (selectedRulesSpell != null &&
+                            DeverQuestAdventurerService.Adventurer.level <
+                            selectedRulesSpell.minimumCharacterLevel)))
+                {
+                    if (GUILayout.Button("Teach Spell"))
+                    {
+                        DeverQuestAdventurer character =
+                            DeverQuestAdventurerService.Adventurer;
+                        if (!character.knownSpellIds.Contains(
+                                selectedRulesSpell.SpellId))
+                        {
+                            character.knownSpellIds.Add(
+                                selectedRulesSpell.SpellId);
+                            DeverQuestAdventurerService.Save();
+                        }
+                        DeverQuestGuildAccountService.AddAudit(
+                            "Spell Taught",
+                            character.characterName,
+                            selectedRulesSpell.displayName);
+                    }
+                }
+            }
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(8f);
+        }
+
+        private static void CreateCharacterAsset<T>(
+            string defaultName)
+            where T : ScriptableObject
+        {
+            string path = EditorUtility.SaveFilePanelInProject(
+                "Create DeverQuest Character Asset",
+                defaultName,
+                "asset",
+                "Choose where to save the character rules asset.");
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+            T asset = CreateInstance<T>();
+            AssetDatabase.CreateAsset(asset, path);
+            AssetDatabase.SaveAssets();
+            Selection.activeObject = asset;
+            EditorGUIUtility.PingObject(asset);
+        }
+
+        private static void DrawCampaignRulesSetup(
+            DeverQuestProfile profile)
+        {
+            EditorGUILayout.Space(10f);
+            EditorGUILayout.LabelField(
+                "Daily Decree Campaign Rules",
+                EditorStyles.boldLabel);
+            profile.dailyDecreeRecommendedLevel =
+                EditorGUILayout.IntField(
+                    "Recommended Level",
+                    profile.dailyDecreeRecommendedLevel);
+            profile.campaignDifficulty =
+                (DeverQuestCampaignDifficulty)
+                EditorGUILayout.EnumPopup(
+                    "Campaign Difficulty",
+                    profile.campaignDifficulty);
+            profile.dailyDecreeCheckModifier =
+                EditorGUILayout.IntSlider(
+                    new GUIContent(
+                        "Check Modifier",
+                        "Applied to deterministic ability and saving-throw " +
+                        "checks for the active Daily Decree."),
+                    profile.dailyDecreeCheckModifier,
+                    -10,
+                    10);
         }
 
         private static string DrawStringPopup(
