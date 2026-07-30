@@ -10,9 +10,9 @@
       }
     },
     "com.echodevgames.deverquest": {
-      "version": "file:com.echodevgames.deverquest",
+      "version": "file:C:/GitRepos/CodeNaziRepo/CodeNazi/Exports/com.echodevgames.deverquest-0.11.4.tgz",
       "depth": 0,
-      "source": "embedded",
+      "source": "local-tarball",
       "dependencies": {}
     },
     "com.unity.burst": {
