@@ -19,8 +19,20 @@ namespace EchoDevGames.DeverQuest
         public string Formula = string.Empty;
     }
 
+    [InitializeOnLoad]
     internal static class DeverQuestRulesService
     {
+        private static Dictionary<string, DeverQuestEquipment>
+            equipmentCache;
+        private static Dictionary<string, DeverQuestSpell>
+            spellCache;
+
+        static DeverQuestRulesService()
+        {
+            EditorApplication.projectChanged -= ClearAssetCaches;
+            EditorApplication.projectChanged += ClearAssetCaches;
+        }
+
         public static int AbilityModifier(int score)
         {
             return (int)Math.Floor((score - 10) / 2d);
@@ -53,6 +65,15 @@ namespace EchoDevGames.DeverQuest
                 case DeverQuestAbility.Wisdom:
                     score = character.wisdom;
                     break;
+                case DeverQuestAbility.Agility:
+                    score = character.agility;
+                    break;
+                case DeverQuestAbility.Stamina:
+                    score = character.stamina;
+                    break;
+                case DeverQuestAbility.Luck:
+                    score = character.luck;
+                    break;
                 default:
                     score = character.charisma;
                     break;
@@ -70,9 +91,14 @@ namespace EchoDevGames.DeverQuest
 
         public static int ArmorClass(DeverQuestAdventurer character)
         {
+            DeverQuestAncestry ancestry =
+                DeverQuestIdentityCatalogService.FindAncestry(
+                    character.ancestryId,
+                    character.ancestryName);
             return 10 +
                    AbilityModifier(GetAbilityScore(
                        character, DeverQuestAbility.Dexterity)) +
+                   (ancestry?.naturalArmorBonus ?? 0) +
                    EquippedAssets(character).Sum(
                        item => item.armorClassBonus);
         }
@@ -111,12 +137,9 @@ namespace EchoDevGames.DeverQuest
                 character.knownSpellIds ??
                 new List<string>());
             List<string> names = new List<string>();
-            foreach (string guid in AssetDatabase.FindAssets(
-                         "t:DeverQuestSpell"))
+            EnsureAssetCaches();
+            foreach (DeverQuestSpell spell in spellCache.Values)
             {
-                DeverQuestSpell spell =
-                    AssetDatabase.LoadAssetAtPath<DeverQuestSpell>(
-                        AssetDatabase.GUIDToAssetPath(guid));
                 if (spell != null && ids.Contains(spell.SpellId))
                 {
                     names.Add(spell.displayName);
@@ -129,35 +152,47 @@ namespace EchoDevGames.DeverQuest
             DeverQuestAdventurer character)
         {
             List<string> features = new List<string>();
-            switch (character.characterClass)
+            DeverQuestClassDefinition classDefinition =
+                DeverQuestIdentityCatalogService.FindClass(
+                    character.classId,
+                    character.characterClass);
+            if ((classDefinition?.classFeatures?.Count ?? 0) > 0)
             {
-                case "Necromancer":
-                    features.Add("Grave Magic");
-                    features.Add("Life Siphon");
-                    break;
-                case "Wizard":
-                case "Sorcerer":
-                    features.Add("Spellcasting");
-                    features.Add("Arcane Tradition");
-                    break;
-                case "Cleric":
-                case "Druid":
-                    features.Add("Divine or Primal Magic");
-                    break;
-                case "Rogue":
-                    features.Add("Precision Strike");
-                    features.Add("Expertise");
-                    break;
-                case "Ranger":
-                    features.Add("Wilderness Training");
-                    break;
-                case "Paladin":
-                    features.Add("Sacred Oath");
-                    features.Add("Lay on Hands");
-                    break;
-                default:
-                    features.Add("Martial Training");
-                    break;
+                features.AddRange(
+                    classDefinition.classFeatures);
+            }
+            else
+            {
+                switch (character.characterClass)
+                {
+                    case "Necromancer":
+                        features.Add("Grave Magic");
+                        features.Add("Life Siphon");
+                        break;
+                    case "Wizard":
+                    case "Sorcerer":
+                        features.Add("Spellcasting");
+                        features.Add("Arcane Tradition");
+                        break;
+                    case "Cleric":
+                    case "Druid":
+                        features.Add("Divine or Primal Magic");
+                        break;
+                    case "Rogue":
+                        features.Add("Precision Strike");
+                        features.Add("Expertise");
+                        break;
+                    case "Ranger":
+                        features.Add("Wilderness Training");
+                        break;
+                    case "Paladin":
+                        features.Add("Sacred Oath");
+                        features.Add("Lay on Hands");
+                        break;
+                    default:
+                        features.Add("Martial Training");
+                        break;
+                }
             }
             if (character.level >= 2)
             {
@@ -234,7 +269,7 @@ namespace EchoDevGames.DeverQuest
             return total;
         }
 
-        private static IEnumerable<DeverQuestEquipment> EquippedAssets(
+        internal static IEnumerable<DeverQuestEquipment> EquippedAssets(
             DeverQuestAdventurer character)
         {
             if (character.equippedEquipmentIds == null)
@@ -244,33 +279,94 @@ namespace EchoDevGames.DeverQuest
             HashSet<string> ids =
                 new HashSet<string>(
                     character.equippedEquipmentIds);
-            foreach (string guid in AssetDatabase.FindAssets(
-                         "t:DeverQuestEquipment"))
+            EnsureAssetCaches();
+            foreach (string id in ids)
             {
-                DeverQuestEquipment item =
-                    AssetDatabase.LoadAssetAtPath<DeverQuestEquipment>(
-                        AssetDatabase.GUIDToAssetPath(guid));
-                if (item != null && ids.Contains(item.EquipmentId))
+                if (equipmentCache.TryGetValue(
+                        id,
+                        out DeverQuestEquipment item) &&
+                    item != null)
                 {
                     yield return item;
                 }
             }
         }
 
-        private static DeverQuestEquipment FindEquipment(string id)
+        internal static DeverQuestEquipment FindEquipment(string id)
         {
-            foreach (string guid in AssetDatabase.FindAssets(
-                         "t:DeverQuestEquipment"))
+            EnsureAssetCaches();
+            return equipmentCache.TryGetValue(
+                id ?? string.Empty,
+                out DeverQuestEquipment item)
+                ? item
+                : null;
+        }
+
+        internal static IEnumerable<DeverQuestSpell> KnownSpellAssets(
+            DeverQuestAdventurer character)
+        {
+            if (character?.knownSpellIds == null)
             {
-                DeverQuestEquipment item =
-                    AssetDatabase.LoadAssetAtPath<DeverQuestEquipment>(
-                        AssetDatabase.GUIDToAssetPath(guid));
-                if (item != null && item.EquipmentId == id)
+                yield break;
+            }
+            HashSet<string> ids =
+                new HashSet<string>(character.knownSpellIds);
+            EnsureAssetCaches();
+            foreach (string id in ids)
+            {
+                if (spellCache.TryGetValue(
+                        id,
+                        out DeverQuestSpell spell) &&
+                    spell != null)
                 {
-                    return item;
+                    yield return spell;
                 }
             }
-            return null;
+        }
+
+        private static void EnsureAssetCaches()
+        {
+            if (equipmentCache == null)
+            {
+                equipmentCache =
+                    new Dictionary<string, DeverQuestEquipment>();
+                foreach (string guid in AssetDatabase.FindAssets(
+                             "t:DeverQuestEquipment"))
+                {
+                    DeverQuestEquipment equipment =
+                        AssetDatabase.LoadAssetAtPath<
+                            DeverQuestEquipment>(
+                            AssetDatabase.GUIDToAssetPath(guid));
+                    if (equipment != null)
+                    {
+                        equipmentCache[equipment.EquipmentId] =
+                            equipment;
+                    }
+                }
+            }
+            if (spellCache == null)
+            {
+                spellCache =
+                    new Dictionary<string, DeverQuestSpell>();
+                foreach (string guid in AssetDatabase.FindAssets(
+                             "t:DeverQuestSpell"))
+                {
+                    DeverQuestSpell spell =
+                        AssetDatabase.LoadAssetAtPath<
+                            DeverQuestSpell>(
+                            AssetDatabase.GUIDToAssetPath(guid));
+                    if (spell != null)
+                    {
+                        spellCache[spell.SpellId] = spell;
+                    }
+                }
+            }
+        }
+
+        private static void ClearAssetCaches()
+        {
+            equipmentCache = null;
+            spellCache = null;
         }
 
         private static bool TryParseDice(

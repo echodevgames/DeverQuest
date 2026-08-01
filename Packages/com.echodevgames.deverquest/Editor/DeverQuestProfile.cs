@@ -30,7 +30,7 @@ namespace EchoDevGames.DeverQuest
     [Serializable]
     internal sealed class DeverQuestProfile
     {
-        public const int CurrentDataVersion = 12;
+        public const int CurrentDataVersion = 14;
 
         public int dataVersion = CurrentDataVersion;
         public bool setupComplete;
@@ -51,6 +51,10 @@ namespace EchoDevGames.DeverQuest
         public int hydrationMinutes = 45;
         public int exerciseMinutes = 120;
         public int snoozeMinutes = 10;
+        public int wellnessShortBreakMinutes = 5;
+        public int wellnessMealBreakMinutes = 30;
+        public int wellnessQuietBreakMinutes = 15;
+        public int wellnessBreakExperience = 5;
 
         public bool mealRemindersEnabled = true;
         public int lunchHour = 12;
@@ -98,6 +102,10 @@ namespace EchoDevGames.DeverQuest
         public DeverQuestCampaignDifficulty campaignDifficulty =
             DeverQuestCampaignDifficulty.Standard;
         public int dailyDecreeCheckModifier;
+        public bool sharedGuildEnabled;
+        public string sharedGuildRepositoryPath = string.Empty;
+        public bool publishCompletedQuests = true;
+        public int healthyDailyFocusMinutes = 600;
 
         public void Sanitize()
         {
@@ -199,6 +207,22 @@ namespace EchoDevGames.DeverQuest
                 dailyDecreeCheckModifier = 0;
             }
 
+            if (dataVersion < 13)
+            {
+                wellnessShortBreakMinutes = 5;
+                wellnessMealBreakMinutes = 30;
+                wellnessQuietBreakMinutes = 15;
+                wellnessBreakExperience = 5;
+            }
+
+            if (dataVersion < 14)
+            {
+                sharedGuildEnabled = false;
+                sharedGuildRepositoryPath = string.Empty;
+                publishCompletedQuests = true;
+                healthyDailyFocusMinutes = 600;
+            }
+
             developerName = developerName?.Trim() ?? string.Empty;
             timecardRootPath = timecardRootPath?.Trim() ?? string.Empty;
             lastProjectName = lastProjectName?.Trim() ?? string.Empty;
@@ -208,6 +232,8 @@ namespace EchoDevGames.DeverQuest
                 lockedProjectName?.Trim() ?? string.Empty;
             gitRepositoryOverridePath =
                 gitRepositoryOverridePath?.Trim() ?? string.Empty;
+            sharedGuildRepositoryPath =
+                sharedGuildRepositoryPath?.Trim() ?? string.Empty;
             if (focusCheckInScheduleMinutes == null)
             {
                 focusCheckInScheduleMinutes = new List<int>();
@@ -232,6 +258,14 @@ namespace EchoDevGames.DeverQuest
             hydrationMinutes = Math.Max(0, hydrationMinutes);
             exerciseMinutes = Math.Max(0, exerciseMinutes);
             snoozeMinutes = Math.Max(1, snoozeMinutes);
+            wellnessShortBreakMinutes =
+                Math.Max(1, wellnessShortBreakMinutes);
+            wellnessMealBreakMinutes =
+                Math.Max(1, wellnessMealBreakMinutes);
+            wellnessQuietBreakMinutes =
+                Math.Max(1, wellnessQuietBreakMinutes);
+            wellnessBreakExperience =
+                Math.Max(0, wellnessBreakExperience);
             lunchHour = Math.Min(23, Math.Max(0, lunchHour));
             lunchMinute = Math.Min(59, Math.Max(0, lunchMinute));
             dinnerHour = Math.Min(23, Math.Max(0, dinnerHour));
@@ -261,6 +295,8 @@ namespace EchoDevGames.DeverQuest
             dailyDecreeCheckModifier =
                 Math.Min(10, Math.Max(-10,
                     dailyDecreeCheckModifier));
+            healthyDailyFocusMinutes =
+                Math.Max(60, healthyDailyFocusMinutes);
             if (!Enum.IsDefined(typeof(DeverQuestTheme), theme))
             {
                 theme = DeverQuestTheme.EchoNeon;

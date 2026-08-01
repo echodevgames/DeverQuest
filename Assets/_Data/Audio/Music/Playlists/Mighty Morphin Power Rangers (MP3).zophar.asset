@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Mighty Morphin Power Rangers (MP3).zophar
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: 269308076d4a7ce4f93687379bbb16ec, type: 3}
+  - {fileID: 8300000, guid: 75cc6055ba59c8d4bb1d3fbc812af1ff, type: 3}
+  - {fileID: 8300000, guid: c4e6f67ebc8cc894e83a51a162434e2f, type: 3}
+  - {fileID: 8300000, guid: 9739594369e5b0f449cadc7adf270d09, type: 3}
+  - {fileID: 8300000, guid: a17d683326eff284499e5bea834c0af8, type: 3}
+  - {fileID: 8300000, guid: c6cec6b4aa2bfa9418227b2cb75bda43, type: 3}
+  - {fileID: 8300000, guid: f3060a91b43ead845a0eb7c8c5d6a945, type: 3}
+  - {fileID: 8300000, guid: 17966fa4164458640bd7913a5406348c, type: 3}
+  - {fileID: 8300000, guid: 298477b45b521eb48b60e9c30d5f23f2, type: 3}
+  - {fileID: 8300000, guid: d55fd5461f10cfa4c989d8ec2dd5809b, type: 3}
+  - {fileID: 8300000, guid: e3b2b69ca07d31046bc6472c64bd414d, type: 3}
+  - {fileID: 8300000, guid: 02caf29bf9c8c6a4fad22e74f6862752, type: 3}
+  - {fileID: 8300000, guid: f7b113169c28ba64897473616344c9d8, type: 3}
+  - {fileID: 8300000, guid: 17a4e7d400af53649ad71a336d37cf34, type: 3}
+  - {fileID: 8300000, guid: 41686e800181d25499adbd2d4393e81b, type: 3}
+  - {fileID: 8300000, guid: 2d590bb446594bd4582ddc4e9fbd33bd, type: 3}
+  - {fileID: 8300000, guid: b25c1de03f0d1414bba51aab8e361ba6, type: 3}
+  - {fileID: 8300000, guid: ef7a186ad4f000d4b8ce1cc6a2404db4, type: 3}
+  - {fileID: 8300000, guid: a61c8dd23d7e9894da8ab8b1f97c6d4c, type: 3}
+  - {fileID: 8300000, guid: dea75b435bde43449b51f240b7673153, type: 3}
+  - {fileID: 8300000, guid: 8af4331670b7d3f48a9463346c0d9252, type: 3}
+  - {fileID: 8300000, guid: 4ab455b7f8caeed4e8a00efa48eb05f3, type: 3}
+  - {fileID: 8300000, guid: 1f7322ba5fcf3844a9892944eb72cf0c, type: 3}
+  - {fileID: 8300000, guid: 115138419250ebf4baa58b689a896179, type: 3}
+  trackWeights: 010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

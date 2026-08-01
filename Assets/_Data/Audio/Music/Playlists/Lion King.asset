@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Lion King
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: b4ebadfdad3e08f4db1e19d5a3b5069b, type: 3}
+  - {fileID: 8300000, guid: 491f39d021596214ab912969db9599bd, type: 3}
+  - {fileID: 8300000, guid: a291e3cd3a72c3241867ed3c313d9575, type: 3}
+  - {fileID: 8300000, guid: d0e0b771ebf46c241b20487409cbf85e, type: 3}
+  - {fileID: 8300000, guid: 5d306d731483a6b4590711fdbf3b73d0, type: 3}
+  - {fileID: 8300000, guid: 752f58478695bba4c9b59694458649b2, type: 3}
+  - {fileID: 8300000, guid: ae017b1ce11b1944da6e019ff44b1855, type: 3}
+  - {fileID: 8300000, guid: c50fb124cf6539d4b9c487ced3561fac, type: 3}
+  - {fileID: 8300000, guid: 256986f8e11ec6c41b481e17fa169346, type: 3}
+  trackWeights: 010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Micro Machines (MP3).zophar
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: 0ab57ae3c43869d4c8c3ccebf4ff9b37, type: 3}
+  - {fileID: 8300000, guid: fcdfb3b6506e6cf4d9ddfedb7e620877, type: 3}
+  - {fileID: 8300000, guid: 0a261549f3e47174e8837443dce2eda2, type: 3}
+  - {fileID: 8300000, guid: a65cf68a41ae35f4293a60450d0875f1, type: 3}
+  - {fileID: 8300000, guid: 76324e2392cf8634ba68f634ca985ea7, type: 3}
+  - {fileID: 8300000, guid: 3bb08edef3da3884da9afe49c8f75bc8, type: 3}
+  - {fileID: 8300000, guid: 603f915baf19dad4cb38bc69dcc2c26c, type: 3}
+  - {fileID: 8300000, guid: 18cc81bf961f9b646bdbdbe54062918e, type: 3}
+  - {fileID: 8300000, guid: 7e9038f33cdbc734dab74285b4cf229e, type: 3}
+  - {fileID: 8300000, guid: 520fc0b0d3869564eb730f117a3ecf02, type: 3}
+  - {fileID: 8300000, guid: 25d5202feffb79c48ba6811e8903adac, type: 3}
+  trackWeights: 0100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

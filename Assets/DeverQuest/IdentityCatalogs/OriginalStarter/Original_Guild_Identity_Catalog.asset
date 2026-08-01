@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09e852f62aa022d2e2e6fece2b37126f, type: 3}
+  m_Name: Original_Guild_Identity_Catalog
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestIdentityCatalog
+  displayName: Original Guild Identity Catalog
+  ancestries:
+  - {fileID: 11400000, guid: 357ca3b129b863c428b086023464fd77, type: 2}
+  - {fileID: 11400000, guid: 1cc90d95f8643cf428ccc022d86573a5, type: 2}
+  - {fileID: 11400000, guid: c05c905dc99b52340992bd278a2be72d, type: 2}
+  - {fileID: 11400000, guid: d6672c0be5382724eb414befee04349e, type: 2}
+  - {fileID: 11400000, guid: 566112d9b7522904aa6dba01f202a01b, type: 2}
+  - {fileID: 11400000, guid: ba06de93e262f2345b1a89ed716dda2d, type: 2}
+  - {fileID: 11400000, guid: c54ba355508406a43aa3a5cba61eabc9, type: 2}
+  - {fileID: 11400000, guid: 30bf5bdef33bccd4c92a0b56e50500f6, type: 2}
+  - {fileID: 11400000, guid: 1b29022e197a81f45aecacbca34e2bc7, type: 2}
+  classes:
+  - {fileID: 11400000, guid: 95b8330d91288a743869781361572740, type: 2}
+  - {fileID: 11400000, guid: 7cb256cfe7368464e9e093bf63f39234, type: 2}
+  - {fileID: 11400000, guid: 31df70f7a0f03c74199b13c758575dd7, type: 2}
+  - {fileID: 11400000, guid: 0a5ac9bac22ee204aae206d3be877f7f, type: 2}
+  - {fileID: 11400000, guid: 14d38f7f5317965498c2771a4d9a2eb8, type: 2}
+  - {fileID: 11400000, guid: e65d4e6e5e3109441a21807c8d166cdf, type: 2}
+  - {fileID: 11400000, guid: e89846e00db1c3348ac6b2aecffd798b, type: 2}
+  - {fileID: 11400000, guid: 7a5ff6c111290064fb34172727a4c6c4, type: 2}
+  - {fileID: 11400000, guid: 249e5c458d074c941bcd5dca6aa26fe1, type: 2}
+  - {fileID: 11400000, guid: 6dc2fc04fb6195c4a9f00e6796730339, type: 2}
+  - {fileID: 11400000, guid: bf34e114daf3a44459c64246802fe42f, type: 2}
+  - {fileID: 11400000, guid: c41b4ddd3a1bf994a8c1b12360ff674e, type: 2}
+  - {fileID: 11400000, guid: 8858790c1857c694bbf0fd644d80b125, type: 2}
+  - {fileID: 11400000, guid: aba3a58c800706349975b94ab9b7d405, type: 2}
+  - {fileID: 11400000, guid: 4ab66cb6b882a1d428f573186f9a2207, type: 2}
+  faiths:
+  - {fileID: 11400000, guid: 0fb20ded0259a6448b3f2e2e09321710, type: 2}
+  - {fileID: 11400000, guid: 051ccace8ca7ed44a9c32c00b987b11d, type: 2}
+  - {fileID: 11400000, guid: d2767b88bc623d646a7bde2d49260986, type: 2}
+  - {fileID: 11400000, guid: bc43e893b0e52df4f9500cd2d8c78ff8, type: 2}
+  - {fileID: 11400000, guid: 1fb6e91a92b91f449adb754e86f10559, type: 2}
+  defaultAncestry: {fileID: 11400000, guid: 357ca3b129b863c428b086023464fd77, type: 2}
+  defaultClass: {fileID: 11400000, guid: 95b8330d91288a743869781361572740, type: 2}
+  defaultFaith: {fileID: 11400000, guid: 0fb20ded0259a6448b3f2e2e09321710, type: 2}

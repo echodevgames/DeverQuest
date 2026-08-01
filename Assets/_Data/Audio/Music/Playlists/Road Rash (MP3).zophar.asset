@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Road Rash (MP3).zophar
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: eb79a75f266e720428e3b4d814b357f3, type: 3}
+  - {fileID: 8300000, guid: a06b453c784a85046b799604d3345e8a, type: 3}
+  - {fileID: 8300000, guid: 3197de5507b0d044ba6f7d3463f07001, type: 3}
+  - {fileID: 8300000, guid: 2e2f3f33a7e99994aa98820c7fce3144, type: 3}
+  - {fileID: 8300000, guid: 077e66534020e1e40b9f1cccf93e56b3, type: 3}
+  - {fileID: 8300000, guid: 4878f6c9e81491a40bfc6d24305e60d0, type: 3}
+  - {fileID: 8300000, guid: 8ec382b343136534189e49bfb04ef03f, type: 3}
+  - {fileID: 8300000, guid: 9350f5ae4bb15db4eb05ffae8db16516, type: 3}
+  trackWeights: 0100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

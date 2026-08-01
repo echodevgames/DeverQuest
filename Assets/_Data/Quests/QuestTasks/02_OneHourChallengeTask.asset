@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50c046ee1bb6e9f4aa16412efb430faa, type: 3}
+  m_Name: 02_OneHourChallengeTask
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestProfile
+  profileId: 6f2f4090d4a049529eb261e153cb47b2
+  displayName: OneHourChallenge
+  description: Any one dev task. Make a utility or something. Make a platform move.
+    Door open and close, Pickup rotate. Show us what youve got.
+  availableToMembers: 1
+  minimumAdventurerLevel: 1
+  projectName: JOINME!!!
+  taskName: OneHourChallenge
+  department: Programming
+  goalTemplate: Show us what you've got!
+  suggestedFocusMinutes: 60
+  baseCopper: 100
+  baseExperience: 100
+  workBlockMinutes: 15
+  copperPerWorkBlock: 25
+  experiencePerWorkBlock: 25

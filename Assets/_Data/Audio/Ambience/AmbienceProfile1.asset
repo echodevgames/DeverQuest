@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf1b72db79dae60bf22e1a917eebef9, type: 3}
+  m_Name: AmbienceProfile1
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestAmbienceProfile
+  displayName: Guildhall Ambience
+  description: 
+  ambienceClips:
+  - {fileID: 8300000, guid: 779b0fc7f1ea8ec4ca9b2de7538d682f, type: 3}
+  - {fileID: 8300000, guid: cc122615750688c44bc5439d313bd0ce, type: 3}
+  - {fileID: 8300000, guid: fdf4416f8d5d9804e9954299772a0ce3, type: 3}
+  - {fileID: 8300000, guid: f994b3b27ea306a49b25e1eba9538512, type: 3}
+  - {fileID: 8300000, guid: 8dc00109dbaac6c46a1ae906aadeb296, type: 3}
+  - {fileID: 8300000, guid: c8954eba54278d64593cfec83e75b861, type: 3}
+  - {fileID: 8300000, guid: e8baf9de9898251448872335190fe774, type: 3}
+  - {fileID: 8300000, guid: 9efd722a77cd018429498945fe5ac405, type: 3}
+  - {fileID: 8300000, guid: 555a8b678e0da38458e8cffe6fa848d1, type: 3}
+  - {fileID: 8300000, guid: 4958c8a7f35a9d44a9734e62f2e521f0, type: 3}
+  - {fileID: 8300000, guid: 70a1cf088f85ba140aeecffe2ec0fe4b, type: 3}
+  - {fileID: 8300000, guid: 965ade72e4d23fe4692e4e1641e316a6, type: 3}
+  - {fileID: 8300000, guid: ad3fdf62a6435bd4393efd5fbf40cec7, type: 3}
+  - {fileID: 8300000, guid: d62424a516ef26e4aafb3ff05817d7ba, type: 3}
+  - {fileID: 8300000, guid: 8c29e447f4150f048ab3a951063b88ee, type: 3}
+  volume: 0.35
+  shuffle: 1
+  playDuringActiveQuest: 1

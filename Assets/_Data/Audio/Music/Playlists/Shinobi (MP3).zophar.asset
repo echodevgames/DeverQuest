@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Shinobi (MP3).zophar
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: 38cb72d32ee1d5440bad24c63b6af52d, type: 3}
+  - {fileID: 8300000, guid: 4cb0780ebb5f97d4c87241ecf55f2960, type: 3}
+  - {fileID: 8300000, guid: 648b25ff12c725c45ba23b8b575d8f28, type: 3}
+  - {fileID: 8300000, guid: 5266ad4d1cef7b44db88939b63c19c50, type: 3}
+  - {fileID: 8300000, guid: 63e80c9d5463f1f48a5ef4efd61d1d1c, type: 3}
+  - {fileID: 8300000, guid: c415711f33c73aa4597569d7cc6a5eca, type: 3}
+  - {fileID: 8300000, guid: 537bbd65096ad2742bef8620ebd4212f, type: 3}
+  - {fileID: 8300000, guid: 22dcd6dd28922994e8ee276225bae766, type: 3}
+  - {fileID: 8300000, guid: 738f36b21e0324f4da87eebba2ba812f, type: 3}
+  - {fileID: 8300000, guid: 928c68de3bfcf0440a76f7b67496b68c, type: 3}
+  - {fileID: 8300000, guid: a589296e84711454f858533f85bfaed9, type: 3}
+  - {fileID: 8300000, guid: 154a45787ce332240bb34f1c6045f43a, type: 3}
+  - {fileID: 8300000, guid: e109f459a3fa6c341b08633be756830b, type: 3}
+  - {fileID: 8300000, guid: f924609ad8821364290ff34ee6af611b, type: 3}
+  - {fileID: 8300000, guid: 4297e7b2053a18e409e0ef479414ab87, type: 3}
+  - {fileID: 8300000, guid: 463af20a9b011bf4d9424f323b2b5e37, type: 3}
+  - {fileID: 8300000, guid: a81a220dd0f9eb945a942950f95789bd, type: 3}
+  - {fileID: 8300000, guid: 3129cf015fc9bae4688616c61460903b, type: 3}
+  - {fileID: 8300000, guid: b2e129efcbff2c8469aff3275bf625bf, type: 3}
+  - {fileID: 8300000, guid: ee828e9bbc2bcd4468b913c2ce144f1e, type: 3}
+  trackWeights: 0100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

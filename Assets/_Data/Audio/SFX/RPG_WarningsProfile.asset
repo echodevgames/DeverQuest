@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c9f0199441ffb04b9914e733b87a083, type: 3}
+  m_Name: RPG_WarningsProfile
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestWarningAudioProfile
+  volume: 1
+  idleWarning: {fileID: 8300000, guid: b0e62ed71b1538648b719821f4f63b4c, type: 3}
+  idlePaused: {fileID: 8300000, guid: acbcb75601b0082458fda8807f67c813, type: 3}
+  focusCheckIn: {fileID: 8300000, guid: d654174ef194bd7479bf4b8d8f753318, type: 3}
+  hydration: {fileID: 8300000, guid: 1eb7cbaf61d23a64bbd36c0a38b5cb0c, type: 3}
+  movementBreak: {fileID: 8300000, guid: 7a9de5c4d998126449cf964a6b27a8b0, type: 3}
+  mealReminder: {fileID: 8300000, guid: 6cf9c85b5a3b88c468b21b9d21250adf, type: 3}
+  stageComplete: {fileID: 8300000, guid: b0e62ed71b1538648b719821f4f63b4c, type: 3}
+  encounterAttack: {fileID: 8300000, guid: 00e4eb96f4f6cc249a632e4027644cad, type: 3}
+  encounterDanger: {fileID: 8300000, guid: c91fcf414acc0344cb03b13996f1bf3b, type: 3}
+  encounterVictory: {fileID: 8300000, guid: cfce0cea076109f478783201b2a9f57f, type: 3}
+  encounterDefeat: {fileID: 8300000, guid: b7f8695cf65a4f24eb37544298821146, type: 3}
+  questComplete: {fileID: 8300000, guid: d1afd3f4d23c24f418ffc315afb04965, type: 3}
+  levelUp: {fileID: 8300000, guid: f1cb5d83282f2904a85f73111d068616, type: 3}
+  purchase: {fileID: 8300000, guid: 35cf7766e9e2aa542811e896fde57989, type: 3}
+  error: {fileID: 8300000, guid: aa967a280457c054bb646d57611f5bd0, type: 3}

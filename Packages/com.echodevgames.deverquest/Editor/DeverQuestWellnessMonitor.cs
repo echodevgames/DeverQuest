@@ -45,11 +45,12 @@ namespace EchoDevGames.DeverQuest
             DeverQuestProfile profile =
                 DeverQuestSettingsStore.Profile;
 
-            if (DeverQuestSessionStore.HasActiveSession)
+            if (!startBreak &&
+                DeverQuestSessionStore.HasActiveSession)
             {
                 DeverQuestSessionStore.RecordWellnessAction(
                     type,
-                    startBreak ? "Break Started" : "Acknowledged",
+                    "Acknowledged",
                     GetIntervalMinutes(profile, type));
             }
 
@@ -58,13 +59,23 @@ namespace EchoDevGames.DeverQuest
                 MarkDailyReminderHandled(type);
             }
 
-            if (startBreak &&
+            bool breakStarted =
+                startBreak &&
                 DeverQuestSessionStore.HasActiveSession &&
                 DeverQuestSessionStore.ActiveSession.state ==
-                DeverQuestSessionState.Running)
+                DeverQuestSessionState.Running &&
+                DeverQuestSessionStore.PauseForApprovedBreak(
+                    GetBreakMinutes(profile, type),
+                    ActiveTitle,
+                    type,
+                    true);
+
+            if (breakStarted)
             {
-                DeverQuestSessionStore.PauseSession(
-                    GetPauseReason(type));
+                DeverQuestSessionStore.RecordWellnessAction(
+                    type,
+                    "Break Started",
+                    GetIntervalMinutes(profile, type));
             }
 
             ClearReminder();
@@ -253,7 +264,7 @@ namespace EchoDevGames.DeverQuest
             ActiveMessage = message;
             HasActiveReminder = true;
 
-            DeverQuestWindow.ShowWellnessReminder(title);
+            DeverQuestWindow.ShowWellnessReminder(title, type);
         }
 
         private static void ClearReminder()
@@ -291,6 +302,22 @@ namespace EchoDevGames.DeverQuest
                    type == DeverQuestWellnessType.Exercise;
         }
 
+        private static int GetBreakMinutes(
+            DeverQuestProfile profile,
+            DeverQuestWellnessType type)
+        {
+            switch (type)
+            {
+                case DeverQuestWellnessType.Lunch:
+                case DeverQuestWellnessType.Dinner:
+                    return profile.wellnessMealBreakMinutes;
+                case DeverQuestWellnessType.QuietHours:
+                    return profile.wellnessQuietBreakMinutes;
+                default:
+                    return profile.wellnessShortBreakMinutes;
+            }
+        }
+
         private static int GetIntervalMinutes(
             DeverQuestProfile profile,
             DeverQuestWellnessType type)
@@ -307,22 +334,6 @@ namespace EchoDevGames.DeverQuest
                     return profile.exerciseMinutes;
                 default:
                     return 0;
-            }
-        }
-
-        private static string GetPauseReason(
-            DeverQuestWellnessType type)
-        {
-            switch (type)
-            {
-                case DeverQuestWellnessType.Lunch:
-                    return "Lunch Break";
-                case DeverQuestWellnessType.Dinner:
-                    return "Dinner Break";
-                case DeverQuestWellnessType.Exercise:
-                    return "Exercise Break";
-                default:
-                    return "Wellness Break";
             }
         }
 

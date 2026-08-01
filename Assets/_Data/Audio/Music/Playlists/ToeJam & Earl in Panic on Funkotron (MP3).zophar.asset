@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: ToeJam & Earl in Panic on Funkotron (MP3).zophar
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: 83ddb2a8c05f5c64896b7073e75637ae, type: 3}
+  - {fileID: 8300000, guid: 2ac96b9d8b8028344a47e41842714ef9, type: 3}
+  - {fileID: 8300000, guid: d24a8e1fd5b51074d8bf24d37b9698cd, type: 3}
+  - {fileID: 8300000, guid: 3a62efb66736d5648a4e3cab9e596f00, type: 3}
+  - {fileID: 8300000, guid: 80825490c1ac88745b60e822561772db, type: 3}
+  - {fileID: 8300000, guid: 8c09489468cce38479088211729d42c4, type: 3}
+  - {fileID: 8300000, guid: b36ba4d89c4bce142bc01b0c81941f93, type: 3}
+  - {fileID: 8300000, guid: 0959a81cfca2ddb41a866ca5d20111b1, type: 3}
+  - {fileID: 8300000, guid: 1d8723d3729517b4b8ca13db369a37f1, type: 3}
+  - {fileID: 8300000, guid: 7de6c99e33435e642b836a35d17e8e90, type: 3}
+  - {fileID: 8300000, guid: 1d7752c1416310243b6cfb1f2a30867a, type: 3}
+  - {fileID: 8300000, guid: 48c711da47afe154cb194a28e9049ce3, type: 3}
+  - {fileID: 8300000, guid: 418a41b35e7357b4fb1bd5eec7bd36da, type: 3}
+  - {fileID: 8300000, guid: 35b20e084713f004ea090fd030e09e79, type: 3}
+  - {fileID: 8300000, guid: 92a3beff49817104a9079e642f3e4910, type: 3}
+  trackWeights: 010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Prince of Persia (MP3).zophar
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: 670f3446e8e0b0f4abca4e545107f6d6, type: 3}
+  - {fileID: 8300000, guid: 323c4991da5a6d348b42fccdeca35ea1, type: 3}
+  - {fileID: 8300000, guid: 0443c3fe76aff30408b5ad3c3c06d3ee, type: 3}
+  - {fileID: 8300000, guid: 2e51823c54425f64c9e0411d89ca5ec5, type: 3}
+  - {fileID: 8300000, guid: bc6a08b8524a554428d290aa7d6d4129, type: 3}
+  - {fileID: 8300000, guid: b9a2e12f82bf65445885cb6a1a899963, type: 3}
+  - {fileID: 8300000, guid: 8e4610eef8441e84b927cb626a079b49, type: 3}
+  - {fileID: 8300000, guid: af598fa48380d124385b3c40d89580b4, type: 3}
+  - {fileID: 8300000, guid: d9fbdac5e5de8c544958b0c6a74a495b, type: 3}
+  - {fileID: 8300000, guid: 3026ac5fe6b1d644ba583d9f09c14c71, type: 3}
+  trackWeights: 01000000010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.332

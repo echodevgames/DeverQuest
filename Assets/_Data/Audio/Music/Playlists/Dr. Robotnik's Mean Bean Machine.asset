@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Dr. Robotnik's Mean Bean Machine
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: 5dcc5a582dc154f42b96b0666e42a494, type: 3}
+  - {fileID: 8300000, guid: 7907026c9274ddf4eaee7772694fe8d1, type: 3}
+  - {fileID: 8300000, guid: c69aaa1c0a98a7847869f2741c9cf96e, type: 3}
+  - {fileID: 8300000, guid: 806238e93d0a6c74aa2a897fc817b344, type: 3}
+  - {fileID: 8300000, guid: 6114278c169ab2c42a9538c6354f870e, type: 3}
+  - {fileID: 8300000, guid: 7294e916256cf494f8a3c1d0bbcf18eb, type: 3}
+  - {fileID: 8300000, guid: e34b7c623286bdc429a6faebe401b763, type: 3}
+  - {fileID: 8300000, guid: c2ab712b90d050c4a9f431134bd39410, type: 3}
+  - {fileID: 8300000, guid: a7252cf2da4ac5c4e99abbcf1396161d, type: 3}
+  - {fileID: 8300000, guid: 018bc30b0d3bc0e44a35506606c326d9, type: 3}
+  - {fileID: 8300000, guid: 2c9ed31b1b16fed46958885d9d9769b5, type: 3}
+  - {fileID: 8300000, guid: 636532159213b2145860b6bcdf325f2c, type: 3}
+  trackWeights: 010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

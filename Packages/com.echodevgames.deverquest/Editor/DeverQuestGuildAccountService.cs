@@ -26,6 +26,13 @@ namespace EchoDevGames.DeverQuest
         public string characterName = string.Empty;
         public string guildName = string.Empty;
         public string characterClass = "Warrior";
+        public string classId = string.Empty;
+        public string ancestryName = string.Empty;
+        public string ancestryId = string.Empty;
+        public string deityName = "Agnostic";
+        public string deityId = string.Empty;
+        public DeverQuestAlignment alignment =
+            DeverQuestAlignment.TrueNeutral;
         public string guildRank = "Member";
         public List<string> assignedProjects = new List<string>();
         public string passwordSalt = string.Empty;
@@ -35,6 +42,10 @@ namespace EchoDevGames.DeverQuest
         public long currentExperience;
         public long lifetimeExperience;
         public long copperBalance;
+        public long platinumCoins;
+        public long goldCoins;
+        public long silverCoins;
+        public long copperCoins;
         public long totalCopperEarned;
         public long totalCopperSpent;
         public int strength = 10;
@@ -43,20 +54,49 @@ namespace EchoDevGames.DeverQuest
         public int intelligence = 10;
         public int wisdom = 10;
         public int charisma = 10;
+        public int agility = 10;
+        public int stamina = 10;
+        public int luck = 10;
         public int hitDie = 8;
         public int maximumHitPoints = 8;
         public int currentHitPoints = 8;
+        public int maximumMana;
+        public int currentMana;
+        public int hunger = 100;
+        public int rest = 100;
+        public int happiness = 100;
+        public bool isFallen;
+        public int defeats;
+        public string homeDepartment = "Programming";
+        public bool characterCreationComplete = true;
         public List<string> proficientSaves = new List<string>();
         public List<string> statusEffects = new List<string>();
         public List<string> equippedEquipmentIds = new List<string>();
         public List<string> knownSpellIds = new List<string>();
+        public string activeCompanionInstanceId = string.Empty;
+        public List<DeverQuestCompanionState> companions =
+            new List<DeverQuestCompanionState>();
+        public List<DeverQuestInventoryEntry> inventory =
+            new List<DeverQuestInventoryEntry>();
+        public bool compensationPreviewEnabled;
+        public DeverQuestCompensationBasis compensationBasis =
+            DeverQuestCompensationBasis.Hourly;
+        public string compensationCurrencyCode = "USD";
+        public double compensationHourlyRate;
+        public double compensationAnnualSalary;
+        public double compensationWeeklyHours = 40d;
+        public bool compensationIncludeApprovedBreaks;
+        public DeverQuestCompensationIntegrityPolicy
+            compensationIntegrityPolicy =
+                DeverQuestCompensationIntegrityPolicy
+                    .VerifiedChroniclesOnly;
         public bool disabled;
     }
 
     [Serializable]
     internal sealed class DeverQuestGuildAccountCollection
     {
-        public int dataVersion = 2;
+        public int dataVersion = 9;
         public List<DeverQuestGuildAccount> accounts =
             new List<DeverQuestGuildAccount>();
     }
@@ -288,10 +328,12 @@ namespace EchoDevGames.DeverQuest
                 {
                     accountId = Guid.NewGuid().ToString("N"),
                     developerName = developerName,
-                    characterName = characterName?.Trim() ?? developerName,
+                    characterName = characterName?.Trim() ?? string.Empty,
                     guildName = DeverQuestAdventurerService.Adventurer.guildName,
                     characterClass = characterClass,
                     guildRank = rank,
+                    characterCreationComplete =
+                        !string.IsNullOrWhiteSpace(characterName),
                     assignedProjects = projects?
                         .Select(item => item.Trim())
                         .Where(item => !string.IsNullOrWhiteSpace(item))
@@ -303,8 +345,33 @@ namespace EchoDevGames.DeverQuest
                 {
                     characterClass = characterClass
                 };
-            DeverQuestAdventurerService.ApplyClassFoundation(
-                foundation, characterClass, true);
+            DeverQuestClassDefinition classDefinition =
+                DeverQuestIdentityCatalogService.FindClass(
+                    string.Empty, characterClass);
+            if (classDefinition != null)
+            {
+                DeverQuestIdentityCatalog catalog =
+                    DeverQuestIdentityCatalogService.ActiveCatalog;
+                DeverQuestIdentityCatalogService
+                    .ApplyIdentityFoundation(
+                        foundation,
+                        catalog?.defaultAncestry,
+                        classDefinition,
+                        catalog?.defaultFaith,
+                        DeverQuestAlignment.TrueNeutral,
+                        true);
+            }
+            else
+            {
+                DeverQuestAdventurerService.ApplyClassFoundation(
+                    foundation, characterClass, true);
+            }
+            account.classId = foundation.classId;
+            account.ancestryName = foundation.ancestryName;
+            account.ancestryId = foundation.ancestryId;
+            account.deityName = foundation.deityName;
+            account.deityId = foundation.deityId;
+            account.alignment = foundation.alignment;
             CopyRules(foundation, account);
             SetPasscode(account, temporaryPasscode);
             collection.accounts.Add(account);
@@ -313,6 +380,178 @@ namespace EchoDevGames.DeverQuest
                 $"{account.guildRank}; projects: " +
                 string.Join(", ", account.assignedProjects));
             return true;
+        }
+
+        public static bool UpdateCompensationPolicy(
+            string accountId,
+            bool enabled,
+            DeverQuestCompensationBasis basis,
+            string currencyCode,
+            double hourlyRate,
+            double annualSalary,
+            double weeklyHours,
+            bool includeApprovedBreaks,
+            DeverQuestCompensationIntegrityPolicy integrityPolicy,
+            out string error)
+        {
+            error = string.Empty;
+            if (!HasPermission(DeverQuestGuildPermission.ManageGuild))
+            {
+                error =
+                    "Only a Boss or CEO can configure compensation previews.";
+                return false;
+            }
+            DeverQuestGuildAccount target = FindAccount(accountId);
+            if (target == null)
+            {
+                error = "The selected Guild account was not found.";
+                return false;
+            }
+            if (hourlyRate < 0d || annualSalary < 0d)
+            {
+                error = "Compensation values cannot be negative.";
+                return false;
+            }
+            if (weeklyHours <= 0d || weeklyHours > 168d)
+            {
+                error =
+                    "Scheduled weekly hours must be greater than zero and " +
+                    "no more than 168.";
+                return false;
+            }
+
+            target.compensationPreviewEnabled = enabled;
+            target.compensationBasis = basis;
+            target.compensationCurrencyCode =
+                DeverQuestCompensationService.NormalizeCurrencyCode(
+                    currencyCode);
+            target.compensationHourlyRate = hourlyRate;
+            target.compensationAnnualSalary = annualSalary;
+            target.compensationWeeklyHours = weeklyHours;
+            target.compensationIncludeApprovedBreaks =
+                includeApprovedBreaks;
+            target.compensationIntegrityPolicy = integrityPolicy;
+            Save();
+            AddAudit(
+                "Compensation Preview Policy",
+                target.developerName,
+                "Optional local planning policy updated. Rate omitted from " +
+                "the audit log.");
+            return true;
+        }
+
+        public static bool CompleteCharacterCreation(
+            string characterName,
+            DeverQuestAncestry ancestry,
+            DeverQuestClassDefinition classDefinition,
+            DeverQuestDeity faith,
+            DeverQuestAlignment alignment,
+            out string error)
+        {
+            error = string.Empty;
+            DeverQuestGuildAccount account = CurrentAccount;
+            if (!IsAuthenticated || account == null)
+            {
+                error = "Authenticate before creating an Adventurer.";
+                return false;
+            }
+            if (account.characterCreationComplete)
+            {
+                error = "This Adventurer has already been created.";
+                return false;
+            }
+            characterName = characterName?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(characterName))
+            {
+                error = "Adventurer name is required.";
+                return false;
+            }
+            if (!DeverQuestIdentityCatalogService.IsEligible(
+                    ancestry, classDefinition, out error))
+            {
+                return false;
+            }
+            if (!DeverQuestIdentityCatalogService.IsFaithEligible(
+                    faith,
+                    ancestry,
+                    classDefinition,
+                    alignment,
+                    out error))
+            {
+                return false;
+            }
+            account.characterName = characterName;
+            DeverQuestAdventurer foundation =
+                new DeverQuestAdventurer
+                {
+                    characterName = characterName,
+                    guildName = account.guildName,
+                    guildRank = account.guildRank,
+                    level = 1
+                };
+            DeverQuestIdentityCatalogService.ApplyIdentityFoundation(
+                foundation,
+                ancestry,
+                classDefinition,
+                faith,
+                alignment,
+                true);
+            ApplyStarterLoadout(
+                foundation, classDefinition.displayName);
+            DeverQuestCompanionService.GrantStarter(
+                foundation,
+                classDefinition.starterCompanion);
+            account.characterClass = foundation.characterClass;
+            account.classId = foundation.classId;
+            account.ancestryName = foundation.ancestryName;
+            account.ancestryId = foundation.ancestryId;
+            account.deityName = foundation.deityName;
+            account.deityId = foundation.deityId;
+            account.alignment = foundation.alignment;
+            account.homeDepartment = foundation.homeDepartment;
+            CopyRules(foundation, account);
+            account.characterCreationComplete = true;
+            Save();
+            SelectAccount(account);
+            AddAudit("Adventurer Created", characterName,
+                $"{account.ancestryName} · {account.characterClass} · " +
+                $"{account.alignment} · {account.deityName} · " +
+                $"{account.homeDepartment}");
+            return true;
+        }
+
+        private static void ApplyStarterLoadout(
+            DeverQuestAdventurer target,
+            string characterClass)
+        {
+            foreach (string guid in AssetDatabase.FindAssets(
+                         "t:DeverQuestStarterLoadout"))
+            {
+                DeverQuestStarterLoadout loadout =
+                    AssetDatabase.LoadAssetAtPath<DeverQuestStarterLoadout>(
+                        AssetDatabase.GUIDToAssetPath(guid));
+                if (loadout == null ||
+                    !string.Equals(
+                        loadout.characterClass,
+                        characterClass,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                foreach (DeverQuestEquipment item in loadout.equipment)
+                {
+                    DeverQuestRulesService.Equip(target, item);
+                }
+                foreach (DeverQuestSpell spell in loadout.spells)
+                {
+                    if (spell != null &&
+                        !target.knownSpellIds.Contains(spell.SpellId))
+                    {
+                        target.knownSpellIds.Add(spell.SpellId);
+                    }
+                }
+                break;
+            }
         }
 
         public static void SyncFromAdventurer()
@@ -327,15 +566,43 @@ namespace EchoDevGames.DeverQuest
             account.characterName = adventurer.characterName;
             account.guildName = adventurer.guildName;
             account.characterClass = adventurer.characterClass;
+            account.classId = adventurer.classId;
+            account.ancestryName = adventurer.ancestryName;
+            account.ancestryId = adventurer.ancestryId;
+            account.deityName = adventurer.deityName;
+            account.deityId = adventurer.deityId;
+            account.alignment = adventurer.alignment;
             account.guildRank = adventurer.guildRank;
             account.level = adventurer.level;
             account.currentExperience = adventurer.currentExperience;
             account.lifetimeExperience = adventurer.lifetimeExperience;
             account.copperBalance = adventurer.copperBalance;
+            account.platinumCoins = adventurer.platinumCoins;
+            account.goldCoins = adventurer.goldCoins;
+            account.silverCoins = adventurer.silverCoins;
+            account.copperCoins = adventurer.copperCoins;
             account.totalCopperEarned = adventurer.totalCopperEarned;
             account.totalCopperSpent = adventurer.totalCopperSpent;
             CopyRules(adventurer, account);
             Save();
+        }
+
+        public static void MigrateIdentityCatalogs()
+        {
+            foreach (DeverQuestGuildAccount account
+                     in collection.accounts)
+            {
+                DeverQuestIdentityCatalogService.Migrate(account);
+            }
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            DeverQuestIdentityCatalogService.Migrate(adventurer);
+            Save();
+            DeverQuestAdventurerService.Save();
+            if (CurrentAccount != null)
+            {
+                SelectAccount(CurrentAccount);
+            }
         }
 
         public static void AddAudit(
@@ -380,11 +647,21 @@ namespace EchoDevGames.DeverQuest
                     characterName = old.characterName,
                     guildName = old.guildName,
                     characterClass = old.characterClass,
+                    classId = old.classId,
+                    ancestryName = old.ancestryName,
+                    ancestryId = old.ancestryId,
+                    deityName = old.deityName,
+                    deityId = old.deityId,
+                    alignment = old.alignment,
                     guildRank = "CEO",
                     level = old.level,
                     currentExperience = old.currentExperience,
                     lifetimeExperience = old.lifetimeExperience,
                     copperBalance = old.copperBalance,
+                    platinumCoins = old.platinumCoins,
+                    goldCoins = old.goldCoins,
+                    silverCoins = old.silverCoins,
+                    copperCoins = old.copperCoins,
                     totalCopperEarned = old.totalCopperEarned,
                     totalCopperSpent = old.totalCopperSpent
                 };
@@ -398,6 +675,8 @@ namespace EchoDevGames.DeverQuest
 
         private static void SelectAccount(DeverQuestGuildAccount account)
         {
+            DeverQuestIdentityCatalogService.Migrate(account);
+            Save();
             EditorPrefs.SetString(CurrentAccountKey, account.accountId);
             DeverQuestSettingsStore.Profile.developerName =
                 account.developerName;
@@ -407,11 +686,21 @@ namespace EchoDevGames.DeverQuest
             adventurer.characterName = account.characterName;
             adventurer.guildName = account.guildName;
             adventurer.characterClass = account.characterClass;
+            adventurer.classId = account.classId;
+            adventurer.ancestryName = account.ancestryName;
+            adventurer.ancestryId = account.ancestryId;
+            adventurer.deityName = account.deityName;
+            adventurer.deityId = account.deityId;
+            adventurer.alignment = account.alignment;
             adventurer.guildRank = account.guildRank;
             adventurer.level = account.level;
             adventurer.currentExperience = account.currentExperience;
             adventurer.lifetimeExperience = account.lifetimeExperience;
             adventurer.copperBalance = account.copperBalance;
+            adventurer.platinumCoins = account.platinumCoins;
+            adventurer.goldCoins = account.goldCoins;
+            adventurer.silverCoins = account.silverCoins;
+            adventurer.copperCoins = account.copperCoins;
             adventurer.totalCopperEarned = account.totalCopperEarned;
             adventurer.totalCopperSpent = account.totalCopperSpent;
             CopyRules(account, adventurer);
@@ -428,9 +717,20 @@ namespace EchoDevGames.DeverQuest
             target.intelligence = source.intelligence;
             target.wisdom = source.wisdom;
             target.charisma = source.charisma;
+            target.agility = source.agility;
+            target.stamina = source.stamina;
+            target.luck = source.luck;
             target.hitDie = source.hitDie;
             target.maximumHitPoints = source.maximumHitPoints;
             target.currentHitPoints = source.currentHitPoints;
+            target.maximumMana = source.maximumMana;
+            target.currentMana = source.currentMana;
+            target.hunger = source.hunger;
+            target.rest = source.rest;
+            target.happiness = source.happiness;
+            target.isFallen = source.isFallen;
+            target.defeats = source.defeats;
+            target.homeDepartment = source.homeDepartment;
             target.proficientSaves =
                 new List<string>(source.proficientSaves);
             target.statusEffects =
@@ -439,6 +739,20 @@ namespace EchoDevGames.DeverQuest
                 new List<string>(source.equippedEquipmentIds);
             target.knownSpellIds =
                 new List<string>(source.knownSpellIds);
+            target.activeCompanionInstanceId =
+                source.activeCompanionInstanceId;
+            target.companions =
+                (source.companions ??
+                 new List<DeverQuestCompanionState>())
+                .Select(CloneCompanionState)
+                .ToList();
+            target.inventory = source.inventory
+                .Select(CloneInventoryEntry).ToList();
+            foreach (DeverQuestInventoryEntry entry
+                     in target.inventory)
+            {
+                entry.EnsureOwnership(target.accountId);
+            }
         }
 
         private static void CopyRules(
@@ -451,9 +765,20 @@ namespace EchoDevGames.DeverQuest
             target.intelligence = source.intelligence;
             target.wisdom = source.wisdom;
             target.charisma = source.charisma;
+            target.agility = source.agility;
+            target.stamina = source.stamina;
+            target.luck = source.luck;
             target.hitDie = source.hitDie;
             target.maximumHitPoints = source.maximumHitPoints;
             target.currentHitPoints = source.currentHitPoints;
+            target.maximumMana = source.maximumMana;
+            target.currentMana = source.currentMana;
+            target.hunger = source.hunger;
+            target.rest = source.rest;
+            target.happiness = source.happiness;
+            target.isFallen = source.isFallen;
+            target.defeats = source.defeats;
+            target.homeDepartment = source.homeDepartment;
             target.proficientSaves =
                 new List<string>(source.proficientSaves ??
                                  new List<string>());
@@ -466,6 +791,96 @@ namespace EchoDevGames.DeverQuest
             target.knownSpellIds =
                 new List<string>(source.knownSpellIds ??
                                  new List<string>());
+            target.activeCompanionInstanceId =
+                source.activeCompanionInstanceId ?? string.Empty;
+            target.companions =
+                (source.companions ??
+                 new List<DeverQuestCompanionState>())
+                .Select(CloneCompanionState)
+                .ToList();
+            target.inventory =
+                (source.inventory ??
+                 new List<DeverQuestInventoryEntry>())
+                .Select(CloneInventoryEntry).ToList();
+            foreach (DeverQuestInventoryEntry entry
+                     in target.inventory)
+            {
+                entry.EnsureOwnership(source.accountId);
+            }
+        }
+
+        private static DeverQuestInventoryEntry CloneInventoryEntry(
+            DeverQuestInventoryEntry source)
+        {
+            return new DeverQuestInventoryEntry
+            {
+                shopItemId = source?.shopItemId ?? string.Empty,
+                displayName = source?.displayName ?? string.Empty,
+                itemType = source == null
+                    ? DeverQuestShopItemType.Consumable
+                    : source.itemType,
+                quantity = Math.Max(0, source?.quantity ?? 0),
+                ownershipId =
+                    source?.ownershipId ?? string.Empty,
+                rarity = source == null
+                    ? DeverQuestItemRarity.Common
+                    : source.rarity,
+                binding = source == null
+                    ? DeverQuestItemBinding.Unbound
+                    : source.binding,
+                boundAccountId =
+                    source?.boundAccountId ?? string.Empty,
+                tradable = source == null || source.tradable,
+                acquiredUtc =
+                    source?.acquiredUtc ?? string.Empty,
+                acquisitionSource =
+                    source?.acquisitionSource ?? string.Empty,
+                unitWeight = Math.Max(
+                    0f, source?.unitWeight ?? 0.25f)
+            };
+        }
+
+        private static DeverQuestCompanionState CloneCompanionState(
+            DeverQuestCompanionState source)
+        {
+            DeverQuestCompanionState clone =
+                new DeverQuestCompanionState
+                {
+                    instanceId =
+                        source?.instanceId ?? string.Empty,
+                    profileId =
+                        source?.profileId ?? string.Empty,
+                    customName =
+                        source?.customName ?? string.Empty,
+                    level = Math.Max(1, source?.level ?? 1),
+                    currentExperience =
+                        Math.Max(
+                            0L,
+                            source?.currentExperience ?? 0L),
+                    lifetimeExperience =
+                        Math.Max(
+                            0L,
+                            source?.lifetimeExperience ?? 0L),
+                    currentHitPoints =
+                        Math.Max(
+                            0,
+                            source?.currentHitPoints ?? 0),
+                    loyalty = Math.Min(
+                        100,
+                        Math.Max(0, source?.loyalty ?? 50)),
+                    isActive = source?.isActive ?? false,
+                    isFallen = source?.isFallen ?? false,
+                    battles = Math.Max(
+                        0,
+                        source?.battles ?? 0),
+                    victories = Math.Max(
+                        0,
+                        source?.victories ?? 0),
+                    recruitedUtc =
+                        source?.recruitedUtc ?? string.Empty
+                };
+            clone.Sanitize();
+            return clone;
         }
 
         private static void SetPasscode(
@@ -534,10 +949,13 @@ namespace EchoDevGames.DeverQuest
                     JsonUtility.FromJson<DeverQuestGuildAccountCollection>(
                         EditorPrefs.GetString(AccountsKey, string.Empty)) ??
                     new DeverQuestGuildAccountCollection();
+                collection.accounts =
+                    collection.accounts ??
+                    new List<DeverQuestGuildAccount>();
                 audit = JsonUtility.FromJson<DeverQuestGuildAuditLog>(
                             EditorPrefs.GetString(AuditKey, string.Empty)) ??
                         new DeverQuestGuildAuditLog();
-                if (collection.dataVersion < 2)
+                if (collection.dataVersion < 3)
                 {
                     foreach (DeverQuestGuildAccount account
                              in collection.accounts)
@@ -555,8 +973,117 @@ namespace EchoDevGames.DeverQuest
                                 account.characterClass,
                                 true);
                         CopyRules(foundation, account);
+                        account.characterCreationComplete =
+                            !string.IsNullOrWhiteSpace(
+                                account.characterName);
                     }
-                    collection.dataVersion = 2;
+                    collection.dataVersion = 3;
+                    Save();
+                }
+                if (collection.dataVersion < 4)
+                {
+                    foreach (DeverQuestGuildAccount account
+                             in collection.accounts)
+                    {
+                        account.inventory =
+                            account.inventory ??
+                            new List<DeverQuestInventoryEntry>();
+                    }
+                    collection.dataVersion = 4;
+                    Save();
+                }
+                if (collection.dataVersion < 5)
+                {
+                    collection.dataVersion = 5;
+                    Save();
+                }
+                if (collection.dataVersion < 6)
+                {
+                    foreach (DeverQuestGuildAccount account
+                             in collection.accounts)
+                    {
+                        account.alignment =
+                            DeverQuestAlignment.TrueNeutral;
+                        DeverQuestIdentityCatalogService.Migrate(
+                            account);
+                        account.assignedProjects =
+                            account.assignedProjects ??
+                            new List<string>();
+                        account.proficientSaves =
+                            account.proficientSaves ??
+                            new List<string>();
+                        account.statusEffects =
+                            account.statusEffects ??
+                            new List<string>();
+                        account.equippedEquipmentIds =
+                            account.equippedEquipmentIds ??
+                            new List<string>();
+                        account.knownSpellIds =
+                            account.knownSpellIds ??
+                            new List<string>();
+                        account.inventory =
+                            account.inventory ??
+                            new List<DeverQuestInventoryEntry>();
+                    }
+                    collection.dataVersion = 6;
+                    Save();
+                }
+                if (collection.dataVersion < 7)
+                {
+                    foreach (DeverQuestGuildAccount account
+                             in collection.accounts)
+                    {
+                        account.activeCompanionInstanceId =
+                            account.activeCompanionInstanceId ??
+                            string.Empty;
+                        account.companions =
+                            account.companions ??
+                            new List<DeverQuestCompanionState>();
+                        foreach (DeverQuestCompanionState companion
+                                 in account.companions)
+                        {
+                            companion?.Sanitize();
+                        }
+                    }
+                    collection.dataVersion = 7;
+                    Save();
+                }
+                if (collection.dataVersion < 8)
+                {
+                    foreach (DeverQuestGuildAccount account
+                             in collection.accounts)
+                    {
+                        account.compensationPreviewEnabled = false;
+                        account.compensationBasis =
+                            DeverQuestCompensationBasis.Hourly;
+                        account.compensationCurrencyCode = "USD";
+                        account.compensationHourlyRate = 0d;
+                        account.compensationAnnualSalary = 0d;
+                        account.compensationWeeklyHours = 40d;
+                        account.compensationIncludeApprovedBreaks = false;
+                        account.compensationIntegrityPolicy =
+                            DeverQuestCompensationIntegrityPolicy
+                                .VerifiedChroniclesOnly;
+                    }
+                    collection.dataVersion = 8;
+                    Save();
+                }
+                if (collection.dataVersion < 9)
+                {
+                    foreach (DeverQuestGuildAccount account
+                             in collection.accounts)
+                    {
+                        long total =
+                            Math.Max(0L, account.copperBalance);
+                        account.platinumCoins =
+                            total / 1000000L;
+                        total %= 1000000L;
+                        account.goldCoins = total / 10000L;
+                        total %= 10000L;
+                        account.silverCoins = total / 100L;
+                        account.copperCoins = total % 100L;
+                    }
+                    collection.dataVersion = 9;
                     Save();
                 }
             }
@@ -571,6 +1098,28 @@ namespace EchoDevGames.DeverQuest
         {
             EditorPrefs.SetString(
                 AccountsKey, JsonUtility.ToJson(collection));
+        }
+
+        internal static DeverQuestGuildAccount FindAccount(
+            string accountId)
+        {
+            return collection.accounts.FirstOrDefault(
+                item => item.accountId == accountId);
+        }
+
+        internal static void CommitAccountChanges(
+            DeverQuestGuildAccount account)
+        {
+            if (account == null)
+            {
+                return;
+            }
+            Save();
+            if (CurrentAccount != null &&
+                CurrentAccount.accountId == account.accountId)
+            {
+                SelectAccount(account);
+            }
         }
     }
 }

@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Mighty Morphin Power Rangers - The Movie (MP3).zophar
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: 40413a38c8731c645b259ed4976d86c7, type: 3}
+  - {fileID: 8300000, guid: 517ff9c0a23d32b458e0e17ce87deef7, type: 3}
+  - {fileID: 8300000, guid: f2b110f6b59da0c4e99e8e159f15f8b8, type: 3}
+  - {fileID: 8300000, guid: f4708dc0d2a370b448d8544a084563a8, type: 3}
+  - {fileID: 8300000, guid: f81b36d2269b7804e82b42224d059892, type: 3}
+  - {fileID: 8300000, guid: 0e6ea851cb4cb47498dd93c23b56f7cc, type: 3}
+  - {fileID: 8300000, guid: e3e2db0b67386ab4da4f748d22d8fa1d, type: 3}
+  - {fileID: 8300000, guid: 302b82d18a888434fa6cbac919dcaf38, type: 3}
+  - {fileID: 8300000, guid: a74d984cbbd50bf48bf723646b4857c6, type: 3}
+  - {fileID: 8300000, guid: 70b5f4fec634ee84b81cddbc17e4145f, type: 3}
+  - {fileID: 8300000, guid: 24484f2ea243d604da25bf4ab8dce8a5, type: 3}
+  - {fileID: 8300000, guid: 1c4970565f47eec4989efb24657fa8bd, type: 3}
+  - {fileID: 8300000, guid: 3f8a8c48e736f9b40b81bc367f73270b, type: 3}
+  - {fileID: 8300000, guid: 34e5a5d7593e7af499aa3576950bae8f, type: 3}
+  - {fileID: 8300000, guid: 686e39799238f80439705fb93213bbfe, type: 3}
+  - {fileID: 8300000, guid: 79295b3303541fe4aa787cb265db8768, type: 3}
+  - {fileID: 8300000, guid: 152aaee14187163498170e9867778b9a, type: 3}
+  - {fileID: 8300000, guid: 7bf7222b7387dac4e971a377eab38549, type: 3}
+  - {fileID: 8300000, guid: 2cc6218735b288c4ca99a47a8c7abea5, type: 3}
+  trackWeights: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

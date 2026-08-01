@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Sonic the Hedgehog 2
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: 59f4125d56b4f374e911f51a335c309b, type: 3}
+  - {fileID: 8300000, guid: cfc5d6004e46d2f47ad36620c1063445, type: 3}
+  - {fileID: 8300000, guid: db65c95a28835e94697fc1e9d011d4bb, type: 3}
+  - {fileID: 8300000, guid: aa5b115291585374c8bebdc755a75779, type: 3}
+  - {fileID: 8300000, guid: 495091ed309186f4d8f76736b0ebe8f1, type: 3}
+  - {fileID: 8300000, guid: 8d4f4ea54a9dd114792e36beafdb2301, type: 3}
+  - {fileID: 8300000, guid: 0f12d1da56a702b4aaa0d840f7ef114b, type: 3}
+  - {fileID: 8300000, guid: 641ed651c65a9664cbe0ace2fd85881f, type: 3}
+  - {fileID: 8300000, guid: eb992c77478b41248879c894531d0b8f, type: 3}
+  - {fileID: 8300000, guid: b6d7fecb142e6594b9a62f24f582916c, type: 3}
+  - {fileID: 8300000, guid: fd9195be930343f4eb9e43042151ec7b, type: 3}
+  - {fileID: 8300000, guid: b08da235c9f9e7f4ebf292acbae8c949, type: 3}
+  - {fileID: 8300000, guid: dda0613525339264098b7e73b4642c69, type: 3}
+  - {fileID: 8300000, guid: 7c0c868a2ea78e441bd944e7ffd36494, type: 3}
+  - {fileID: 8300000, guid: 4a8c12af0e46a674498d982b084d4cef, type: 3}
+  - {fileID: 8300000, guid: b51f05c8cdf1afe448aecda8d0ec1552, type: 3}
+  - {fileID: 8300000, guid: 1222e7d48b244da4a80a2ba1e72c8d9e, type: 3}
+  - {fileID: 8300000, guid: a741e0d7c2387c448b71d14b0e62c337, type: 3}
+  - {fileID: 8300000, guid: 13631a431984ad041ab9bfe8e0f59851, type: 3}
+  - {fileID: 8300000, guid: 96254c1f4bd329044a9fb6fc40eef06f, type: 3}
+  - {fileID: 8300000, guid: c84e14240e8ae6643a775cef138f6988, type: 3}
+  - {fileID: 8300000, guid: f5474d618443c734b8882598517760fa, type: 3}
+  - {fileID: 8300000, guid: a87c5168f22c1d24797084b73c77ce39, type: 3}
+  - {fileID: 8300000, guid: afa40ae82b605de408282df52909d643, type: 3}
+  - {fileID: 8300000, guid: 3ae832f96b624bb409c370b4544ea109, type: 3}
+  - {fileID: 8300000, guid: 104b5e541759e1246940997fd55fb8e8, type: 3}
+  - {fileID: 8300000, guid: 2bd27c83c8487e04b8df4f3604e4d5ec, type: 3}
+  - {fileID: 8300000, guid: bc58c8faee6124242b6180776f04efeb, type: 3}
+  - {fileID: 8300000, guid: 382476374423ea745a7f0d9ffe079771, type: 3}
+  - {fileID: 8300000, guid: e1b21197eafa22b4bbbde75ab62847f2, type: 3}
+  - {fileID: 8300000, guid: 9e3994073f34565469af1eaa43eddba6, type: 3}
+  - {fileID: 8300000, guid: 8dfb3e60f20e9834db7df0c1b346a967, type: 3}
+  - {fileID: 8300000, guid: 14ca4d428963da04e9c58e66c0a89fe5, type: 3}
+  - {fileID: 8300000, guid: bbb5a9edd63680d40bb5d52370e0d960, type: 3}
+  - {fileID: 8300000, guid: 05aa707bc1edf274791bc30fd4586009, type: 3}
+  - {fileID: 8300000, guid: cc9f40e70bef2ae4bb9cc697c6b64ff2, type: 3}
+  - {fileID: 8300000, guid: b6bfacc30d0605e42a96416b856ac8d9, type: 3}
+  - {fileID: 8300000, guid: 77ffa7d2216b30f468f0fd36eee5c9b3, type: 3}
+  trackWeights: 0100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.484

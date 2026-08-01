@@ -1,8 +1,8 @@
 {
   "name": "com.echodevgames.deverquest",
-  "version": "0.17.0",
+  "version": "0.30.6",
   "displayName": "DeverQuest Developer Companion",
-  "description": "A medieval productivity RPG for Unity with deliberate work quests, adventurer progression, ledgers, wellness reminders, Git, and playlists.",
+  "description": "A medieval productivity RPG for Unity with deliberate work quests, stable package asset identities, repaired Identity Catalog registry activation, independent music and ambience channels, progress feedback, catalogs, progression, ledgers, wellness reminders, and Beta diagnostics.",
   "unity": "2022.3",
   "author": {
     "name": "EchoDevGames"
@@ -11,7 +11,19 @@
     "productivity",
     "timer",
     "timecard",
+    "ancestry",
+    "combat",
+    "tactical",
+    "survival",
+    "encumbrance",
+    "companions",
+    "compensation",
+    "pay-estimate",
+    "pets",
+    "resistance",
+    "release-readiness",
+    "rpg",
     "editor"
   ],
-  "_fingerprint": "f2f642ca01d9260c8ccc90785a78c380"
+  "_fingerprint": "b29e014cd97b0779a94bb7e93044fb79"
 }

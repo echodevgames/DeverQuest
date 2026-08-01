@@ -12,6 +12,17 @@ namespace EchoDevGames.DeverQuest
 {
     internal sealed class DeverQuestWindow : EditorWindow
     {
+        private enum DeverQuestWorkspace
+        {
+            Quest = 0,
+            QuestLog = 1,
+            Character = 2,
+            GuildHall = 3,
+            RewardsHistory = 4,
+            AudioWellness = 5,
+            Settings = 6
+        }
+
         private enum QuestTurnInStep
         {
             Chronicle = 0,
@@ -40,11 +51,12 @@ namespace EchoDevGames.DeverQuest
         private string commitHash = string.Empty;
         private string closingNotes = string.Empty;
         private bool showFinalization;
-        private bool resumeIfFinalizationCancelled;
         private string rewardMessage = string.Empty;
         private bool historyFoldout;
+        private bool hallOfHeroesFoldout = true;
         private bool contractBoardFoldout = true;
         private bool guildAdministrationFoldout = true;
+        private bool guildCollapsedForActiveQuest;
         private DeverQuestHistoryRange historyRange =
             DeverQuestHistoryRange.Last7Days;
         private string historyProjectFilter = string.Empty;
@@ -65,10 +77,27 @@ namespace EchoDevGames.DeverQuest
         private string newGuildDeveloper = string.Empty;
         private string newGuildCharacter = string.Empty;
         private string newGuildClass = "Warrior";
+        private DeverQuestClassDefinition newGuildClassDefinition;
         private string newGuildRank = "Member";
         private string newGuildProjects = string.Empty;
         private string newGuildPasscode = string.Empty;
         private string guildMessage = string.Empty;
+        private bool compensationPreviewFoldout = true;
+        private bool compensationAdministrationFoldout;
+        private int compensationAccountIndex;
+        private string compensationLoadedAccountId = string.Empty;
+        private bool compensationEnabled;
+        private DeverQuestCompensationBasis compensationBasis =
+            DeverQuestCompensationBasis.Hourly;
+        private string compensationCurrencyCode = "USD";
+        private double compensationHourlyRate;
+        private double compensationAnnualSalary;
+        private double compensationWeeklyHours = 40d;
+        private bool compensationIncludeApprovedBreaks;
+        private DeverQuestCompensationIntegrityPolicy
+            compensationIntegrityPolicy =
+                DeverQuestCompensationIntegrityPolicy
+                    .VerifiedChroniclesOnly;
         private DeverQuestAbility rulesAbility =
             DeverQuestAbility.Intelligence;
         private int rulesDifficultyClass = 12;
@@ -77,11 +106,36 @@ namespace EchoDevGames.DeverQuest
         private string rulesResult = string.Empty;
         private DeverQuestEquipment selectedRulesEquipment;
         private DeverQuestSpell selectedRulesSpell;
+        private DeverQuestCompanionProfile selectedCompanionProfile;
+        private bool companionStableFoldout = true;
+        private string companionMessage = string.Empty;
+        private DeverQuestShopProfile selectedShopProfile;
+        private bool guildShopFoldout = true;
+        private bool purchaseHistoryFoldout;
+        private bool tradeLedgerFoldout;
+        private int tradeTargetIndex;
+        private string fulfillmentReference = string.Empty;
+        private string shopMessage = string.Empty;
+        private bool contentScaffoldFoldout = true;
+        private string contentScaffoldMessage = string.Empty;
+        private string creationCharacterName = string.Empty;
+        private DeverQuestAncestry creationAncestry;
+        private DeverQuestClassDefinition creationClassDefinition;
+        private DeverQuestDeity creationFaith;
+        private DeverQuestAlignment creationAlignment =
+            DeverQuestAlignment.TrueNeutral;
+        private bool identityCatalogGenerationQueued;
         private DeverQuestGitStatus gitStatus;
         private string gitMessage = string.Empty;
         private bool gitOperationInProgress;
+        private string voiceMemoName = "Quest Memo";
+        private int selectedMicrophoneIndex;
+        private string mediaMessage = string.Empty;
         private QuestTurnInStep turnInStep =
             QuestTurnInStep.Chronicle;
+        private DeverQuestWorkspace activeWorkspace =
+            DeverQuestWorkspace.Quest;
+        private double nextSessionRepaintTime;
 
         [MenuItem("Tools/DeverQuest/Developer Companion")]
         public static void Open()
@@ -95,29 +149,98 @@ namespace EchoDevGames.DeverQuest
             window.Show();
         }
 
+        [MenuItem("Tools/DeverQuest/Workspaces/Current Quest")]
+        private static void OpenQuestWorkspace()
+        {
+            OpenWorkspace(DeverQuestWorkspace.Quest);
+        }
+
+        [MenuItem("Tools/DeverQuest/Workspaces/Quest Log and Git")]
+        private static void OpenQuestLogWorkspace()
+        {
+            OpenWorkspace(DeverQuestWorkspace.QuestLog);
+        }
+
+        [MenuItem("Tools/DeverQuest/Workspaces/Character Sheet")]
+        private static void OpenCharacterWorkspace()
+        {
+            OpenWorkspace(DeverQuestWorkspace.Character);
+        }
+
+        [MenuItem("Tools/DeverQuest/Workspaces/Guild Hall")]
+        private static void OpenGuildWorkspace()
+        {
+            OpenWorkspace(DeverQuestWorkspace.GuildHall);
+        }
+
+        [MenuItem("Tools/DeverQuest/Workspaces/Rewards and History")]
+        private static void OpenHistoryWorkspace()
+        {
+            OpenWorkspace(DeverQuestWorkspace.RewardsHistory);
+        }
+
+        private static void OpenWorkspace(
+            DeverQuestWorkspace workspace)
+        {
+            DeverQuestWindow window =
+                GetWindow<DeverQuestWindow>("DeverQuest");
+            window.activeWorkspace = workspace;
+            window.minSize =
+                new Vector2(
+                    MinimumWindowWidth,
+                    MinimumWindowHeight);
+            window.Show();
+            window.Focus();
+            window.Repaint();
+        }
+
         internal static void ShowIdleWarning(int secondsRemaining)
         {
             ShowConfiguredNotification(
                 $"Still working? Idle pause in about " +
                 $"{secondsRemaining} seconds.",
-                4d);
+                4d,
+                DeverQuestAudioCue.IdleWarning);
         }
 
         internal static void ShowIdlePaused()
         {
             ShowConfiguredNotification(
                 "Quest entered meditation because no activity was detected.",
-                6d);
+                6d,
+                DeverQuestAudioCue.IdlePaused);
         }
 
-        internal static void ShowWellnessReminder(string title)
+        internal static void ShowWellnessReminder(
+            string title,
+            DeverQuestWellnessType type)
         {
-            ShowConfiguredNotification($"DeverQuest: {title}", 6d);
+            DeverQuestAudioCue cue;
+            switch (type)
+            {
+                case DeverQuestWellnessType.Hydration:
+                    cue = DeverQuestAudioCue.Hydration;
+                    break;
+                case DeverQuestWellnessType.MovementBreak:
+                case DeverQuestWellnessType.Exercise:
+                    cue = DeverQuestAudioCue.MovementBreak;
+                    break;
+                case DeverQuestWellnessType.Lunch:
+                case DeverQuestWellnessType.Dinner:
+                    cue = DeverQuestAudioCue.MealReminder;
+                    break;
+                default:
+                    cue = DeverQuestAudioCue.FocusCheckIn;
+                    break;
+            }
+            ShowConfiguredNotification(
+                $"DeverQuest: {title}", 6d, cue);
         }
 
         private static void ShowConfiguredNotification(
             string message,
-            double duration)
+            double duration,
+            DeverQuestAudioCue cue)
         {
             DeverQuestProfile profile = DeverQuestSettingsStore.Profile;
             DeverQuestWindow[] windows =
@@ -139,7 +262,10 @@ namespace EchoDevGames.DeverQuest
 
             if (profile.notificationSoundsEnabled)
             {
-                EditorApplication.Beep();
+                if (!DeverQuestAudioDirector.PlayCue(cue))
+                {
+                    EditorApplication.Beep();
+                }
             }
 
             window?.Repaint();
@@ -169,6 +295,10 @@ namespace EchoDevGames.DeverQuest
                 ", ",
                 profile.focusCheckInScheduleMinutes);
             RefreshGitStatus();
+            if (profile.sharedGuildEnabled)
+            {
+                DeverQuestSharedGuildService.Refresh();
+            }
         }
 
         private void OnDisable()
@@ -195,6 +325,11 @@ namespace EchoDevGames.DeverQuest
                 if (!DeverQuestGuildAccountService.IsAuthenticated)
                 {
                     DrawGuildLogin();
+                }
+                else if (!DeverQuestGuildAccountService.CurrentAccount
+                             .characterCreationComplete)
+                {
+                    DrawCharacterCreation();
                 }
                 else if (profile.compactMode)
                 {
@@ -273,6 +408,296 @@ namespace EchoDevGames.DeverQuest
             EditorGUILayout.EndVertical();
         }
 
+        private void DrawCharacterCreation()
+        {
+            EnsureCharacterCreationDefaults();
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                "Create Your Adventurer",
+                EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Choose carefully. Your name, Ancestry, Class, Alignment, " +
+                "Faith, and home Department lock when you enter the Guild.",
+                MessageType.Info);
+            creationCharacterName = EditorGUILayout.TextField(
+                "Adventurer Name", creationCharacterName);
+            creationAncestry =
+                (DeverQuestAncestry)EditorGUILayout.ObjectField(
+                    "Ancestry",
+                    creationAncestry,
+                    typeof(DeverQuestAncestry),
+                    false);
+            creationClassDefinition =
+                (DeverQuestClassDefinition)
+                EditorGUILayout.ObjectField(
+                    "Class",
+                    creationClassDefinition,
+                    typeof(DeverQuestClassDefinition),
+                    false);
+            creationAlignment =
+                (DeverQuestAlignment)EditorGUILayout.EnumPopup(
+                    "Alignment", creationAlignment);
+            creationFaith =
+                (DeverQuestDeity)EditorGUILayout.ObjectField(
+                    "Faith",
+                    creationFaith,
+                    typeof(DeverQuestDeity),
+                    false);
+            string creationDepartment =
+                creationClassDefinition?.department ?? "Unassigned";
+            EditorGUILayout.LabelField(
+                "Home Department", creationDepartment);
+            EditorGUILayout.HelpBox(
+                "Your Class asset determines your starting Department. " +
+                "Dungeon Masters can use Contract eligibility rules " +
+                "to build Class-, Ancestry-, and Department-specific Quests.",
+                MessageType.Info);
+            bool eligible =
+                DeverQuestIdentityCatalogService.IsEligible(
+                    creationAncestry,
+                    creationClassDefinition,
+                    out string eligibilityReason);
+            if (eligible)
+            {
+                eligible =
+                    DeverQuestIdentityCatalogService.IsFaithEligible(
+                        creationFaith,
+                        creationAncestry,
+                        creationClassDefinition,
+                        creationAlignment,
+                        out eligibilityReason);
+            }
+            if (!eligible)
+            {
+                EditorGUILayout.HelpBox(
+                    eligibilityReason,
+                    MessageType.Warning);
+            }
+            DeverQuestAdventurer preview =
+                new DeverQuestAdventurer();
+            DeverQuestIdentityCatalogService.ApplyIdentityFoundation(
+                preview,
+                creationAncestry,
+                creationClassDefinition,
+                creationFaith,
+                creationAlignment,
+                true);
+            EditorGUILayout.LabelField(
+                "Identity Foundation",
+                $"STR {preview.strength} · DEX {preview.dexterity} · " +
+                $"CON {preview.constitution} · INT {preview.intelligence} · " +
+                $"WIS {preview.wisdom} · CHA {preview.charisma}");
+            EditorGUILayout.LabelField(
+                "Extended Attributes",
+                $"AGI {preview.agility} · STA {preview.stamina} · " +
+                $"Luck {preview.luck} · HP {preview.maximumHitPoints} · " +
+                $"Mana {preview.maximumMana}");
+            if (creationClassDefinition != null &&
+                creationClassDefinition.supportsCompanion)
+            {
+                EditorGUILayout.LabelField(
+                    "Companion Tradition",
+                    string.IsNullOrWhiteSpace(
+                        creationClassDefinition.companionTradition)
+                        ? "Supported"
+                        : creationClassDefinition.companionTradition);
+                if (creationClassDefinition.starterCompanion != null)
+                {
+                    EditorGUILayout.LabelField(
+                        "Starting Companion",
+                        creationClassDefinition
+                            .starterCompanion.displayName);
+                }
+            }
+            using (new EditorGUI.DisabledScope(
+                       !eligible ||
+                       string.IsNullOrWhiteSpace(
+                           creationCharacterName)))
+            {
+                if (GUILayout.Button(
+                        "Enter the Guild",
+                        GUILayout.Height(34f)))
+                {
+                    if (!DeverQuestGuildAccountService
+                            .CompleteCharacterCreation(
+                                creationCharacterName,
+                                creationAncestry,
+                                creationClassDefinition,
+                                creationFaith,
+                                creationAlignment,
+                                out string error))
+                    {
+                        guildMessage = error;
+                    }
+                }
+            }
+            DeverQuestIdentityCatalog activeIdentityCatalog =
+                DeverQuestIdentityCatalogService.ActiveCatalog;
+            bool identityCatalogReady =
+                activeIdentityCatalog != null &&
+                activeIdentityCatalog.defaultAncestry != null &&
+                activeIdentityCatalog.defaultClass != null &&
+                (activeIdentityCatalog.ancestries?.Count ?? 0) > 0 &&
+                (activeIdentityCatalog.classes?.Count ?? 0) > 0;
+            if (!identityCatalogReady)
+            {
+                EditorGUILayout.HelpBox(
+                    "No complete playable Identity Catalog is installed. " +
+                    "Generate or repair the original starter catalog before " +
+                    "finishing character creation.",
+                    MessageType.Warning);
+                bool canGenerate =
+                    DeverQuestGuildAccountService.HasPermission(
+                        DeverQuestGuildPermission.ManageGuild);
+                using (new EditorGUI.DisabledScope(
+                           !canGenerate ||
+                           identityCatalogGenerationQueued))
+                {
+                    if (GUILayout.Button(
+                            identityCatalogGenerationQueued
+                                ? "Generating Starter Identity Catalog…"
+                                : "Generate Original Starter Identity Catalog"))
+                    {
+                        QueueOriginalStarterIdentityCatalogGeneration();
+                    }
+                }
+                if (!canGenerate)
+                {
+                    EditorGUILayout.HelpBox(
+                        "Ask a CEO or Boss to generate or assign the Guild's " +
+                        "Identity Catalog.",
+                        MessageType.Info);
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(guildMessage))
+            {
+                EditorGUILayout.HelpBox(
+                    guildMessage, MessageType.Warning);
+            }
+            EditorGUILayout.EndVertical();
+        }
+
+        private void QueueOriginalStarterIdentityCatalogGeneration(
+            bool reportToContentScaffolding = false)
+        {
+            if (identityCatalogGenerationQueued)
+            {
+                return;
+            }
+
+            identityCatalogGenerationQueued = true;
+            string preparingMessage =
+                "Preparing the original starter Identity Catalog…";
+            if (reportToContentScaffolding)
+            {
+                contentScaffoldMessage = preparingMessage;
+            }
+            else
+            {
+                guildMessage = preparingMessage;
+            }
+            Repaint();
+
+            EditorApplication.delayCall += () =>
+            {
+                try
+                {
+                    DeverQuestIdentityGenerationReport report =
+                        DeverQuestIdentityCatalogGenerator
+                            .GenerateOriginalStarterCatalog();
+                    string resultMessage = report.Summary;
+                    if (reportToContentScaffolding)
+                    {
+                        contentScaffoldMessage = resultMessage;
+                    }
+                    else
+                    {
+                        guildMessage = resultMessage;
+                    }
+
+                    if (!report.Succeeded || report.Catalog == null)
+                    {
+                        return;
+                    }
+
+                    creationAncestry =
+                        report.Catalog.defaultAncestry;
+                    creationClassDefinition =
+                        report.Catalog.defaultClass;
+                    creationFaith =
+                        report.Catalog.defaultFaith;
+                    Selection.activeObject = report.Catalog;
+                    EditorGUIUtility.PingObject(report.Catalog);
+                    SelectGeneratedFolder(report.RootPath);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                    string failureMessage =
+                        "Starter Identity Catalog generation failed: " +
+                        exception.Message;
+                    if (reportToContentScaffolding)
+                    {
+                        contentScaffoldMessage = failureMessage;
+                    }
+                    else
+                    {
+                        guildMessage = failureMessage;
+                    }
+                }
+                finally
+                {
+                    identityCatalogGenerationQueued = false;
+                    Repaint();
+                }
+            };
+        }
+
+        private void EnsureCharacterCreationDefaults()
+        {
+            DeverQuestIdentityCatalog catalog =
+                DeverQuestIdentityCatalogService.ActiveCatalog;
+            if ((creationAncestry == null ||
+                 (catalog != null &&
+                  !(catalog.ancestries ??
+                    new List<DeverQuestAncestry>())
+                      .Contains(creationAncestry))) &&
+                DeverQuestIdentityCatalogService.Ancestries.Count > 0)
+            {
+                creationAncestry =
+                    catalog?.defaultAncestry ??
+                    DeverQuestIdentityCatalogService.Ancestries[0];
+            }
+            if ((creationClassDefinition == null ||
+                 (catalog != null &&
+                  !(catalog.classes ??
+                    new List<DeverQuestClassDefinition>())
+                      .Contains(creationClassDefinition))) &&
+                DeverQuestIdentityCatalogService.Classes.Count > 0)
+            {
+                creationClassDefinition =
+                    catalog?.defaultClass ??
+                    DeverQuestIdentityCatalogService.Classes
+                        .FirstOrDefault(value =>
+                            value.displayName == "Warrior") ??
+                    DeverQuestIdentityCatalogService.Classes[0];
+            }
+            if ((creationFaith == null ||
+                 (catalog != null &&
+                  !(catalog.faiths ??
+                    new List<DeverQuestDeity>())
+                      .Contains(creationFaith))) &&
+                DeverQuestIdentityCatalogService.Faiths.Count > 0)
+            {
+                creationFaith =
+                    catalog?.defaultFaith ??
+                    DeverQuestIdentityCatalogService.Faiths
+                        .FirstOrDefault(value =>
+                            value.displayName == "Agnostic") ??
+                    DeverQuestIdentityCatalogService.Faiths[0];
+            }
+        }
+
         private void DrawGuildAdministration()
         {
             DeverQuestGuildAccount account =
@@ -336,9 +761,36 @@ namespace EchoDevGames.DeverQuest
                     "Developer", newGuildDeveloper);
                 newGuildCharacter = EditorGUILayout.TextField(
                     "Adventurer", newGuildCharacter);
-                newGuildClass = DrawStringPopup(
-                    "Class", newGuildClass,
-                    DeverQuestAdventurerService.Classes);
+                if (DeverQuestIdentityCatalogService.Classes.Count > 0)
+                {
+                    if (newGuildClassDefinition == null)
+                    {
+                        newGuildClassDefinition =
+                            DeverQuestIdentityCatalogService.Classes
+                                .FirstOrDefault(value =>
+                                    value.displayName ==
+                                    newGuildClass) ??
+                            DeverQuestIdentityCatalogService.Classes[0];
+                    }
+                    newGuildClassDefinition =
+                        (DeverQuestClassDefinition)
+                        EditorGUILayout.ObjectField(
+                            "Class",
+                            newGuildClassDefinition,
+                            typeof(DeverQuestClassDefinition),
+                            false);
+                    if (newGuildClassDefinition != null)
+                    {
+                        newGuildClass =
+                            newGuildClassDefinition.displayName;
+                    }
+                }
+                else
+                {
+                    newGuildClass = DrawStringPopup(
+                        "Legacy Class", newGuildClass,
+                        DeverQuestAdventurerService.Classes);
+                }
                 newGuildRank = DrawStringPopup(
                     "Guild Rank", newGuildRank,
                     DeverQuestAdventurerService.GuildRanks);
@@ -373,6 +825,8 @@ namespace EchoDevGames.DeverQuest
                         guildMessage = error;
                     }
                 }
+
+                DrawCompensationAdministration();
             }
 
             EditorGUILayout.Space(6f);
@@ -399,6 +853,148 @@ namespace EchoDevGames.DeverQuest
             }
             EditorGUILayout.EndVertical();
             EditorGUILayout.Space(8f);
+        }
+
+        private void DrawCompensationAdministration()
+        {
+            compensationAdministrationFoldout =
+                EditorGUILayout.Foldout(
+                    compensationAdministrationFoldout,
+                    "Compensation Preview Policies",
+                    true);
+            if (!compensationAdministrationFoldout)
+            {
+                return;
+            }
+
+            List<DeverQuestGuildAccount> accounts =
+                DeverQuestGuildAccountService.Accounts
+                    .Where(value => value != null)
+                    .ToList();
+            if (accounts.Count == 0)
+            {
+                return;
+            }
+
+            compensationAccountIndex = Mathf.Clamp(
+                compensationAccountIndex,
+                0,
+                accounts.Count - 1);
+            compensationAccountIndex = EditorGUILayout.Popup(
+                "Adventurer Account",
+                compensationAccountIndex,
+                accounts
+                    .Select(value => value.developerName)
+                    .ToArray());
+            DeverQuestGuildAccount target =
+                accounts[compensationAccountIndex];
+            LoadCompensationPolicy(target);
+
+            compensationEnabled = EditorGUILayout.Toggle(
+                "Enable Preview",
+                compensationEnabled);
+            compensationBasis =
+                (DeverQuestCompensationBasis)
+                EditorGUILayout.EnumPopup(
+                    "Basis",
+                    compensationBasis);
+            compensationCurrencyCode = EditorGUILayout.TextField(
+                new GUIContent(
+                    "Currency Code",
+                    "Three-letter display code, such as USD, CAD, EUR, or " +
+                    "GBP."),
+                compensationCurrencyCode);
+            if (compensationBasis ==
+                DeverQuestCompensationBasis.Hourly)
+            {
+                compensationHourlyRate = EditorGUILayout.DoubleField(
+                    "Hourly Rate",
+                    compensationHourlyRate);
+            }
+            else
+            {
+                compensationAnnualSalary = EditorGUILayout.DoubleField(
+                    "Annual Salary",
+                    compensationAnnualSalary);
+                compensationWeeklyHours = EditorGUILayout.DoubleField(
+                    "Scheduled Hours/Week",
+                    compensationWeeklyHours);
+            }
+            compensationIncludeApprovedBreaks =
+                EditorGUILayout.Toggle(
+                    new GUIContent(
+                        "Include Approved Breaks",
+                        "When enabled, completed approved-break seconds are " +
+                        "included. Meditation and Idle/Unverified time are " +
+                        "always excluded."),
+                    compensationIncludeApprovedBreaks);
+            compensationIntegrityPolicy =
+                (DeverQuestCompensationIntegrityPolicy)
+                EditorGUILayout.EnumPopup(
+                    new GUIContent(
+                        "Chronicle Eligibility",
+                        "Modified or unavailable Chronicles are always " +
+                        "excluded."),
+                    compensationIntegrityPolicy);
+
+            EditorGUILayout.HelpBox(
+                "Compensation settings are a local planning convenience. " +
+                "They are not encrypted payroll records and are never " +
+                "published to shared Guild snapshots or written into daily " +
+                "Chronicles.",
+                MessageType.Warning);
+
+            if (GUILayout.Button("Save Preview Policy"))
+            {
+                if (DeverQuestGuildAccountService
+                    .UpdateCompensationPolicy(
+                        target.accountId,
+                        compensationEnabled,
+                        compensationBasis,
+                        compensationCurrencyCode,
+                        compensationHourlyRate,
+                        compensationAnnualSalary,
+                        compensationWeeklyHours,
+                        compensationIncludeApprovedBreaks,
+                        compensationIntegrityPolicy,
+                        out string error))
+                {
+                    compensationLoadedAccountId = string.Empty;
+                    guildMessage =
+                        $"Saved compensation preview policy for " +
+                        $"{target.developerName}.";
+                }
+                else
+                {
+                    guildMessage = error;
+                }
+            }
+        }
+
+        private void LoadCompensationPolicy(
+            DeverQuestGuildAccount account)
+        {
+            if (account == null ||
+                compensationLoadedAccountId == account.accountId)
+            {
+                return;
+            }
+            compensationLoadedAccountId = account.accountId;
+            compensationEnabled =
+                account.compensationPreviewEnabled;
+            compensationBasis = account.compensationBasis;
+            compensationCurrencyCode =
+                account.compensationCurrencyCode;
+            compensationHourlyRate =
+                account.compensationHourlyRate;
+            compensationAnnualSalary =
+                account.compensationAnnualSalary;
+            compensationWeeklyHours =
+                account.compensationWeeklyHours;
+            compensationIncludeApprovedBreaks =
+                account.compensationIncludeApprovedBreaks;
+            compensationIntegrityPolicy =
+                account.compensationIntegrityPolicy;
         }
 
         private void DrawFirstTimeSetup()
@@ -492,12 +1088,12 @@ namespace EchoDevGames.DeverQuest
                 Mathf.Max(0, profile.idleWarningSeconds);
 
             DrawWellnessSetup(profile);
+            DrawExternalActivitySetup();
             DrawRewardSetup(profile);
             DrawCampaignRulesSetup(profile);
             DrawPlaylistSetup(profile);
             DrawPolishSetup(profile);
             DrawChronicleIntegritySetup(profile);
-            DrawCampaignRulesSetup(profile);
             DrawProjectDefaultsSetup(profile);
 
             EditorGUILayout.Space(14f);
@@ -645,32 +1241,536 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
 
+            EditorGUILayout.Space(6f);
+            DrawWorkspaceTabs();
             EditorGUILayout.Space(8f);
 
-            DrawGoalsAndStreaks(profile);
-            DrawAdventurerSheet();
-            DrawRulesLaboratory(profile);
-            DrawGuildAdministration();
-            DrawWellnessReminder();
-            DrawPlaylistPlayer();
-            EditorGUILayout.Space(10f);
-
-            if (DeverQuestSessionStore.HasActiveSession)
+            if (DeverQuestSessionStore.HasActiveSession &&
+                !guildCollapsedForActiveQuest)
             {
-                DrawActiveSession();
+                guildAdministrationFoldout = false;
+                guildCollapsedForActiveQuest = true;
             }
-            else
+            else if (!DeverQuestSessionStore.HasActiveSession)
             {
-                DrawNewSessionForm(profile);
-                DrawLastCompletedSession();
+                guildCollapsedForActiveQuest = false;
+            }
+            switch (activeWorkspace)
+            {
+                case DeverQuestWorkspace.Quest:
+                    DrawGoalsAndStreaks(profile);
+                    DrawWellnessReminder();
+                    if (DeverQuestSessionStore.HasActiveSession)
+                    {
+                        DrawActiveSession(false);
+                    }
+                    else
+                    {
+                        DrawNewSessionForm(profile);
+                        DrawLastCompletedSession();
+                    }
+                    break;
+                case DeverQuestWorkspace.QuestLog:
+                    DrawQuestLogWorkspace();
+                    break;
+                case DeverQuestWorkspace.Character:
+                    DrawAdventurerSheet();
+                    DrawCompanionStable();
+                    DrawRulesLaboratory(profile);
+                    break;
+                case DeverQuestWorkspace.GuildHall:
+                    DrawContentScaffolding();
+                    DrawGuildShop();
+                    DrawGuildAdministration();
+                    DrawHallOfHeroes(profile);
+                    break;
+                case DeverQuestWorkspace.RewardsHistory:
+                    DrawRewardsPanel(profile);
+                    DrawHistoryPanel(profile);
+                    break;
+                case DeverQuestWorkspace.AudioWellness:
+                    DrawWellnessReminder();
+                    DrawPlaylistPlayer();
+                    break;
+                case DeverQuestWorkspace.Settings:
+                    DrawProfileControls(profile);
+                    break;
+            }
+        }
+
+        private void DrawContentScaffolding()
+        {
+            contentScaffoldFoldout = EditorGUILayout.Foldout(
+                contentScaffoldFoldout,
+                "Campaign Content Scaffolding",
+                true);
+            if (!contentScaffoldFoldout)
+            {
+                return;
+            }
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                "Studio Content Generator",
+                EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(
+                "Create an organized production tree with blank template " +
+                "assets, or generate an isolated, interconnected tutorial " +
+                "campaign. Existing folders and assets are always preserved.",
+                EditorStyles.wordWrappedLabel);
+
+            bool canManage =
+                DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild);
+            using (new EditorGUI.DisabledScope(!canManage))
+            {
+                DeverQuestIdentityCatalog activeCatalog =
+                    (DeverQuestIdentityCatalog)
+                    EditorGUILayout.ObjectField(
+                        "Active Identity Catalog",
+                        DeverQuestIdentityCatalogService.ActiveCatalog,
+                        typeof(DeverQuestIdentityCatalog),
+                        false);
+                if (activeCatalog !=
+                    DeverQuestIdentityCatalogService.ActiveCatalog)
+                {
+                    try
+                    {
+                        DeverQuestIdentityCatalogService.SetActiveCatalog(
+                            activeCatalog);
+                        DeverQuestIdentityCatalog selectedCatalog =
+                            DeverQuestIdentityCatalogService.ActiveCatalog;
+                        contentScaffoldMessage = selectedCatalog == null
+                            ? "No Identity Catalog assets are available."
+                            : $"Active Guild Identity Catalog: " +
+                              $"{selectedCatalog.displayName}.";
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogException(exception);
+                        contentScaffoldMessage =
+                            "The active Identity Catalog could not be saved: " +
+                            exception.Message;
+                    }
+                }
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button(
+                        "Create Empty Studio Structure"))
+                {
+                    DeverQuestScaffoldReport report =
+                        DeverQuestCampaignScaffolder
+                            .CreateProductionStructure();
+                    contentScaffoldMessage = report.Summary;
+                    SelectGeneratedFolder(
+                        report.SelectedFolder);
+                }
+                if (GUILayout.Button(
+                        "Create Tutorial Campaign"))
+                {
+                    bool create = EditorUtility.DisplayDialog(
+                        "Create DeverQuest Tutorial Campaign?",
+                        "This creates connected tutorial assets under " +
+                        "Assets/DeverQuest/DemoCampaign. Existing assets " +
+                        "will not be replaced.",
+                        "Create Tutorial",
+                        "Cancel");
+                    if (create)
+                    {
+                        DeverQuestScaffoldReport report =
+                            DeverQuestCampaignScaffolder
+                                .CreateTutorialCampaign();
+                        selectedQuestContract =
+                            report.TutorialContract;
+                        selectedShopProfile =
+                            report.TutorialShop;
+                        contentScaffoldMessage =
+                            report.Summary +
+                            " The tutorial Contract and Quartermaster " +
+                            "are now selected.";
+                        SelectGeneratedFolder(
+                            report.SelectedFolder);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+                using (new EditorGUI.DisabledScope(
+                           identityCatalogGenerationQueued))
+                {
+                    if (GUILayout.Button(
+                            identityCatalogGenerationQueued
+                                ? "Generating Starter Identity Catalog…"
+                                : "Generate Original Starter Identity Catalog"))
+                    {
+                        QueueOriginalStarterIdentityCatalogGeneration(
+                            true);
+                    }
+                }
+                if (GUILayout.Button(
+                        "Generate Original Companion Stable"))
+                {
+                    DeverQuestCompanionGenerationReport report =
+                        DeverQuestCompanionCatalogGenerator
+                            .GenerateOriginalStarterCatalog();
+                    contentScaffoldMessage = report.Summary;
+                    SelectGeneratedFolder(report.RootPath);
+                }
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Create Ancestry Asset…"))
+                {
+                    CreateCharacterAsset<DeverQuestAncestry>(
+                        "NewAncestry");
+                }
+                if (GUILayout.Button("Create Class Definition…"))
+                {
+                    CreateCharacterAsset<
+                        DeverQuestClassDefinition>(
+                        "NewClassDefinition");
+                }
+                if (GUILayout.Button("Create Faith Asset…"))
+                {
+                    CreateCharacterAsset<DeverQuestDeity>(
+                        "NewFaith");
+                }
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Create Companion Profile…"))
+                {
+                    CreateCharacterAsset<
+                        DeverQuestCompanionProfile>(
+                        "NewCompanionProfile");
+                }
+                if (GUILayout.Button("Create Companion Catalog…"))
+                {
+                    CreateCharacterAsset<
+                        DeverQuestCompanionCatalog>(
+                        "NewCompanionCatalog");
+                }
+                EditorGUILayout.EndHorizontal();
+                if (GUILayout.Button("Create Identity Catalog…"))
+                {
+                    CreateCharacterAsset<
+                        DeverQuestIdentityCatalog>(
+                        "NewGuildIdentityCatalog");
+                }
+            }
+            if (!canManage)
+            {
+                EditorGUILayout.HelpBox(
+                    "CEO or Boss permission is required to generate " +
+                    "studio content.",
+                    MessageType.Info);
+            }
+            if (!string.IsNullOrWhiteSpace(
+                    contentScaffoldMessage))
+            {
+                EditorGUILayout.HelpBox(
+                    contentScaffoldMessage,
+                    MessageType.Info);
+            }
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(8f);
+        }
+
+        private static void SelectGeneratedFolder(
+            string path)
+        {
+            UnityEngine.Object folder =
+                AssetDatabase.LoadAssetAtPath<
+                    UnityEngine.Object>(path);
+            if (folder == null)
+            {
+                return;
+            }
+            Selection.activeObject = folder;
+            EditorGUIUtility.PingObject(folder);
+        }
+
+        private void DrawWorkspaceTabs()
+        {
+            string[] labels =
+            {
+                "Quest",
+                "Quest Log & Git",
+                "Character",
+                "Guild Hall",
+                "Rewards & History",
+                "Audio & Wellness",
+                "Settings"
+            };
+            activeWorkspace = (DeverQuestWorkspace)
+                GUILayout.SelectionGrid(
+                    (int)activeWorkspace,
+                    labels,
+                    4,
+                    EditorStyles.toolbarButton);
+            EditorGUILayout.LabelField(
+                "Only the selected workspace is rendered. This keeps " +
+                "inactive AssetDatabase, Git, history, and shared-record " +
+                "panels off Unity's repaint path.",
+                EditorStyles.wordWrappedMiniLabel);
+        }
+
+        private void DrawQuestLogWorkspace()
+        {
+            if (!DeverQuestSessionStore.HasActiveSession)
+            {
+                EditorGUILayout.HelpBox(
+                    "Accept a Quest to open its live Quest Log and Git " +
+                    "workspace.",
+                    MessageType.Info);
+                return;
+            }
+            DeverQuestSession session =
+                DeverQuestSessionStore.ActiveSession;
+            EditorGUILayout.LabelField(
+                session.taskName,
+                EditorStyles.boldLabel);
+            DrawReadOnlyValue(
+                "Focused",
+                FormatDuration(
+                    DeverQuestSessionStore.GetFocusedSeconds()));
+            DeverQuestSessionStage activeStage =
+                DeverQuestSessionStore.CurrentQuestStage();
+            if (activeStage != null)
+            {
+                EditorGUILayout.Space(8f);
+                EditorGUILayout.LabelField(
+                    "Current Focus Stage",
+                    EditorStyles.boldLabel);
+                double stageElapsed = Math.Max(
+                    0d,
+                    DeverQuestSessionStore.GetFocusedSeconds() -
+                    activeStage.startedFocusedSeconds);
+                EditorGUILayout.LabelField(
+                    activeStage.stageTitle,
+                    $"{stageElapsed / 60d:0.0} / " +
+                    $"{activeStage.focusedMinutesRequired} minutes");
+                if (activeStage.survivalMode ||
+                    DeverQuestEncounterService.IsSurvival(activeStage))
+                {
+                    DrawSurvivalControls(activeStage);
+                }
+                else
+                {
+                    using (new EditorGUI.DisabledScope(
+                               !activeStage.allowEarlyTurnIn))
+                    {
+                        if (GUILayout.Button(
+                                "Report Development Objective Complete"))
+                        {
+                            DeverQuestSessionStore
+                                .CompleteCurrentStageEarly(
+                                    out string message);
+                            EditorUtility.DisplayDialog(
+                                "Quest Stage Pace",
+                                message,
+                                "Continue");
+                        }
+                    }
+                }
+            }
+            DrawBattleResults(session);
+            DrawCommitJournal(session);
+        }
+
+        private void DrawHallOfHeroes(
+            DeverQuestProfile profile)
+        {
+            hallOfHeroesFoldout = EditorGUILayout.Foldout(
+                hallOfHeroesFoldout,
+                "Shared Guild Records and Hall of Heroes",
+                true);
+            if (!hallOfHeroesFoldout)
+            {
+                return;
             }
 
-            EditorGUILayout.Space(18f);
-            DrawRewardsPanel(profile);
-            EditorGUILayout.Space(18f);
-            DrawHistoryPanel(profile);
-            EditorGUILayout.Space(18f);
-            DrawProfileControls(profile);
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            bool canManage =
+                DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild);
+            using (new EditorGUI.DisabledScope(!canManage))
+            {
+                EditorGUI.BeginChangeCheck();
+                profile.sharedGuildEnabled =
+                    EditorGUILayout.Toggle(
+                        "Enable Shared Guild",
+                        profile.sharedGuildEnabled);
+                profile.publishCompletedQuests =
+                    EditorGUILayout.Toggle(
+                        "Publish Completed Quests",
+                        profile.publishCompletedQuests);
+                profile.healthyDailyFocusMinutes =
+                    EditorGUILayout.IntField(
+                        new GUIContent(
+                            "Ranking Daily Cap",
+                            "Ranked focus is capped per day to avoid " +
+                            "rewarding unhealthy hours."),
+                        profile.healthyDailyFocusMinutes);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    profile.Sanitize();
+                    DeverQuestSettingsStore.Save();
+                }
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Repository");
+            EditorGUILayout.SelectableLabel(
+                string.IsNullOrWhiteSpace(
+                    profile.sharedGuildRepositoryPath)
+                    ? "Not configured"
+                    : profile.sharedGuildRepositoryPath,
+                EditorStyles.textField,
+                GUILayout.Height(
+                    EditorGUIUtility.singleLineHeight));
+            using (new EditorGUI.DisabledScope(!canManage))
+            {
+                if (GUILayout.Button(
+                        "Choose…",
+                        GUILayout.Width(72f)))
+                {
+                    string selected = EditorUtility.OpenFolderPanel(
+                        "Choose Shared DeverQuest Guild Repository",
+                        string.IsNullOrWhiteSpace(
+                            profile.sharedGuildRepositoryPath)
+                            ? DeverQuestPathUtility
+                                .GetDefaultTimecardRoot()
+                            : profile.sharedGuildRepositoryPath,
+                        string.Empty);
+                    if (!string.IsNullOrWhiteSpace(selected))
+                    {
+                        profile.sharedGuildRepositoryPath =
+                            selected;
+                        profile.sharedGuildEnabled = true;
+                        DeverQuestSettingsStore.Save();
+                    }
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.HelpBox(
+                "This repository coordinates tamper-evident shared records. " +
+                "It becomes authoritative only when the studio controls its " +
+                "server, network-share, or cloud-folder permissions. Local " +
+                "users who can rewrite every file are not cryptographically " +
+                "prevented from replacing history.",
+                MessageType.Warning);
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Validate Repository"))
+            {
+                DeverQuestSharedGuildService.ValidateRepository(
+                    out string message);
+                guildMessage = message;
+            }
+            using (new EditorGUI.DisabledScope(
+                       DeverQuestSessionStore
+                           .LastCompletedSession == null))
+            {
+                if (GUILayout.Button("Publish Last Quest"))
+                {
+                    DeverQuestSharedGuildService
+                        .PublishLastCompleted(
+                            out string message);
+                    guildMessage = message;
+                }
+            }
+            if (GUILayout.Button("Refresh Hall"))
+            {
+                DeverQuestSharedGuildService.Refresh();
+                guildMessage =
+                    DeverQuestSharedGuildService.LastMessage;
+            }
+            EditorGUILayout.EndHorizontal();
+
+            if (!string.IsNullOrWhiteSpace(guildMessage))
+            {
+                EditorGUILayout.HelpBox(
+                    guildMessage,
+                    guildMessage.Contains("failed") ||
+                    guildMessage.Contains("unavailable")
+                        ? MessageType.Warning
+                        : MessageType.Info);
+            }
+
+            EditorGUILayout.LabelField(
+                $"Published records: " +
+                $"{DeverQuestSharedGuildService.PublishedRecordCount} · " +
+                $"Invalid/quarantined: " +
+                $"{DeverQuestSharedGuildService.InvalidRecordCount}",
+                EditorStyles.miniLabel);
+
+            EditorGUILayout.Space(6f);
+            EditorGUILayout.LabelField(
+                "Hall of Heroes",
+                EditorStyles.boldLabel);
+            IReadOnlyList<DeverQuestHallEntry> hall =
+                DeverQuestSharedGuildService.Hall;
+            if (hall.Count == 0)
+            {
+                EditorGUILayout.LabelField(
+                    "No shared Adventurer records loaded.",
+                    EditorStyles.miniLabel);
+            }
+            for (int index = 0; index < hall.Count; index++)
+            {
+                DeverQuestHallEntry entry = hall[index];
+                EditorGUILayout.BeginVertical(
+                    EditorStyles.helpBox);
+                EditorGUILayout.LabelField(
+                    $"#{index + 1} {entry.AdventurerName} · " +
+                    $"{(string.IsNullOrWhiteSpace(entry.AncestryName) ? string.Empty : entry.AncestryName + " · ")}" +
+                    $"{entry.CharacterClass} Level {entry.Level}",
+                    EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(
+                    $"{entry.DeveloperName} · {entry.GuildRank} · " +
+                    $"{entry.QuestCount} Quest(s) · " +
+                    $"{entry.ContractCount} Contract(s)");
+                EditorGUILayout.LabelField(
+                    $"Ranked {FormatDuration(entry.RankedFocusedSeconds)} · " +
+                    $"Raw {FormatDuration(entry.RawFocusedSeconds)} · " +
+                    $"{entry.ExperienceEarned} XP · " +
+                    $"{DeverQuestAdventurerService.FormatCoins(entry.CopperEarned)}");
+                EditorGUILayout.LabelField(
+                    $"Current streak: {entry.CurrentStreak} day(s) · " +
+                    $"Review flags: {entry.ReviewFlagCount}",
+                    entry.ReviewFlagCount > 0
+                        ? EditorStyles.boldLabel
+                        : EditorStyles.miniLabel);
+                EditorGUILayout.EndVertical();
+            }
+
+            DrawGuildNamedReports(
+                "Project Standings",
+                DeverQuestSharedGuildService.Projects);
+            DrawGuildNamedReports(
+                "Department Standings",
+                DeverQuestSharedGuildService.Departments);
+            EditorGUILayout.EndVertical();
+        }
+
+        private static void DrawGuildNamedReports(
+            string title,
+            IReadOnlyList<DeverQuestGuildNamedReport> reports)
+        {
+            EditorGUILayout.Space(6f);
+            EditorGUILayout.LabelField(
+                title,
+                EditorStyles.boldLabel);
+            if (reports.Count == 0)
+            {
+                EditorGUILayout.LabelField(
+                    "No shared data.",
+                    EditorStyles.miniLabel);
+                return;
+            }
+            foreach (DeverQuestGuildNamedReport report in reports)
+            {
+                EditorGUILayout.LabelField(
+                    report.Name,
+                    $"{FormatDuration(report.FocusedSeconds)} · " +
+                    $"{report.QuestCount} Quest(s) · " +
+                    $"{report.AdventurerCount} Adventurer(s)");
+            }
         }
 
         private void DrawCompactDashboard(DeverQuestProfile profile)
@@ -722,6 +1822,32 @@ namespace EchoDevGames.DeverQuest
                 DeverQuestPlaylistPlayer.Next();
             }
             EditorGUILayout.EndHorizontal();
+            EditorGUILayout.LabelField(
+                "Ambience",
+                DeverQuestAudioDirector.CurrentAmbience == null
+                    ? "None"
+                    : DeverQuestAudioDirector
+                        .CurrentAmbience.name);
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button(
+                    DeverQuestAudioDirector.AmbiencePlaying
+                        ? "Stop Ambience"
+                        : "Play Ambience"))
+            {
+                if (DeverQuestAudioDirector.AmbiencePlaying)
+                {
+                    DeverQuestAudioDirector.StopAmbience();
+                }
+                else
+                {
+                    DeverQuestAudioDirector.PlayAmbience();
+                }
+            }
+            if (GUILayout.Button("Next Ambience"))
+            {
+                DeverQuestAudioDirector.NextAmbience();
+            }
+            EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
 
             if (!DeverQuestSessionStore.HasActiveSession)
@@ -734,6 +1860,7 @@ namespace EchoDevGames.DeverQuest
             {
                 DeverQuestSession session =
                     DeverQuestSessionStore.ActiveSession;
+                AnnounceCompletedStages();
                 EditorGUILayout.LabelField(
                     FormatDuration(
                         DeverQuestSessionStore.GetFocusedSeconds()),
@@ -741,6 +1868,7 @@ namespace EchoDevGames.DeverQuest
                 EditorGUILayout.LabelField(
                     $"{session.projectName} · {session.taskName}",
                     subtitleStyle);
+                DrawCompactQuestLog(session);
 
                 if (showFinalization)
                 {
@@ -773,7 +1901,28 @@ namespace EchoDevGames.DeverQuest
                     }
                     else if (GUILayout.Button("Resume"))
                     {
-                        DeverQuestSessionStore.ResumeSession();
+                        DeverQuestSessionStage currentStage =
+                            DeverQuestSessionStore.CurrentQuestStage();
+                        if (currentStage?.survivalFightPaused == true)
+                        {
+                            if (DeverQuestSessionStore
+                                .ContinueSurvival(
+                                    out string continueMessage))
+                            {
+                                DeverQuestSessionStore.ResumeSession();
+                            }
+                            else
+                            {
+                                EditorUtility.DisplayDialog(
+                                    "Survival Expedition",
+                                    continueMessage,
+                                    "Close");
+                            }
+                        }
+                        else
+                        {
+                            DeverQuestSessionStore.ResumeSession();
+                        }
                     }
 
                     if (GUILayout.Button("Complete Quest"))
@@ -790,11 +1939,313 @@ namespace EchoDevGames.DeverQuest
                 EditorStyles.boldLabel);
             DeverQuestAdventurer compactAdventurer =
                 DeverQuestAdventurerService.Adventurer;
+            string compactAncestryName =
+                string.IsNullOrWhiteSpace(
+                    compactAdventurer.ancestryName)
+                    ? "Legacy Ancestry"
+                    : compactAdventurer.ancestryName;
             EditorGUILayout.LabelField(
+                $"{compactAncestryName} · " +
                 $"{compactAdventurer.characterClass} · " +
                 $"Level {compactAdventurer.level}",
                 DeverQuestAdventurerService.FormatCoins(
                     compactAdventurer.copperBalance));
+            EditorGUILayout.LabelField(
+                $"HP {compactAdventurer.currentHitPoints}/" +
+                $"{compactAdventurer.maximumHitPoints} · " +
+                $"Mana {compactAdventurer.currentMana}/" +
+                $"{compactAdventurer.maximumMana} · " +
+                $"AC {DeverQuestRulesService.ArmorClass(compactAdventurer)}");
+            DeverQuestCompanionState compactCompanion =
+                DeverQuestCompanionService.ActiveCompanion(
+                    compactAdventurer);
+            if (compactCompanion != null)
+            {
+                DeverQuestCompanionProfile compactProfile =
+                    DeverQuestCompanionService.FindProfile(
+                        compactCompanion.profileId);
+                EditorGUILayout.LabelField(
+                    "Active Companion",
+                    $"{DeverQuestCompanionService.DisplayName(compactCompanion)} · " +
+                    $"Level {compactCompanion.level} · " +
+                    $"HP {compactCompanion.currentHitPoints}/" +
+                    $"{DeverQuestCompanionService.MaximumHitPoints(compactCompanion, compactProfile)}");
+            }
+            EditorGUILayout.LabelField(
+                $"STR {compactAdventurer.strength} · " +
+                $"DEX {compactAdventurer.dexterity} · " +
+                $"AGI {compactAdventurer.agility} · " +
+                $"STA {compactAdventurer.stamina} · " +
+                $"INT {compactAdventurer.intelligence} · " +
+                $"WIS {compactAdventurer.wisdom} · " +
+                $"Luck {compactAdventurer.luck}",
+                EditorStyles.wordWrappedLabel);
+            EditorGUILayout.LabelField(
+                $"Hunger {compactAdventurer.hunger} · " +
+                $"Rest {compactAdventurer.rest} · " +
+                $"Happiness {compactAdventurer.happiness}");
+        }
+
+        private void AnnounceCompletedStages()
+        {
+            foreach (string title in
+                     DeverQuestSessionStore.UpdateQuestStages())
+            {
+                ShowNotification(
+                    new GUIContent(
+                        $"Focus Stage Complete: {title}"),
+                    5d);
+                if (DeverQuestSettingsStore.Profile
+                    .notificationSoundsEnabled)
+                {
+                    if (!DeverQuestAudioDirector.PlayCue(
+                            DeverQuestAudioCue.StageComplete))
+                    {
+                        EditorApplication.Beep();
+                    }
+                }
+            }
+        }
+
+        private static void DrawCompactQuestLog(
+            DeverQuestSession session)
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                "Quest Log",
+                EditorStyles.boldLabel);
+            if (!string.IsNullOrWhiteSpace(session.questStory))
+            {
+                EditorGUILayout.LabelField(
+                    session.questStory,
+                    EditorStyles.wordWrappedLabel);
+            }
+            EditorGUILayout.LabelField(
+                "Objective",
+                string.IsNullOrWhiteSpace(session.goal)
+                    ? "No objective recorded."
+                    : session.goal,
+                EditorStyles.wordWrappedLabel);
+            if (session.questIsGroupQuest)
+            {
+                EditorGUILayout.LabelField(
+                    $"Party ({session.questMaximumParticipants} max)",
+                    session.questPartyMembers);
+            }
+            if (session.questStages != null)
+            {
+                foreach (DeverQuestSessionStage stage
+                         in session.questStages)
+                {
+                    EditorGUILayout.LabelField(
+                        stage.completed ? "✓ " + stage.stageTitle
+                            : "○ " + stage.stageTitle,
+                        $"{stage.focusedMinutesRequired}m" +
+                        (stage.completedEarly
+                            ? " · Early"
+                            : string.Empty) +
+                        (stage.survivalMode
+                            ? $" · Wave {stage.survivalWave}"
+                            : string.Empty) +
+                        (string.IsNullOrWhiteSpace(
+                             stage.assignedPartyRole)
+                            ? string.Empty
+                            : " · " + stage.assignedPartyRole));
+                }
+            }
+            DeverQuestSessionStage current =
+                DeverQuestSessionStore.CurrentQuestStage();
+            if (current != null)
+            {
+                double elapsed = Math.Max(
+                    0d,
+                    DeverQuestSessionStore.GetFocusedSeconds() -
+                    current.startedFocusedSeconds);
+                EditorGUILayout.LabelField(
+                    "Current Stage Pace",
+                    $"{elapsed / 60d:0.0} / " +
+                    $"{current.focusedMinutesRequired} focused minutes");
+                if (!current.survivalMode &&
+                    !DeverQuestEncounterService.IsSurvival(current))
+                {
+                    using (new EditorGUI.DisabledScope(
+                               !current.allowEarlyTurnIn))
+                    {
+                        if (GUILayout.Button(
+                                "Report Development Objective Complete"))
+                        {
+                            DeverQuestSessionStore
+                                .CompleteCurrentStageEarly(
+                                    out string paceMessage);
+                            EditorUtility.DisplayDialog(
+                                "Quest Stage Pace",
+                                paceMessage,
+                                "Continue");
+                        }
+                    }
+                }
+                else
+                {
+                    DrawSurvivalControls(current);
+                }
+            }
+            DrawBattleResults(session);
+            EditorGUILayout.EndVertical();
+        }
+
+        private static void DrawSurvivalControls(
+            DeverQuestSessionStage stage)
+        {
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            float weight =
+                DeverQuestEncumbranceService.CarriedWeight(adventurer);
+            float capacity =
+                DeverQuestEncumbranceService.CarryCapacity(adventurer);
+            EditorGUILayout.LabelField(
+                "Survival Expedition",
+                $"Wave {stage.survivalWave} · Carry " +
+                $"{weight:0.0}/{capacity:0.0}");
+            if (stage.survivalFightPaused)
+            {
+                EditorGUILayout.HelpBox(
+                    "Fight paused for safety: " +
+                    stage.survivalPauseReason,
+                    MessageType.Warning);
+            }
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Attempt Flee"))
+            {
+                DeverQuestSessionStore.TryExitSurvival(
+                    "Flee", out string message);
+                EditorUtility.DisplayDialog(
+                    "Survival Escape", message, "Close");
+            }
+            using (new EditorGUI.DisabledScope(
+                       !DeverQuestTacticalCombatService
+                           .HasReturnAbility(adventurer)))
+            {
+                if (GUILayout.Button("Use Homeward Passage"))
+                {
+                    DeverQuestSessionStore.TryExitSurvival(
+                        "Return", out string message);
+                    EditorUtility.DisplayDialog(
+                        "Homeward Passage", message, "Close");
+                }
+            }
+            using (new EditorGUI.DisabledScope(
+                       !stage.survivalExitOffered))
+            {
+                if (GUILayout.Button("Take Guild Wagon"))
+                {
+                    DeverQuestSessionStore.TryExitSurvival(
+                        "Wagon", out string message);
+                    EditorUtility.DisplayDialog(
+                        "Guild Wagon", message, "Close");
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            if (DeverQuestEncumbranceService.IsEncumbered(adventurer))
+            {
+                EditorGUILayout.HelpBox(
+                    "Encumbered. Drop something before continuing. " +
+                    "Coin may only be exchanged at the Guild Hall.",
+                    MessageType.Warning);
+                foreach (DeverQuestInventoryEntry item in
+                         adventurer.inventory.ToArray())
+                {
+                    if (GUILayout.Button(
+                            $"Drop 1 × {item.displayName} " +
+                            $"({item.unitWeight:0.##} wt)"))
+                    {
+                        DeverQuestEncumbranceService.DropInventory(
+                            item.ownershipId, 1, out _);
+                        break;
+                    }
+                }
+            }
+        }
+
+        private static void DrawBattleResults(
+            DeverQuestSession session)
+        {
+            if (session.battleResults == null ||
+                session.battleResults.Count == 0)
+            {
+                return;
+            }
+            EditorGUILayout.Space(5f);
+            EditorGUILayout.LabelField(
+                "Battle Chronicle",
+                EditorStyles.boldLabel);
+            foreach (DeverQuestBattleResult battle
+                     in session.battleResults)
+            {
+                string battleStatus =
+                    battle.safetyPaused
+                        ? "Safety Pause"
+                        : battle.victory
+                            ? battle.earlyVictory
+                                ? "Early Victory"
+                                : "Victory"
+                            : "Defeat";
+                EditorGUILayout.LabelField(
+                    $"{battleStatus} · " +
+                    battle.encounterName,
+                    $"{battle.rounds} rounds · HP " +
+                    $"{battle.startingHitPoints}→" +
+                    $"{battle.endingHitPoints}");
+                EditorGUILayout.LabelField(
+                    "Typed Damage",
+                    string.IsNullOrWhiteSpace(
+                        battle.typedDamageSummary)
+                        ? "Legacy battle — no typed damage record."
+                        : battle.typedDamageSummary,
+                    EditorStyles.wordWrappedLabel);
+                if (!string.IsNullOrWhiteSpace(
+                        battle.companionName))
+                {
+                    EditorGUILayout.LabelField(
+                        "Companion",
+                        $"{battle.companionName} · HP " +
+                        $"{battle.companionStartingHitPoints}→" +
+                        $"{battle.companionEndingHitPoints} · " +
+                        $"Level {battle.companionLevelBefore}→" +
+                        $"{battle.companionLevelAfter}" +
+                        (battle.companionFell
+                            ? " · Fell"
+                            : string.Empty));
+                }
+                if (battle.loot.Count > 0)
+                {
+                    EditorGUILayout.LabelField(
+                        "Loot",
+                        string.Join(", ", battle.loot));
+                }
+                if (!string.IsNullOrWhiteSpace(battle.injury))
+                {
+                    EditorGUILayout.LabelField(
+                        "Consequence", battle.injury);
+                }
+                if (!string.IsNullOrWhiteSpace(
+                        battle.safetyPauseReason))
+                {
+                    EditorGUILayout.HelpBox(
+                        battle.safetyPauseReason,
+                        MessageType.Warning);
+                }
+                if (battle.actionEvents.Count > 0)
+                {
+                    DeverQuestCombatActionEvent lastAction =
+                        battle.actionEvents[
+                            battle.actionEvents.Count - 1];
+                    EditorGUILayout.LabelField(
+                        "Last Tactical Action",
+                        $"{lastAction.actor}: " +
+                        $"{lastAction.actionName} → " +
+                        $"{lastAction.target}");
+                }
+            }
         }
 
         private static void DrawGoalsAndStreaks(
@@ -951,6 +2402,11 @@ namespace EchoDevGames.DeverQuest
             }
 
             DrawHistorySummary(days);
+            DrawCompensationPreview(
+                profile,
+                days,
+                startDate,
+                endDate);
             DrawNamedHistorySummary(
                 "Weekly Summary",
                 DeverQuestHistoryService.BuildWeeklySummaries(days));
@@ -975,6 +2431,147 @@ namespace EchoDevGames.DeverQuest
                     MessageType.Info);
             }
 
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawCompensationPreview(
+            DeverQuestProfile profile,
+            IReadOnlyList<DeverQuestHistoryDay> filteredDays,
+            DateTime? startDate,
+            DateTime? endDate)
+        {
+            compensationPreviewFoldout = EditorGUILayout.Foldout(
+                compensationPreviewFoldout,
+                "Compensation Preview",
+                true);
+            if (!compensationPreviewFoldout)
+            {
+                return;
+            }
+
+            DeverQuestGuildAccount account =
+                DeverQuestGuildAccountService.CurrentAccount;
+            if (account == null)
+            {
+                return;
+            }
+            if (!account.compensationPreviewEnabled)
+            {
+                EditorGUILayout.HelpBox(
+                    "No optional compensation preview policy is enabled for " +
+                    "this Adventurer. A Boss or CEO can configure one in " +
+                    "Guild Hall > Guild Accounts and Authority.",
+                    MessageType.Info);
+                return;
+            }
+
+            DeverQuestCompensationPreview preview =
+                DeverQuestCompensationService.BuildPreview(
+                    account,
+                    profile,
+                    filteredDays);
+            DateTime today = DateTime.Today;
+            int daysSinceMonday =
+                ((int)today.DayOfWeek + 6) % 7;
+            DateTime weekStart =
+                today.AddDays(-daysSinceMonday);
+            List<DeverQuestHistoryDay> currentWeekDays =
+                DeverQuestHistoryService.GetFilteredDays(
+                    weekStart,
+                    today,
+                    historyProjectFilter,
+                    historyCategoryFilter);
+            DeverQuestCompensationPreview weekPreview =
+                DeverQuestCompensationService.BuildPreview(
+                    account,
+                    profile,
+                    currentWeekDays);
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            DrawReadOnlyValue(
+                "Policy",
+                DeverQuestCompensationService.DescribeBasis(account));
+            DrawReadOnlyValue(
+                "Current Week Eligible",
+                FormatDuration(weekPreview.EligibleSeconds));
+            DrawReadOnlyValue(
+                "Current Week Estimate",
+                DeverQuestCompensationService.FormatMoney(
+                    account,
+                    weekPreview.EstimatedGross));
+            DrawReadOnlyValue(
+                "Filtered Eligible",
+                FormatDuration(preview.EligibleSeconds));
+            DrawReadOnlyValue(
+                "Filtered Estimate",
+                DeverQuestCompensationService.FormatMoney(
+                    account,
+                    preview.EstimatedGross));
+            DrawReadOnlyValue(
+                "Included",
+                $"{preview.IncludedChronicles} Chronicle(s) · " +
+                $"{preview.IncludedSessions} Quest(s)");
+            DrawReadOnlyValue(
+                "Eligible Time",
+                account.compensationIncludeApprovedBreaks
+                    ? "Focused + Approved Breaks"
+                    : "Focused only");
+
+            if (preview.ExcludedModifiedSeconds > 0d)
+            {
+                EditorGUILayout.HelpBox(
+                    $"{FormatDuration(preview.ExcludedModifiedSeconds)} " +
+                    "was excluded because its Chronicle was modified or " +
+                    "could not be verified.",
+                    MessageType.Warning);
+            }
+            if (preview.ExcludedLegacySeconds > 0d)
+            {
+                EditorGUILayout.HelpBox(
+                    $"{FormatDuration(preview.ExcludedLegacySeconds)} of " +
+                    "legacy/unsealed time was excluded by this policy.",
+                    MessageType.Info);
+            }
+            if (preview.FlaggedSeconds > 0d)
+            {
+                EditorGUILayout.HelpBox(
+                    $"{FormatDuration(preview.FlaggedSeconds)} is included " +
+                    "but matches a configured long/frequent Quest flag and " +
+                    "should be reviewed manually.",
+                    MessageType.Warning);
+            }
+            EditorGUILayout.HelpBox(
+                DeverQuestCompensationService.Disclaimer,
+                MessageType.Warning);
+
+            if (filteredDays.Count > 0 &&
+                GUILayout.Button("Export Filtered Compensation Preview…"))
+            {
+                string path = EditorUtility.SaveFilePanel(
+                    "Export Compensation Preview",
+                    GetDeveloperFolder(profile),
+                    $"DeverQuest_Compensation_Preview_" +
+                    $"{DateTime.Now:yyyy-MM-dd}",
+                    "csv");
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    string rangeDescription =
+                        startDate.HasValue || endDate.HasValue
+                            ? $"{startDate?.ToString("yyyy-MM-dd") ?? "All"} " +
+                              $"through " +
+                              $"{endDate?.ToString("yyyy-MM-dd") ?? "All"}"
+                            : "All filtered Chronicle history";
+                    historyMessage =
+                        DeverQuestCompensationService.TryExportPreview(
+                            path,
+                            account,
+                            preview,
+                            rangeDescription,
+                            out string error)
+                            ? $"Compensation Preview exported:\n{path}"
+                            : $"Compensation Preview export failed: {error}";
+                }
+            }
             EditorGUILayout.EndVertical();
         }
 
@@ -1067,6 +2664,20 @@ namespace EchoDevGames.DeverQuest
                 DeverQuestAdventurerService.FormatCoins(
                     adventurer.copperBalance));
             EditorGUILayout.LabelField(
+                "Physical Coin",
+                $"{adventurer.platinumCoins}p · " +
+                $"{adventurer.goldCoins}g · " +
+                $"{adventurer.silverCoins}s · " +
+                $"{adventurer.copperCoins}c · " +
+                $"{DeverQuestAdventurerService.CoinPieceCount(adventurer)} pieces");
+            EditorGUILayout.LabelField(
+                "Carry Weight",
+                $"{DeverQuestEncumbranceService.CarriedWeight(adventurer):0.0} / " +
+                $"{DeverQuestEncumbranceService.CarryCapacity(adventurer):0.0}" +
+                (DeverQuestEncumbranceService.IsEncumbered(adventurer)
+                    ? " · ENCUMBERED"
+                    : string.Empty));
+            EditorGUILayout.LabelField(
                 "Lifetime Earned",
                 DeverQuestAdventurerService.FormatCoins(
                     adventurer.totalCopperEarned));
@@ -1138,12 +2749,16 @@ namespace EchoDevGames.DeverQuest
                 {
                     if (GUILayout.Button("Open Timecard"))
                     {
+                        DeverQuestIdleMonitor
+                            .BeginIntentionalExternalAction();
                         EditorUtility.OpenWithDefaultApp(
                             day.MarkdownPath);
                     }
 
                     if (GUILayout.Button("Reveal Timecard"))
                     {
+                        DeverQuestIdleMonitor
+                            .BeginIntentionalExternalAction();
                         EditorUtility.RevealInFinder(
                             day.MarkdownPath);
                     }
@@ -1480,6 +3095,80 @@ namespace EchoDevGames.DeverQuest
                     profile.stopMusicOnSessionEnd);
         }
 
+        private static void DrawExternalActivitySetup()
+        {
+            EditorGUILayout.Space(10f);
+            EditorGUILayout.LabelField(
+                "External Activity",
+                EditorStyles.boldLabel);
+
+            DeverQuestExternalActivityProfile profile =
+                (DeverQuestExternalActivityProfile)
+                EditorGUILayout.ObjectField(
+                    new GUIContent(
+                        "Activity Profile",
+                        "Foreground creative applications that may keep the " +
+                        "Quest active while recent input is detected."),
+                    DeverQuestExternalActivityMonitor.Profile,
+                    typeof(DeverQuestExternalActivityProfile),
+                    false);
+            if (profile !=
+                DeverQuestExternalActivityMonitor.Profile)
+            {
+                DeverQuestExternalActivityMonitor.SetProfile(
+                    profile);
+            }
+
+            EditorGUILayout.HelpBox(
+                "External activity never counts a permanently idle app as " +
+                "work. The configured tool must be foreground and must have " +
+                "recent keyboard or pointer input. Windows foreground " +
+                "detection is supported in this milestone.",
+                MessageType.Info);
+
+            if (DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild) &&
+                GUILayout.Button(
+                    "Create Aseprite Activity Profile…"))
+            {
+                CreateAsepriteActivityProfile();
+            }
+        }
+
+        private static void CreateAsepriteActivityProfile()
+        {
+            string path = EditorUtility.SaveFilePanelInProject(
+                "Create Aseprite Activity Profile",
+                "AsepriteActivityProfile",
+                "asset",
+                "Choose where to save the external activity profile.");
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+
+            DeverQuestExternalActivityProfile profile =
+                CreateInstance<DeverQuestExternalActivityProfile>();
+            profile.displayName = "Pixel Art Workshop";
+            profile.description =
+                "Aseprite foreground input is accepted as deliberate " +
+                "external Quest activity.";
+            profile.providers.Add(
+                new DeverQuestExternalActivityProvider
+                {
+                    displayName = "Aseprite",
+                    processName = "aseprite",
+                    inputFreshnessSeconds = 30,
+                    enabled = true
+                });
+            AssetDatabase.CreateAsset(profile, path);
+            AssetDatabase.SaveAssets();
+            DeverQuestExternalActivityMonitor.SetProfile(
+                profile);
+            Selection.activeObject = profile;
+            EditorGUIUtility.PingObject(profile);
+        }
+
         private static void DrawPolishSetup(DeverQuestProfile profile)
         {
             EditorGUILayout.Space(10f);
@@ -1624,6 +3313,7 @@ namespace EchoDevGames.DeverQuest
                     "in its Inspector.",
                     MessageType.Info);
 
+                DrawAudioProfiles();
                 EditorGUILayout.EndVertical();
                 return;
             }
@@ -1717,6 +3407,17 @@ namespace EchoDevGames.DeverQuest
                     MessageType.Warning);
             }
 
+            if (!DeverQuestEditorAudioBridge.IndependentVolumeSupported)
+            {
+                EditorGUILayout.HelpBox(
+                    "Music and Ambience now use independent logical " +
+                    "playback channels. This Unity editor exposes only " +
+                    "global preview gain, so both channels can play and " +
+                    "stop independently even when their volume sliders " +
+                    "cannot be mixed independently.",
+                    MessageType.Info);
+            }
+
             if (!string.IsNullOrWhiteSpace(
                     DeverQuestPlaylistPlayer.LastError))
             {
@@ -1731,7 +3432,198 @@ namespace EchoDevGames.DeverQuest
                 EditorGUIUtility.PingObject(selected);
             }
 
+            DrawAudioProfiles();
             EditorGUILayout.EndVertical();
+        }
+
+        private void DrawAudioProfiles()
+        {
+            EditorGUILayout.Space(8f);
+            EditorGUILayout.LabelField(
+                "Warnings and Ambience",
+                EditorStyles.boldLabel);
+            EditorGUI.BeginChangeCheck();
+            DeverQuestWarningAudioProfile warning =
+                (DeverQuestWarningAudioProfile)
+                EditorGUILayout.ObjectField(
+                    "Warning Profile",
+                    DeverQuestAudioDirector.WarningProfile,
+                    typeof(DeverQuestWarningAudioProfile),
+                    false);
+            if (EditorGUI.EndChangeCheck())
+            {
+                DeverQuestAudioDirector.SetWarningProfile(
+                    warning);
+            }
+
+            EditorGUI.BeginChangeCheck();
+            DeverQuestAmbienceProfile ambience =
+                (DeverQuestAmbienceProfile)
+                EditorGUILayout.ObjectField(
+                    "Ambience Profile",
+                    DeverQuestAudioDirector.AmbienceProfile,
+                    typeof(DeverQuestAmbienceProfile),
+                    false);
+            if (EditorGUI.EndChangeCheck())
+            {
+                DeverQuestAudioDirector.SetAmbienceProfile(
+                    ambience);
+                ambience =
+                    DeverQuestAudioDirector.AmbienceProfile;
+                GUI.FocusControl(null);
+            }
+
+            if (DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild))
+            {
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Create Warning Profile…"))
+                {
+                    CreateCharacterAsset<
+                        DeverQuestWarningAudioProfile>(
+                        "NewWarningAudioProfile");
+                }
+                if (GUILayout.Button("Create Ambience Profile…"))
+                {
+                    DeverQuestAmbienceProfile created =
+                        CreateCharacterAsset<
+                            DeverQuestAmbienceProfile>(
+                            "NewAmbienceProfile");
+                    if (created != null)
+                    {
+                        DeverQuestAudioDirector.SetAmbienceProfile(
+                            created);
+                        ambience = created;
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+
+                DeverQuestAmbienceProfile selectedAmbience =
+                    Selection.activeObject as
+                        DeverQuestAmbienceProfile;
+                using (new EditorGUI.DisabledScope(
+                           selectedAmbience == null ||
+                           selectedAmbience == ambience))
+                {
+                    if (GUILayout.Button(
+                            "Use Selected Ambience Profile"))
+                    {
+                        DeverQuestAudioDirector.SetAmbienceProfile(
+                            selectedAmbience);
+                        ambience = selectedAmbience;
+                        Repaint();
+                    }
+                }
+            }
+
+            if (warning != null)
+            {
+                EditorGUI.BeginChangeCheck();
+                warning.volume = EditorGUILayout.Slider(
+                    "Warning Volume",
+                    warning.volume,
+                    0f,
+                    1f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    EditorUtility.SetDirty(warning);
+                }
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Test Warning"))
+                {
+                    DeverQuestAudioDirector.PlayCue(
+                        DeverQuestAudioCue.IdleWarning);
+                }
+                if (GUILayout.Button("Test Victory"))
+                {
+                    DeverQuestAudioDirector.PlayCue(
+                        DeverQuestAudioCue.EncounterVictory);
+                }
+                if (GUILayout.Button("Test Level Up"))
+                {
+                    DeverQuestAudioDirector.PlayCue(
+                        DeverQuestAudioCue.LevelUp);
+                }
+                EditorGUILayout.EndHorizontal();
+                if (GUILayout.Button(
+                        "Select Warning Profile in Project"))
+                {
+                    Selection.activeObject = warning;
+                    EditorGUIUtility.PingObject(warning);
+                }
+            }
+
+            if (ambience != null)
+            {
+                int ambienceClipCount =
+                    ambience.ambienceClips == null
+                        ? 0
+                        : ambience.ambienceClips.Count(
+                            clip => clip != null);
+                if (ambienceClipCount == 0)
+                {
+                    EditorGUILayout.HelpBox(
+                        "The selected Ambience Profile is assigned, but it " +
+                        "does not contain a playable AudioClip. Select the " +
+                        "profile in the Project window and add at least one " +
+                        "clip to Ambience Clips.",
+                        MessageType.Warning);
+                }
+                else
+                {
+                    EditorGUILayout.LabelField(
+                        "Playable Ambience Clips",
+                        ambienceClipCount.ToString());
+                }
+
+                EditorGUI.BeginChangeCheck();
+                ambience.volume = EditorGUILayout.Slider(
+                    "Ambience Volume",
+                    ambience.volume,
+                    0f,
+                    1f);
+                ambience.playDuringActiveQuest =
+                    EditorGUILayout.Toggle(
+                        "Quest-Aware Ambience",
+                        ambience.playDuringActiveQuest);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    EditorUtility.SetDirty(ambience);
+                    DeverQuestAudioDirector.ApplyVolumes();
+                }
+                EditorGUILayout.LabelField(
+                    "Now Playing",
+                    DeverQuestAudioDirector.CurrentAmbience == null
+                        ? "No ambience playing"
+                        : DeverQuestAudioDirector
+                            .CurrentAmbience.name);
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button(
+                        DeverQuestAudioDirector.AmbiencePlaying
+                            ? "Stop Ambience"
+                            : "Play Ambience"))
+                {
+                    if (DeverQuestAudioDirector.AmbiencePlaying)
+                    {
+                        DeverQuestAudioDirector.StopAmbience();
+                    }
+                    else
+                    {
+                        DeverQuestAudioDirector.PlayAmbience();
+                    }
+                }
+                if (GUILayout.Button("Next Ambience"))
+                {
+                    DeverQuestAudioDirector.NextAmbience();
+                }
+                EditorGUILayout.EndHorizontal();
+                if (GUILayout.Button(
+                        "Select Ambience Profile in Project"))
+                {
+                    Selection.activeObject = ambience;
+                    EditorGUIUtility.PingObject(ambience);
+                }
+            }
         }
 
         private static void CreatePlaylistAsset()
@@ -1828,10 +3720,24 @@ namespace EchoDevGames.DeverQuest
             EditorGUILayout.LabelField(
                 "Class", adventurer.characterClass);
             EditorGUILayout.LabelField(
+                "Ancestry",
+                string.IsNullOrWhiteSpace(adventurer.ancestryName)
+                    ? "Legacy / Not Assigned"
+                    : adventurer.ancestryName);
+            EditorGUILayout.LabelField(
+                "Alignment",
+                ObjectNames.NicifyVariableName(
+                    adventurer.alignment.ToString()));
+            EditorGUILayout.LabelField(
+                "Faith",
+                string.IsNullOrWhiteSpace(adventurer.deityName)
+                    ? "Agnostic"
+                    : adventurer.deityName);
+            EditorGUILayout.LabelField(
                 "Guild Rank", adventurer.guildRank);
             EditorGUILayout.HelpBox(
-                "Identity, class, and Guild Rank are locked to the active " +
-                "administrator-created Guild account.",
+                "Identity, Ancestry, Class, Alignment, Faith, and Guild " +
+                "Rank are locked to the active Guild account.",
                 MessageType.Info);
         }
 
@@ -1881,8 +3787,8 @@ namespace EchoDevGames.DeverQuest
             }
 
             EditorGUILayout.HelpBox(
-                "Coin can be spent when the Guild Shop opens in a future " +
-                "milestone. Until then, your Coin Purse is earn-only.",
+                "Spend earned coin through the Guild Shop. Purchases and " +
+                "redemptions remain recorded in the Guild ledger.",
                 MessageType.Info);
         }
 
@@ -1901,6 +3807,20 @@ namespace EchoDevGames.DeverQuest
             EditorGUILayout.LabelField(
                 characterName,
                 $"{adventurer.characterClass} · Level {adventurer.level}");
+            EditorGUILayout.LabelField(
+                "Ancestry",
+                string.IsNullOrWhiteSpace(adventurer.ancestryName)
+                    ? "Legacy / Not Assigned"
+                    : adventurer.ancestryName);
+            EditorGUILayout.LabelField(
+                "Alignment",
+                ObjectNames.NicifyVariableName(
+                    adventurer.alignment.ToString()));
+            EditorGUILayout.LabelField(
+                "Faith",
+                string.IsNullOrWhiteSpace(adventurer.deityName)
+                    ? "Agnostic"
+                    : adventurer.deityName);
             EditorGUILayout.LabelField(
                 adventurer.guildName,
                 adventurer.guildRank);
@@ -1930,6 +3850,11 @@ namespace EchoDevGames.DeverQuest
                 "Armor Class",
                 DeverQuestRulesService.ArmorClass(adventurer).ToString());
             EditorGUILayout.LabelField(
+                "Damage Affinities",
+                DeverQuestDamageService
+                    .DescribeAdventurerAffinities(adventurer),
+                EditorStyles.wordWrappedLabel);
+            EditorGUILayout.LabelField(
                 "Proficiency",
                 $"+{DeverQuestRulesService.ProficiencyBonus(adventurer.level)}");
             EditorGUILayout.Space(4f);
@@ -1952,17 +3877,100 @@ namespace EchoDevGames.DeverQuest
                 "CHA", adventurer,
                 DeverQuestAbility.Charisma);
             EditorGUILayout.LabelField(
+                "AGI", adventurer.agility.ToString());
+            EditorGUILayout.LabelField(
+                "STA", adventurer.stamina.ToString());
+            EditorGUILayout.LabelField(
+                "Luck", adventurer.luck.ToString());
+            EditorGUILayout.LabelField(
+                "Mana",
+                $"{adventurer.currentMana} / " +
+                $"{adventurer.maximumMana}");
+            EditorGUILayout.LabelField(
+                "Home Department",
+                adventurer.homeDepartment);
+            EditorGUILayout.LabelField(
+                "Wellness",
+                $"Hunger {adventurer.hunger} · " +
+                $"Rest {adventurer.rest} · " +
+                $"Happiness {adventurer.happiness}");
+            EditorGUILayout.LabelField(
                 "Saving Throw Proficiencies",
                 string.Join(", ", adventurer.proficientSaves));
             EditorGUILayout.LabelField(
                 "Class Features",
                 string.Join(", ",
                     DeverQuestRulesService.ClassFeatures(adventurer)));
+            DeverQuestClassDefinition classDefinition =
+                DeverQuestIdentityCatalogService.FindClass(
+                    adventurer.classId,
+                    adventurer.characterClass);
+            DeverQuestAncestry ancestry =
+                DeverQuestIdentityCatalogService.FindAncestry(
+                    adventurer.ancestryId,
+                    adventurer.ancestryName);
+            DeverQuestDeity faith =
+                DeverQuestIdentityCatalogService.FindFaith(
+                    adventurer.deityId,
+                    adventurer.deityName);
+            if (ancestry != null)
+            {
+                EditorGUILayout.LabelField(
+                    "Ancestry Traits",
+                    ancestry.innateTraits.Count == 0
+                        ? "None"
+                        : string.Join(", ", ancestry.innateTraits));
+                EditorGUILayout.LabelField(
+                    "Languages",
+                    ancestry.languages.Count == 0
+                        ? "None"
+                        : string.Join(", ", ancestry.languages));
+            }
+            if (faith != null &&
+                !string.IsNullOrWhiteSpace(faith.grantedTrait))
+            {
+                EditorGUILayout.LabelField(
+                    "Faith Boon", faith.grantedTrait);
+            }
+            if (classDefinition != null &&
+                classDefinition.supportsCompanion)
+            {
+                EditorGUILayout.LabelField(
+                    "Companion Tradition",
+                    string.IsNullOrWhiteSpace(
+                        classDefinition.companionTradition)
+                        ? "Supported"
+                        : classDefinition.companionTradition);
+            }
+            if (classDefinition?.abilityProfile != null)
+            {
+                EditorGUILayout.LabelField(
+                    "Tactical Ability Profile",
+                    $"{classDefinition.abilityProfile.displayName} · " +
+                    $"{classDefinition.abilityProfile.tacticalStyle} · " +
+                    $"{classDefinition.abilityProfile.abilities.Count} actions");
+            }
             EditorGUILayout.LabelField(
                 "Status Effects",
                 adventurer.statusEffects.Count == 0
                     ? "None"
                     : string.Join(", ", adventurer.statusEffects));
+            if (adventurer.isFallen)
+            {
+                EditorGUILayout.HelpBox(
+                    "This Adventurer has fallen. Resurrection costs 50 " +
+                    "copper and restores half Hit Points.",
+                    MessageType.Warning);
+                if (GUILayout.Button("Resurrect at the Guild Shrine"))
+                {
+                    DeverQuestEncounterService.Resurrect(
+                        out string resurrectionMessage);
+                    EditorUtility.DisplayDialog(
+                        "Guild Shrine",
+                        resurrectionMessage,
+                        "Close");
+                }
+            }
             List<string> equipment =
                 DeverQuestRulesService.EquippedNames(adventurer);
             List<string> spells =
@@ -1977,7 +3985,619 @@ namespace EchoDevGames.DeverQuest
                 spells.Count == 0
                     ? "None"
                     : string.Join(", ", spells));
+            foreach (DeverQuestSpell spell in
+                     DeverQuestRulesService.KnownSpellAssets(adventurer))
+            {
+                string effects =
+                    spell.effects == null ||
+                    spell.effects.Count == 0
+                        ? string.IsNullOrWhiteSpace(spell.damageDice)
+                            ? "Legacy utility"
+                            : "Legacy direct damage"
+                        : string.Join(
+                            ", ",
+                            spell.effects
+                                .Where(effect => effect != null)
+                                .Select(effect =>
+                                    effect.effectType.ToString()));
+                EditorGUILayout.LabelField(
+                    "  " + spell.displayName,
+                    $"{effects} · {spell.manaCost} mana");
+            }
             EditorGUILayout.EndVertical();
+        }
+
+        private void DrawCompanionStable()
+        {
+            companionStableFoldout = EditorGUILayout.Foldout(
+                companionStableFoldout,
+                "Companion Stable",
+                true);
+            if (!companionStableFoldout)
+            {
+                return;
+            }
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                "Pets, Familiars, Minions, and Companions",
+                EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(
+                "One active Companion may join deterministic encounters. " +
+                "Companions affect RPG battles only—they never create " +
+                "focused-work time or productivity rewards.",
+                EditorStyles.wordWrappedLabel);
+
+            selectedCompanionProfile =
+                (DeverQuestCompanionProfile)
+                EditorGUILayout.ObjectField(
+                    "Companion Profile",
+                    selectedCompanionProfile,
+                    typeof(DeverQuestCompanionProfile),
+                    false);
+            bool canRecruit =
+                DeverQuestCompanionService.CanRecruit(
+                    adventurer,
+                    selectedCompanionProfile,
+                    out string recruitReason);
+            using (new EditorGUI.DisabledScope(!canRecruit))
+            {
+                if (GUILayout.Button("Recruit Companion"))
+                {
+                    DeverQuestCompanionService.Recruit(
+                        selectedCompanionProfile,
+                        out companionMessage);
+                }
+            }
+            if (!canRecruit &&
+                selectedCompanionProfile != null &&
+                !string.IsNullOrWhiteSpace(recruitReason))
+            {
+                EditorGUILayout.HelpBox(
+                    recruitReason,
+                    MessageType.Info);
+            }
+
+            bool canManage =
+                DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild);
+            using (new EditorGUI.DisabledScope(!canManage))
+            {
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button(
+                        "Generate Original Starter Stable"))
+                {
+                    DeverQuestCompanionGenerationReport report =
+                        DeverQuestCompanionCatalogGenerator
+                            .GenerateOriginalStarterCatalog();
+                    companionMessage = report.Summary;
+                }
+                if (GUILayout.Button("Create Profile…"))
+                {
+                    CreateCharacterAsset<
+                        DeverQuestCompanionProfile>(
+                        "NewCompanionProfile");
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+
+            EditorGUILayout.Space(5f);
+            if ((adventurer.companions?.Count ?? 0) == 0)
+            {
+                EditorGUILayout.LabelField(
+                    "No Companions have joined this Adventurer.");
+            }
+            else
+            {
+                foreach (DeverQuestCompanionState companion in
+                         adventurer.companions.ToList())
+                {
+                    if (companion == null)
+                    {
+                        continue;
+                    }
+                    DeverQuestCompanionProfile profile =
+                        DeverQuestCompanionService.FindProfile(
+                            companion.profileId);
+                    EditorGUILayout.BeginVertical(
+                        EditorStyles.helpBox);
+                    EditorGUI.BeginChangeCheck();
+                    companion.customName =
+                        EditorGUILayout.TextField(
+                            "Name",
+                            companion.customName);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        companion.customName =
+                            companion.customName?.Trim() ??
+                            string.Empty;
+                        DeverQuestAdventurerService.Save();
+                    }
+                    int maximumHitPoints =
+                        DeverQuestCompanionService
+                            .MaximumHitPoints(
+                                companion,
+                                profile);
+                    EditorGUILayout.LabelField(
+                        profile == null
+                            ? "Missing Companion Profile"
+                            : $"{profile.kind} · {profile.role} · " +
+                              $"{profile.creatureType}",
+                        companion.isActive
+                            ? "ACTIVE"
+                            : companion.isFallen
+                                ? "FALLEN"
+                                : "Resting");
+                    EditorGUILayout.LabelField(
+                        "Level and Bond",
+                        $"Level {companion.level} · " +
+                        $"{companion.currentExperience}/" +
+                        $"{DeverQuestCompanionService.ExperienceForNextLevel(companion.level)} XP · " +
+                        $"Loyalty {companion.loyalty}/100");
+                    EditorGUILayout.LabelField(
+                        "Vitals",
+                        $"HP {companion.currentHitPoints}/" +
+                        $"{maximumHitPoints} · " +
+                        $"Battles {companion.battles} · " +
+                        $"Victories {companion.victories}");
+                    EditorGUILayout.BeginHorizontal();
+                    if (companion.isActive)
+                    {
+                        if (GUILayout.Button("Dismiss"))
+                        {
+                            DeverQuestCompanionService.Dismiss(
+                                companion);
+                            companionMessage =
+                                $"{DeverQuestCompanionService.DisplayName(companion)} is resting.";
+                        }
+                    }
+                    else
+                    {
+                        using (new EditorGUI.DisabledScope(
+                                   companion.isFallen ||
+                                   profile == null))
+                        {
+                            if (GUILayout.Button("Set Active"))
+                            {
+                                DeverQuestCompanionService.Activate(
+                                    companion,
+                                    out companionMessage);
+                            }
+                        }
+                    }
+                    using (new EditorGUI.DisabledScope(
+                               profile == null ||
+                               (!companion.isFallen &&
+                                companion.currentHitPoints >=
+                                maximumHitPoints)))
+                    {
+                        if (GUILayout.Button("Recover"))
+                        {
+                            DeverQuestCompanionService.Recover(
+                                companion,
+                                out companionMessage);
+                        }
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.EndVertical();
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(companionMessage))
+            {
+                EditorGUILayout.HelpBox(
+                    companionMessage,
+                    MessageType.Info);
+            }
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawGuildShop()
+        {
+            guildShopFoldout = EditorGUILayout.Foldout(
+                guildShopFoldout,
+                "Guild Shop and Inventory",
+                true);
+            if (!guildShopFoldout)
+            {
+                return;
+            }
+
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                "Guild Quartermaster",
+                EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(
+                "Coin Purse",
+                DeverQuestAdventurerService.FormatCoins(
+                    adventurer.copperBalance));
+            EditorGUILayout.LabelField(
+                "Carry Weight",
+                $"{DeverQuestEncumbranceService.CarriedWeight(adventurer):0.0} / " +
+                $"{DeverQuestEncumbranceService.CarryCapacity(adventurer):0.0}");
+            if (GUILayout.Button(
+                    "Exchange Coin Denominations at Guild Hall"))
+            {
+                DeverQuestAdventurerService.ExchangeCoinAtGuildHall();
+                shopMessage =
+                    "Loose coin exchanged at 100c = 1s, " +
+                    "100s = 1g, and 100g = 1p.";
+            }
+            selectedShopProfile =
+                (DeverQuestShopProfile)EditorGUILayout.ObjectField(
+                    "Shop Profile",
+                    selectedShopProfile,
+                    typeof(DeverQuestShopProfile),
+                    false);
+
+            if (DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild))
+            {
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Create Shop Profile…"))
+                {
+                    CreateCharacterAsset<DeverQuestShopProfile>(
+                        "NewGuildShop");
+                }
+                if (GUILayout.Button("Create Shop Item…"))
+                {
+                    CreateCharacterAsset<DeverQuestShopItem>(
+                        "NewGuildShopItem");
+                }
+                EditorGUILayout.EndHorizontal();
+                if (GUILayout.Button(
+                        "Generate Starter Quartermaster"))
+                {
+                    selectedShopProfile =
+                        DeverQuestStarterContentGenerator
+                            .GenerateBasicShop();
+                    shopMessage =
+                        "Starter provisions and break permits generated " +
+                        "under Assets/DeverQuest/GuildShop.";
+                }
+            }
+
+            if (selectedShopProfile == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "Select a Shop Profile to browse the " +
+                    "Quartermaster's stock.",
+                    MessageType.Info);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                    selectedShopProfile.welcomeMessage,
+                    MessageType.None);
+                foreach (DeverQuestShopItem item
+                         in selectedShopProfile.items)
+                {
+                    if (item == null)
+                    {
+                        continue;
+                    }
+                    EditorGUILayout.BeginVertical(
+                        EditorStyles.helpBox);
+                    EditorGUILayout.LabelField(
+                        item.displayName,
+                        $"{item.rarity} {item.itemType} · " +
+                        DeverQuestAdventurerService.FormatCoins(
+                            item.copperCost));
+                    if (!string.IsNullOrWhiteSpace(
+                            item.description))
+                    {
+                        EditorGUILayout.LabelField(
+                            item.description,
+                            EditorStyles.wordWrappedLabel);
+                    }
+                    string approval =
+                        item.requiresLeadershipApproval
+                            ? " · Leadership approval required"
+                            : string.Empty;
+                    EditorGUILayout.LabelField(
+                        $"Level {item.minimumLevel}{approval}",
+                        EditorStyles.miniLabel);
+                    using (new EditorGUI.DisabledScope(
+                               adventurer.level <
+                               item.minimumLevel ||
+                               adventurer.copperBalance <
+                               item.copperCost))
+                    {
+                        if (GUILayout.Button("Purchase"))
+                        {
+                            DeverQuestShopService.Purchase(
+                                item, out shopMessage);
+                        }
+                    }
+                    EditorGUILayout.EndVertical();
+                }
+            }
+
+            EditorGUILayout.Space(5f);
+            EditorGUILayout.LabelField(
+                "Inventory",
+                EditorStyles.boldLabel);
+            if (adventurer.inventory.Count == 0)
+            {
+                EditorGUILayout.LabelField("The pack is empty.");
+            }
+            foreach (DeverQuestInventoryEntry entry
+                     in adventurer.inventory.ToArray())
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(
+                    $"{entry.displayName} ×{entry.quantity}",
+                    $"{entry.rarity} · {entry.binding} · " +
+                    $"{entry.unitWeight * entry.quantity:0.##} wt");
+                DeverQuestShopItem item =
+                    DeverQuestShopService.FindItem(
+                        entry.shopItemId);
+                bool usable =
+                    item != null &&
+                    (item.itemType ==
+                     DeverQuestShopItemType.Consumable ||
+                     item.itemType == DeverQuestShopItemType.Food ||
+                     item.itemType == DeverQuestShopItemType.Drink ||
+                     item.itemType ==
+                     DeverQuestShopItemType.InnRest ||
+                     item.itemType ==
+                     DeverQuestShopItemType.BreakPermit ||
+                     item.itemType ==
+                     DeverQuestShopItemType.BreakPermit);
+                using (new EditorGUI.DisabledScope(!usable))
+                {
+                    if (GUILayout.Button(
+                            "Use",
+                            GUILayout.Width(60f)))
+                    {
+                        DeverQuestShopService.Use(
+                            item, out shopMessage);
+                    }
+                }
+                if (GUILayout.Button(
+                        "Drop",
+                        GUILayout.Width(60f)))
+                {
+                    DeverQuestEncumbranceService.DropInventory(
+                        entry.ownershipId, 1, out shopMessage);
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+
+            DrawTradingPost(adventurer);
+            DrawPurchaseApprovals();
+            if (!string.IsNullOrWhiteSpace(shopMessage))
+            {
+                EditorGUILayout.HelpBox(
+                    shopMessage,
+                    MessageType.Info);
+            }
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(8f);
+        }
+
+        private void DrawTradingPost(DeverQuestAdventurer adventurer)
+        {
+            EditorGUILayout.Space(6f);
+            EditorGUILayout.LabelField(
+                "Trading Post", EditorStyles.boldLabel);
+            List<DeverQuestGuildAccount> targets =
+                DeverQuestGuildAccountService.Accounts
+                    .Where(account =>
+                        !account.disabled &&
+                        account.accountId !=
+                        DeverQuestGuildAccountService
+                            .CurrentAccount?.accountId)
+                    .ToList();
+            if (targets.Count > 0)
+            {
+                tradeTargetIndex = Mathf.Clamp(
+                    tradeTargetIndex, 0, targets.Count - 1);
+                tradeTargetIndex = EditorGUILayout.Popup(
+                    "Trade With",
+                    tradeTargetIndex,
+                    targets.Select(account =>
+                        $"{account.characterName} " +
+                        $"({account.developerName})").ToArray());
+                foreach (DeverQuestInventoryEntry entry
+                         in adventurer.inventory.ToArray())
+                {
+                    bool tradable = entry.tradable &&
+                        entry.itemType !=
+                        DeverQuestShopItemType.Redemption &&
+                        entry.binding !=
+                        DeverQuestItemBinding.BindOnPickup &&
+                        entry.binding !=
+                        DeverQuestItemBinding.AccountBound &&
+                        string.IsNullOrWhiteSpace(
+                            entry.boundAccountId);
+                    using (new EditorGUI.DisabledScope(!tradable))
+                    {
+                        if (GUILayout.Button(
+                                $"Offer {entry.displayName}"))
+                        {
+                            DeverQuestTradeService.Offer(
+                                entry,
+                                targets[tradeTargetIndex].accountId,
+                                out shopMessage);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                EditorGUILayout.LabelField(
+                    "Create another enabled Guild account to trade.");
+            }
+
+            string accountId =
+                DeverQuestGuildAccountService.CurrentAccount
+                    ?.accountId ?? string.Empty;
+            foreach (DeverQuestTradeRecord trade
+                     in DeverQuestTradeService.Records.Where(
+                         value =>
+                             value.status ==
+                             DeverQuestTradeStatus.Offered &&
+                             value.toAccountId == accountId).ToArray())
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(
+                    $"{trade.fromName} offers {trade.itemName}",
+                    trade.rarity.ToString());
+                if (GUILayout.Button("Accept", GUILayout.Width(65f)))
+                {
+                    DeverQuestTradeService.Accept(
+                        trade, out shopMessage);
+                }
+                if (GUILayout.Button("Reject", GUILayout.Width(60f)))
+                {
+                    DeverQuestTradeService.Reject(
+                        trade, out shopMessage);
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+            foreach (DeverQuestTradeRecord trade
+                     in DeverQuestTradeService.Records.Where(
+                         value =>
+                             value.fromAccountId == accountId &&
+                             (value.status ==
+                              DeverQuestTradeStatus.Offered ||
+                              value.status ==
+                              DeverQuestTradeStatus.Rejected)).ToArray())
+            {
+                if (GUILayout.Button(
+                        $"{(trade.status == DeverQuestTradeStatus.Offered ? "Cancel" : "Reclaim")} " +
+                        $"{trade.itemName} ({trade.toName})"))
+                {
+                    DeverQuestTradeService.CancelOrReclaim(
+                        trade, out shopMessage);
+                }
+            }
+            tradeLedgerFoldout = EditorGUILayout.Foldout(
+                tradeLedgerFoldout, "Permanent Trade Ledger", true);
+            if (tradeLedgerFoldout)
+            {
+                foreach (DeverQuestTradeRecord trade
+                         in DeverQuestTradeService.Records.Take(20))
+                {
+                    EditorGUILayout.LabelField(
+                        $"[{trade.status}] {trade.itemName}",
+                        $"{trade.fromName} → {trade.toName}");
+                }
+            }
+        }
+
+        private void DrawPurchaseApprovals()
+        {
+            bool canApprove =
+                DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild);
+            if (canApprove)
+            {
+                List<DeverQuestPurchaseRecord> pending =
+                    DeverQuestShopService.Records
+                        .Where(record =>
+                            record.status ==
+                            DeverQuestPurchaseStatus.Requested)
+                        .ToList();
+                if (pending.Count > 0)
+                {
+                    EditorGUILayout.Space(6f);
+                    EditorGUILayout.LabelField(
+                        "Leadership Approval Queue",
+                        EditorStyles.boldLabel);
+                    foreach (DeverQuestPurchaseRecord record
+                             in pending)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField(
+                            $"{record.adventurerName}: " +
+                            $"{record.itemName}",
+                            DeverQuestAdventurerService.FormatCoins(
+                                record.copperCost));
+                        if (GUILayout.Button(
+                                "Approve",
+                                GUILayout.Width(70f)))
+                        {
+                            DeverQuestShopService.Resolve(
+                                record, true, out shopMessage);
+                        }
+                        if (GUILayout.Button(
+                                "Deny",
+                                GUILayout.Width(50f)))
+                        {
+                            DeverQuestShopService.Resolve(
+                                record, false, out shopMessage);
+                        }
+                        EditorGUILayout.EndHorizontal();
+                    }
+                }
+                List<DeverQuestPurchaseRecord> fulfillment =
+                    DeverQuestShopService.Records.Where(record =>
+                        record.itemType ==
+                        DeverQuestShopItemType.Redemption &&
+                        record.status ==
+                        DeverQuestPurchaseStatus.Approved).ToList();
+                if (fulfillment.Count > 0)
+                {
+                    EditorGUILayout.LabelField(
+                        "Real Reward Fulfillment",
+                        EditorStyles.boldLabel);
+                    fulfillmentReference =
+                        EditorGUILayout.TextField(
+                            "Delivery Reference",
+                            fulfillmentReference);
+                    foreach (DeverQuestPurchaseRecord record
+                             in fulfillment)
+                    {
+                        if (GUILayout.Button(
+                                $"Mark Delivered: " +
+                                $"{record.itemName} → " +
+                                $"{record.adventurerName}"))
+                        {
+                            DeverQuestShopService.MarkFulfilled(
+                                record,
+                                fulfillmentReference,
+                                out shopMessage);
+                        }
+                    }
+                }
+            }
+
+            purchaseHistoryFoldout = EditorGUILayout.Foldout(
+                purchaseHistoryFoldout,
+                "Purchase and Redemption History",
+                true);
+            if (!purchaseHistoryFoldout)
+            {
+                return;
+            }
+            string accountId =
+                DeverQuestGuildAccountService.CurrentAccount
+                    ?.accountId ?? string.Empty;
+            IEnumerable<DeverQuestPurchaseRecord> visible =
+                canApprove
+                    ? DeverQuestShopService.Records
+                    : DeverQuestShopService.Records.Where(
+                        record => record.accountId == accountId);
+            foreach (DeverQuestPurchaseRecord record
+                     in visible.Take(20))
+            {
+                EditorGUILayout.LabelField(
+                    $"[{record.status}] {record.itemName}",
+                    $"{record.adventurerName} · " +
+                    DeverQuestAdventurerService.FormatCoins(
+                        record.copperCost));
+                if (!string.IsNullOrWhiteSpace(
+                        record.fulfillmentReference))
+                {
+                    EditorGUILayout.LabelField(
+                        "Delivery",
+                        record.fulfillmentReference);
+                }
+            }
         }
 
         private static void DrawAbility(
@@ -2049,7 +4669,85 @@ namespace EchoDevGames.DeverQuest
                     CreateCharacterAsset<DeverQuestSpell>(
                         "NewDeverQuestSpell");
                 }
+                if (GUILayout.Button("Create Attack Technique…"))
+                {
+                    CreateCharacterAsset<DeverQuestAttackTechnique>(
+                        "NewCombatTechnique");
+                }
+                if (GUILayout.Button("Create Ability Profile…"))
+                {
+                    CreateCharacterAsset<DeverQuestAbilityProfile>(
+                        "NewAbilityProfile");
+                }
                 EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Create Monster Profile…"))
+                {
+                    CreateCharacterAsset<DeverQuestMonsterProfile>(
+                        "NewMonsterProfile");
+                }
+                if (GUILayout.Button("Create Encounter Profile…"))
+                {
+                    CreateCharacterAsset<DeverQuestEncounterProfile>(
+                        "NewEncounterProfile");
+                }
+                EditorGUILayout.EndHorizontal();
+                if (GUILayout.Button(
+                        "Generate Guildhall Training Encounter"))
+                {
+                    DeverQuestEncounterProfile encounter =
+                        DeverQuestStarterContentGenerator
+                            .GenerateTrainingEncounter();
+                    Selection.activeObject = encounter;
+                    EditorGUIUtility.PingObject(encounter);
+                    rulesResult =
+                        "Generated a safe two-wave training Encounter " +
+                        "under Assets/DeverQuest/Encounters.";
+                }
+                if (GUILayout.Button(
+                        "Generate Tactical Starter Kit + Quest Templates"))
+                {
+                    DeverQuestTacticalContentReport report =
+                        DeverQuestTacticalContentGenerator
+                            .GenerateStarterKit();
+                    UnityEngine.Object folder =
+                        AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(
+                            report.RootPath);
+                    Selection.activeObject = folder;
+                    EditorGUIUtility.PingObject(folder);
+                    rulesResult =
+                        $"Tactical kit ready: {report.Created} created, " +
+                        $"{report.Updated} updated. Includes original " +
+                        "abilities, class profiles, a 15-minute skirmish, " +
+                        "and an endless survival Quest.";
+                }
+                if (GUILayout.Button("Create Starter Loadout…"))
+                {
+                    CreateCharacterAsset<DeverQuestStarterLoadout>(
+                        "NewStarterLoadout");
+                }
+                if (GUILayout.Button(
+                        "Generate Copper–Steel Starter Gear"))
+                {
+                    int created =
+                        DeverQuestStarterContentGenerator
+                            .GenerateBasicGear();
+                    rulesResult =
+                        $"Generated {created} new starter gear asset(s) " +
+                        "under Assets/DeverQuest/StarterGear.";
+                }
+                if (GUILayout.Button(
+                        "Generate Guild Combat Codex"))
+                {
+                    DeverQuestCombatTypeCatalog catalog =
+                        DeverQuestStarterContentGenerator
+                            .GenerateCombatCodex();
+                    Selection.activeObject = catalog;
+                    EditorGUIUtility.PingObject(catalog);
+                    rulesResult =
+                        "Generated the complete creature and damage-type " +
+                        "codex under Assets/DeverQuest/Combat.";
+                }
                 selectedRulesEquipment =
                     (DeverQuestEquipment)EditorGUILayout.ObjectField(
                         "Equipment",
@@ -2109,7 +4807,7 @@ namespace EchoDevGames.DeverQuest
             EditorGUILayout.Space(8f);
         }
 
-        private static void CreateCharacterAsset<T>(
+        private static T CreateCharacterAsset<T>(
             string defaultName)
             where T : ScriptableObject
         {
@@ -2120,13 +4818,14 @@ namespace EchoDevGames.DeverQuest
                 "Choose where to save the character rules asset.");
             if (string.IsNullOrWhiteSpace(path))
             {
-                return;
+                return null;
             }
             T asset = CreateInstance<T>();
             AssetDatabase.CreateAsset(asset, path);
             AssetDatabase.SaveAssets();
             Selection.activeObject = asset;
             EditorGUIUtility.PingObject(asset);
+            return asset;
         }
 
         private static void DrawCampaignRulesSetup(
@@ -2213,6 +4912,27 @@ namespace EchoDevGames.DeverQuest
                         "Snooze (min)",
                         profile.snoozeMinutes);
 
+                EditorGUILayout.Space(4f);
+                EditorGUILayout.LabelField(
+                    "Completed Break Benefits",
+                    EditorStyles.miniBoldLabel);
+                profile.wellnessShortBreakMinutes =
+                    EditorGUILayout.IntField(
+                        "Short Break (min)",
+                        profile.wellnessShortBreakMinutes);
+                profile.wellnessMealBreakMinutes =
+                    EditorGUILayout.IntField(
+                        "Meal Break (min)",
+                        profile.wellnessMealBreakMinutes);
+                profile.wellnessQuietBreakMinutes =
+                    EditorGUILayout.IntField(
+                        "Quiet Break (min)",
+                        profile.wellnessQuietBreakMinutes);
+                profile.wellnessBreakExperience =
+                    EditorGUILayout.IntField(
+                        "Completed Break XP",
+                        profile.wellnessBreakExperience);
+
                 profile.mealRemindersEnabled =
                     EditorGUILayout.Toggle(
                         "Meal Reminders",
@@ -2286,15 +5006,23 @@ namespace EchoDevGames.DeverQuest
                 DeverQuestWellnessMonitor.ActiveMessage,
                 wrappedLabelStyle);
 
+            EditorGUILayout.HelpBox(
+                "Acknowledge Only dismisses the reminder without recording " +
+                "a break benefit. Take Approved Break pauses the Quest, " +
+                "classifies the permitted time separately, and grants the " +
+                "configured wellness benefit only after at least 80% of the " +
+                "break is completed.",
+                MessageType.Info);
+
             EditorGUILayout.BeginHorizontal();
 
-            if (GUILayout.Button("Pause and Take Break"))
+            if (GUILayout.Button("Take Approved Break"))
             {
                 DeverQuestWellnessMonitor.Acknowledge(true);
                 Repaint();
             }
 
-            if (GUILayout.Button("Acknowledge"))
+            if (GUILayout.Button("Acknowledge Only"))
             {
                 DeverQuestWellnessMonitor.Acknowledge(false);
                 Repaint();
@@ -2348,19 +5076,22 @@ namespace EchoDevGames.DeverQuest
                 ApplySelectedQuestContract();
             }
 
+            string contractJoinReason = string.Empty;
             bool contractAssignedToAdventurer =
                 selectedQuestContract != null &&
-                (selectedQuestContract.openToAnyMember ||
-                 string.Equals(
-                     selectedQuestContract.assignedAdventurer,
-                     adventurer.characterName,
-                     StringComparison.OrdinalIgnoreCase));
+                DeverQuestContractService.CanJoin(
+                    selectedQuestContract,
+                    adventurer,
+                    out contractJoinReason);
             bool contractStatusAvailable =
                 selectedQuestContract != null &&
                 (selectedQuestContract.status ==
                  DeverQuestContractStatus.Offered ||
                  selectedQuestContract.status ==
                  DeverQuestContractStatus.Accepted ||
+                 (selectedQuestContract.groupQuest &&
+                  selectedQuestContract.status ==
+                  DeverQuestContractStatus.Active) ||
                  (canCreateCustomQuest &&
                   selectedQuestContract.status ==
                   DeverQuestContractStatus.Draft));
@@ -2384,10 +5115,7 @@ namespace EchoDevGames.DeverQuest
                     !contractStatusAvailable
                         ? $"This Contract is {selectedQuestContract.status} " +
                           "and cannot currently be accepted."
-                        : !contractAssignedToAdventurer
-                            ? "This Contract is assigned to another Adventurer."
-                            : $"Requires Adventurer Level " +
-                              $"{selectedQuestContract.minimumAdventurerLevel}.",
+                        : contractJoinReason,
                     MessageType.Warning);
             }
 
@@ -2481,16 +5209,7 @@ namespace EchoDevGames.DeverQuest
                     GUILayout.MinHeight(54f));
             }
 
-            if (selectedQuestProfile != null)
-            {
-                EditorGUILayout.LabelField(
-                    "Profile Spoils",
-                    $"{DeverQuestAdventurerService.FormatCoins(selectedQuestProfile.baseCopper)} " +
-                    $"+ {selectedQuestProfile.baseExperience} XP base · " +
-                    $"{DeverQuestAdventurerService.FormatCoins(selectedQuestProfile.copperPerWorkBlock)} " +
-                    $"+ {selectedQuestProfile.experiencePerWorkBlock} XP " +
-                    $"per {selectedQuestProfile.workBlockMinutes}m block");
-            }
+            DrawSelectedQuestSpoils(canCreateCustomQuest);
             if (selectedQuestContract != null)
             {
                 EditorGUILayout.LabelField(
@@ -2519,6 +5238,31 @@ namespace EchoDevGames.DeverQuest
                         "Accept Quest",
                         GUILayout.Height(36f)))
                 {
+                    if (selectedQuestContract != null &&
+                        !DeverQuestContractService.Join(
+                            selectedQuestContract,
+                            adventurer,
+                            profile.developerName,
+                            out string joinError))
+                    {
+                        EditorUtility.DisplayDialog(
+                            "Cannot Join Quest",
+                            joinError,
+                            "Close");
+                        return;
+                    }
+                    if (selectedQuestContract != null &&
+                        selectedQuestContract.groupQuest &&
+                        selectedQuestContract.HasOpenPartySlot)
+                    {
+                        EditorUtility.DisplayDialog(
+                            "Party Joined",
+                            "Your place is reserved. This Quest can begin " +
+                            "after the required party has assembled.",
+                            "Return to the Guild Hall");
+                        Repaint();
+                        return;
+                    }
                     profile.lastProjectName = newProjectName;
                     profile.lastDepartmentName = newCategory;
                     DeverQuestSettingsStore.Save();
@@ -2543,6 +5287,88 @@ namespace EchoDevGames.DeverQuest
             }
         }
 
+        private void DrawSelectedQuestSpoils(
+            bool canManageQuest)
+        {
+            if (selectedQuestContract != null)
+            {
+                EditorGUILayout.LabelField(
+                    "Effective Contract Spoils",
+                    FormatSpoils(
+                        selectedQuestContract.baseCopper,
+                        selectedQuestContract.baseExperience,
+                        selectedQuestContract.copperPerWorkBlock,
+                        selectedQuestContract.experiencePerWorkBlock,
+                        selectedQuestContract.workBlockMinutes));
+
+                if (selectedQuestContract.questProfile != null &&
+                    !selectedQuestContract.SpoilsMatchLinkedProfile())
+                {
+                    EditorGUILayout.HelpBox(
+                        "This Contract's snapshotted Spoils differ from its " +
+                        "linked Quest Profile. The Contract values shown " +
+                        "above are the values that will actually be awarded.",
+                        MessageType.Warning);
+                    EditorGUILayout.LabelField(
+                        "Linked Profile Spoils",
+                        FormatSpoils(
+                            selectedQuestContract.questProfile.baseCopper,
+                            selectedQuestContract.questProfile.baseExperience,
+                            selectedQuestContract.questProfile
+                                .copperPerWorkBlock,
+                            selectedQuestContract.questProfile
+                                .experiencePerWorkBlock,
+                            selectedQuestContract.questProfile
+                                .workBlockMinutes));
+
+                    using (new EditorGUI.DisabledScope(
+                               !canManageQuest ||
+                               !selectedQuestContract
+                                   .CanRefreshSpoilsFromProfile()))
+                    {
+                        if (GUILayout.Button(
+                                "Refresh Contract Spoils from Linked Profile"))
+                        {
+                            selectedQuestContract
+                                .RefreshSpoilsFromProfile();
+                            EditorUtility.SetDirty(
+                                selectedQuestContract);
+                            AssetDatabase.SaveAssets();
+                            Repaint();
+                        }
+                    }
+                }
+                return;
+            }
+
+            if (selectedQuestProfile != null)
+            {
+                EditorGUILayout.LabelField(
+                    "Profile Spoils",
+                    FormatSpoils(
+                        selectedQuestProfile.baseCopper,
+                        selectedQuestProfile.baseExperience,
+                        selectedQuestProfile.copperPerWorkBlock,
+                        selectedQuestProfile.experiencePerWorkBlock,
+                        selectedQuestProfile.workBlockMinutes));
+            }
+        }
+
+        private static string FormatSpoils(
+            int baseCopper,
+            int baseExperience,
+            int copperPerWorkBlock,
+            int experiencePerWorkBlock,
+            int workBlockMinutes)
+        {
+            return
+                $"{DeverQuestAdventurerService.FormatCoins(baseCopper)} " +
+                $"+ {baseExperience} XP base · " +
+                $"{DeverQuestAdventurerService.FormatCoins(copperPerWorkBlock)} " +
+                $"+ {experiencePerWorkBlock} XP per " +
+                $"{Math.Max(1, workBlockMinutes)}m block";
+        }
+
         private void ApplySelectedQuestContract()
         {
             if (selectedQuestContract == null)
@@ -2559,6 +5385,22 @@ namespace EchoDevGames.DeverQuest
 
             appliedQuestContractId =
                 selectedQuestContract.ContractId;
+
+            bool canRefreshContract =
+                DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageContracts,
+                    selectedQuestContract.projectName) ||
+                DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild);
+            if (canRefreshContract &&
+                selectedQuestContract.CanRefreshSpoilsFromProfile() &&
+                !selectedQuestContract.SpoilsMatchLinkedProfile())
+            {
+                selectedQuestContract.RefreshSpoilsFromProfile();
+                EditorUtility.SetDirty(selectedQuestContract);
+                AssetDatabase.SaveAssets();
+            }
+
             selectedQuestProfile =
                 selectedQuestContract.questProfile;
             appliedQuestProfileId = selectedQuestProfile == null
@@ -2681,11 +5523,10 @@ namespace EchoDevGames.DeverQuest
                         contract.projectName);
 
                 bool assigned =
-                    contract.openToAnyMember ||
-                    string.Equals(
-                        contract.assignedAdventurer,
-                        adventurer.characterName,
-                        StringComparison.OrdinalIgnoreCase);
+                    DeverQuestContractService.CanJoin(
+                        contract,
+                        adventurer,
+                        out string joinReason);
                 bool memberVisible =
                     assigned &&
                     adventurer.level >=
@@ -2716,6 +5557,18 @@ namespace EchoDevGames.DeverQuest
                     string.IsNullOrWhiteSpace(contract.dueDate)
                         ? "Unscheduled"
                         : contract.dueDate);
+                EditorGUILayout.LabelField(
+                    contract.groupQuest ? "Party" : "Capacity",
+                    contract.groupQuest
+                        ? $"{contract.partyMembers.Count}/" +
+                          $"{contract.maximumParticipants} joined"
+                        : "1 Adventurer");
+                if (!assigned &&
+                    !string.IsNullOrWhiteSpace(joinReason))
+                {
+                    EditorGUILayout.HelpBox(
+                        joinReason, MessageType.Warning);
+                }
 
                 EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button("Select"))
@@ -2723,14 +5576,6 @@ namespace EchoDevGames.DeverQuest
                     selectedQuestContract = contract;
                     appliedQuestContractId = string.Empty;
                     ApplySelectedQuestContract();
-                    if (!canManageContract &&
-                        contract.status ==
-                        DeverQuestContractStatus.Offered)
-                    {
-                        DeverQuestContractService.SetStatus(
-                            contract,
-                            DeverQuestContractStatus.Accepted);
-                    }
                 }
                 if (canManageContract)
                 {
@@ -2783,10 +5628,164 @@ namespace EchoDevGames.DeverQuest
             }
         }
 
-        private void DrawActiveSession()
+        private static void DrawQuestProgressSummary(
+            DeverQuestSession session)
+        {
+            double focusedSeconds =
+                DeverQuestSessionStore.GetFocusedSeconds();
+            int stagedMinutes = session.questStages == null
+                ? 0
+                : session.questStages.Sum(stage =>
+                    stage == null
+                        ? 0
+                        : Math.Max(0, stage.focusedMinutesRequired));
+            int targetMinutes =
+                session.questSuggestedFocusMinutes > 0
+                    ? session.questSuggestedFocusMinutes
+                    : stagedMinutes;
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                "Quest Progress",
+                EditorStyles.boldLabel);
+
+            if (targetMinutes <= 0)
+            {
+                EditorGUILayout.LabelField(
+                    "Time Remaining",
+                    "No target duration configured");
+                EditorGUILayout.HelpBox(
+                    "Focused time is being recorded normally. Assign a " +
+                    "suggested duration to the Quest Profile or Contract " +
+                    "to enable pacing feedback.",
+                    MessageType.Info);
+                EditorGUILayout.EndVertical();
+                return;
+            }
+
+            double targetSeconds = targetMinutes * 60d;
+            double remainingSeconds =
+                targetSeconds - focusedSeconds;
+            float progress = Mathf.Clamp01(
+                (float)(focusedSeconds / targetSeconds));
+            Rect progressRect = GUILayoutUtility.GetRect(
+                18f,
+                22f,
+                GUILayout.ExpandWidth(true));
+            EditorGUI.ProgressBar(
+                progressRect,
+                progress,
+                $"{progress * 100f:0}% of {targetMinutes} minutes");
+
+            EditorGUILayout.LabelField(
+                remainingSeconds >= 0d
+                    ? "Time Remaining"
+                    : "Beyond Target",
+                FormatDuration(Math.Abs(remainingSeconds)));
+
+            int totalStages = session.questStages == null
+                ? 0
+                : session.questStages.Count(stage => stage != null);
+            if (totalStages > 0)
+            {
+                int completedStages = session.questStages.Count(stage =>
+                    stage != null && stage.completed);
+                DeverQuestSessionStage currentStage =
+                    DeverQuestSessionStore.CurrentQuestStage();
+                string stageLabel = currentStage == null
+                    ? $"{completedStages} of {totalStages} complete"
+                    : $"{Math.Min(totalStages, completedStages + 1)} of " +
+                      $"{totalStages}: {currentStage.stageTitle}";
+                EditorGUILayout.LabelField(
+                    "Current Encounter",
+                    stageLabel);
+            }
+
+            EditorGUILayout.LabelField(
+                "Progress Report",
+                BuildQuestProgressFeedback(
+                    session,
+                    progress,
+                    remainingSeconds),
+                EditorStyles.wordWrappedLabel);
+
+            if (session.usesQuestProfile)
+            {
+                int blockMinutes =
+                    Math.Max(1, session.questWorkBlockMinutes);
+                int completedBlocks = (int)Math.Floor(
+                    focusedSeconds / (blockMinutes * 60d));
+                long projectedCopper =
+                    session.questBaseCopper +
+                    completedBlocks *
+                    (long)session.questCopperPerWorkBlock;
+                long projectedExperience =
+                    session.questBaseExperience +
+                    completedBlocks *
+                    (long)session.questExperiencePerWorkBlock;
+                EditorGUILayout.LabelField(
+                    "Current Spoils Estimate",
+                    DeverQuestAdventurerService.FormatCoins(
+                        projectedCopper) +
+                    $" + {projectedExperience} XP");
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private static string BuildQuestProgressFeedback(
+            DeverQuestSession session,
+            float progress,
+            double remainingSeconds)
+        {
+            if (session.state == DeverQuestSessionState.Paused)
+            {
+                return string.IsNullOrWhiteSpace(session.pauseReason)
+                    ? "The Quest is paused. Focused time is not increasing."
+                    : "The Quest is paused: " + session.pauseReason + ".";
+            }
+
+            DeverQuestSessionStage currentStage =
+                DeverQuestSessionStore.CurrentQuestStage();
+            if (currentStage != null &&
+                (currentStage.survivalMode ||
+                 DeverQuestEncounterService.IsSurvival(currentStage)))
+            {
+                return currentStage.survivalFightPaused
+                    ? "The Survival Encounter is paused at a safe decision " +
+                      "point."
+                    : "The party is advancing through Survival wave " +
+                      Math.Max(1, currentStage.survivalWave) + ".";
+            }
+
+            if (remainingSeconds < 0d)
+            {
+                return "The planned duration has passed, but the Quest is " +
+                       "still recording valid focused work.";
+            }
+            if (progress >= 0.9f)
+            {
+                return "The Quest is in its final stretch.";
+            }
+            if (progress >= 0.5f)
+            {
+                return "More than half of the planned Quest time is " +
+                       "complete.";
+            }
+            if (progress >= 0.25f)
+            {
+                return "The Quest is underway and focused progress is being " +
+                       "recorded.";
+            }
+            return "The Quest has begun. Establish the current objective and " +
+                   "build momentum.";
+        }
+
+        private void DrawActiveSession(bool includeQuestLog = true)
         {
             DeverQuestSession session =
                 DeverQuestSessionStore.ActiveSession;
+            AnnounceCompletedStages();
 
             bool isRunning =
                 session.state == DeverQuestSessionState.Running;
@@ -2819,7 +5818,19 @@ namespace EchoDevGames.DeverQuest
                     subtitleStyle,
                     GUILayout.Height(22f));
             }
+            if (DeverQuestExternalActivityMonitor
+                .HasRecentConfiguredActivity)
+            {
+                EditorGUILayout.LabelField(
+                    "External craft active: " +
+                    DeverQuestExternalActivityMonitor
+                        .ActiveProviderName,
+                    subtitleStyle,
+                    GUILayout.Height(22f));
+            }
             EditorGUILayout.EndVertical();
+
+            DrawQuestProgressSummary(session);
 
             EditorGUILayout.Space(10f);
 
@@ -2895,7 +5906,50 @@ namespace EchoDevGames.DeverQuest
                     wrappedLabelStyle);
             }
 
-            DrawCommitJournal(session);
+            DeverQuestSessionStage activeSessionStage =
+                DeverQuestSessionStore.CurrentQuestStage();
+            if (activeSessionStage != null)
+            {
+                EditorGUILayout.Space(8f);
+                double stageElapsed = Math.Max(
+                    0d,
+                    DeverQuestSessionStore.GetFocusedSeconds() -
+                    activeSessionStage.startedFocusedSeconds);
+                EditorGUILayout.LabelField(
+                    "Current Focus Stage",
+                    $"{activeSessionStage.stageTitle} · " +
+                    $"{stageElapsed / 60d:0.0}/" +
+                    $"{activeSessionStage.focusedMinutesRequired}m");
+                if (activeSessionStage.survivalMode ||
+                    DeverQuestEncounterService.IsSurvival(
+                        activeSessionStage))
+                {
+                    DrawSurvivalControls(activeSessionStage);
+                }
+                else
+                {
+                    using (new EditorGUI.DisabledScope(
+                               !activeSessionStage.allowEarlyTurnIn))
+                    {
+                        if (GUILayout.Button(
+                                "Report Development Objective Complete"))
+                        {
+                            DeverQuestSessionStore
+                                .CompleteCurrentStageEarly(
+                                    out string message);
+                            EditorUtility.DisplayDialog(
+                                "Quest Stage Pace",
+                                message,
+                                "Continue");
+                        }
+                    }
+                }
+            }
+            DrawBattleResults(session);
+            if (includeQuestLog)
+            {
+                DrawCommitJournal(session);
+            }
 
             if (!isRunning &&
                 !string.IsNullOrWhiteSpace(session.pauseReason))
@@ -2927,7 +5981,27 @@ namespace EchoDevGames.DeverQuest
                          "Resume Quest",
                          GUILayout.Height(32f)))
             {
-                DeverQuestSessionStore.ResumeSession();
+                DeverQuestSessionStage currentStage =
+                    DeverQuestSessionStore.CurrentQuestStage();
+                if (currentStage?.survivalFightPaused == true)
+                {
+                    if (DeverQuestSessionStore.ContinueSurvival(
+                            out string continueMessage))
+                    {
+                        DeverQuestSessionStore.ResumeSession();
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(
+                            "Survival Expedition",
+                            continueMessage,
+                            "Close");
+                    }
+                }
+                else
+                {
+                    DeverQuestSessionStore.ResumeSession();
+                }
                 Repaint();
             }
 
@@ -2971,6 +6045,7 @@ namespace EchoDevGames.DeverQuest
                 EditorStyles.boldLabel);
 
             DrawGitPanel();
+            DrawExternalActivityAndMedia(session);
 
             EditorGUILayout.LabelField("Commit Details");
             commitComment = EditorGUILayout.TextArea(
@@ -3083,6 +6158,164 @@ namespace EchoDevGames.DeverQuest
                     GUIUtility.ExitGUI();
                 }
             }
+        }
+
+        private void DrawExternalActivityAndMedia(
+            DeverQuestSession session)
+        {
+            EditorGUILayout.Space(8f);
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField(
+                "External Craft and Voice Chronicle",
+                EditorStyles.boldLabel);
+
+            DeverQuestExternalActivityProfile profile =
+                (DeverQuestExternalActivityProfile)
+                EditorGUILayout.ObjectField(
+                    "Activity Profile",
+                    DeverQuestExternalActivityMonitor.Profile,
+                    typeof(DeverQuestExternalActivityProfile),
+                    false);
+            if (profile !=
+                DeverQuestExternalActivityMonitor.Profile)
+            {
+                DeverQuestExternalActivityMonitor.SetProfile(
+                    profile);
+            }
+
+            string activityStatus =
+                DeverQuestExternalActivityMonitor
+                    .HasRecentConfiguredActivity
+                    ? "Active: " +
+                      DeverQuestExternalActivityMonitor
+                          .ActiveProviderName
+                    : DeverQuestExternalActivityMonitor.IsSupported
+                        ? "No configured external tool is currently active."
+                        : "Foreground external-tool detection is currently " +
+                          "available on Windows only.";
+            EditorGUILayout.HelpBox(
+                activityStatus,
+                DeverQuestExternalActivityMonitor
+                    .HasRecentConfiguredActivity
+                    ? MessageType.Info
+                    : MessageType.None);
+
+            EditorGUILayout.Space(4f);
+            voiceMemoName = EditorGUILayout.TextField(
+                "Memo Name",
+                voiceMemoName);
+            string[] devices =
+                DeverQuestVoiceMemoService.Devices;
+            if (devices.Length > 0)
+            {
+                selectedMicrophoneIndex = Mathf.Clamp(
+                    selectedMicrophoneIndex,
+                    0,
+                    devices.Length - 1);
+                selectedMicrophoneIndex =
+                    EditorGUILayout.Popup(
+                        "Microphone",
+                        selectedMicrophoneIndex,
+                        devices);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                    "No microphone detected. Existing media files can still " +
+                    "be attached.",
+                    MessageType.Info);
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            if (!DeverQuestVoiceMemoService.IsRecording)
+            {
+                using (new EditorGUI.DisabledScope(
+                           devices.Length == 0))
+                {
+                    if (GUILayout.Button("Record Voice Memo"))
+                    {
+                        DeverQuestVoiceMemoService.Start(
+                            devices[selectedMicrophoneIndex],
+                            out mediaMessage);
+                    }
+                }
+            }
+            else
+            {
+                if (GUILayout.Button(
+                        $"Stop and Attach " +
+                        $"({DeverQuestVoiceMemoService.RecordingSeconds:0}s)"))
+                {
+                    DeverQuestVoiceMemoService.StopAndAttach(
+                        voiceMemoName,
+                        out mediaMessage);
+                }
+                if (GUILayout.Button("Cancel Recording"))
+                {
+                    DeverQuestVoiceMemoService.CancelRecording();
+                    mediaMessage =
+                        "Voice memo recording cancelled.";
+                }
+            }
+
+            if (GUILayout.Button("Attach Existing File…"))
+            {
+                string sourcePath = EditorUtility.OpenFilePanel(
+                    "Attach Media to Current Quest",
+                    string.Empty,
+                    string.Empty);
+                if (!string.IsNullOrWhiteSpace(sourcePath))
+                {
+                    DeverQuestVoiceMemoService.AttachExistingFile(
+                        sourcePath,
+                        out mediaMessage);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+
+            if (!string.IsNullOrWhiteSpace(mediaMessage))
+            {
+                EditorGUILayout.HelpBox(
+                    mediaMessage,
+                    mediaMessage.Contains("failed") ||
+                    mediaMessage.Contains("could not") ||
+                    mediaMessage.Contains("No microphone")
+                        ? MessageType.Warning
+                        : MessageType.Info);
+            }
+
+            if (session.mediaAttachments != null)
+            {
+                foreach (DeverQuestMediaAttachment attachment
+                         in session.mediaAttachments.ToList())
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(
+                        $"[{attachment.attachmentType}] " +
+                        attachment.displayName,
+                        wrappedLabelStyle);
+                    if (GUILayout.Button(
+                            "Reveal",
+                            GUILayout.Width(58f)))
+                    {
+                        DeverQuestIdleMonitor
+                            .BeginIntentionalExternalAction();
+                        EditorUtility.RevealInFinder(
+                            attachment.filePath);
+                    }
+                    if (GUILayout.Button(
+                            "Unlink",
+                            GUILayout.Width(58f)))
+                    {
+                        DeverQuestSessionStore
+                            .RemoveMediaAttachment(
+                                attachment.attachmentId);
+                        GUIUtility.ExitGUI();
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+            }
+            EditorGUILayout.EndVertical();
         }
 
         private void DrawGitPanel()
@@ -3468,17 +6701,37 @@ namespace EchoDevGames.DeverQuest
         private void BeginFinalization(
             DeverQuestSession session)
         {
+            DeverQuestSessionStage stage =
+                DeverQuestSessionStore.CurrentQuestStage();
+            if (stage != null &&
+                (stage.survivalMode ||
+                 DeverQuestEncounterService.IsSurvival(stage)))
+            {
+                string exitMethod =
+                    stage.survivalExitOffered
+                        ? "Wagon"
+                        : DeverQuestTacticalCombatService
+                            .HasReturnAbility(
+                                DeverQuestAdventurerService
+                                    .Adventurer)
+                        ? "Return"
+                        : "Flee";
+                if (!DeverQuestSessionStore.TryExitSurvival(
+                        exitMethod,
+                        out string exitMessage))
+                {
+                    EditorUtility.DisplayDialog(
+                        "Cannot Turn In Survival Quest Yet",
+                        exitMessage,
+                        "Return to Expedition");
+                    return;
+                }
+                ShowNotification(
+                    new GUIContent(exitMessage), 5d);
+            }
             if (!session.idlePauseAcknowledged)
             {
                 DeverQuestSessionStore.AcknowledgeIdlePause();
-            }
-
-            resumeIfFinalizationCancelled =
-                session.state == DeverQuestSessionState.Running;
-
-            if (resumeIfFinalizationCancelled)
-            {
-                DeverQuestSessionStore.PauseSession("Finalizing");
             }
 
             showFinalization = true;
@@ -3496,8 +6749,11 @@ namespace EchoDevGames.DeverQuest
                 EditorStyles.boldLabel);
 
             EditorGUILayout.HelpBox(
-                "Focused time is intentionally paused while you write your " +
-                "closing notes. Continue Working will resume it.",
+                session.state == DeverQuestSessionState.Running
+                    ? "Focused time continues through Quest Log, Git, and " +
+                      "closing notes. It stops only when you claim spoils."
+                    : "This Quest was already meditating when turn-in began. " +
+                      "Return to the Quest to resume focused time.",
                 MessageType.Info);
 
             if (turnInStep == QuestTurnInStep.Chronicle)
@@ -3683,13 +6939,6 @@ namespace EchoDevGames.DeverQuest
             showFinalization = false;
             turnInStep = QuestTurnInStep.Chronicle;
 
-            if (resumeIfFinalizationCancelled &&
-                DeverQuestSessionStore.HasActiveSession)
-            {
-                DeverQuestSessionStore.ResumeSession();
-            }
-
-            resumeIfFinalizationCancelled = false;
             Repaint();
         }
 
@@ -3710,12 +6959,19 @@ namespace EchoDevGames.DeverQuest
 
             if (session.usesQuestContract)
             {
-                DeverQuestContractService.SetStatus(
+                DeverQuestContractService.SubmitParticipant(
                     session.questContractId,
-                    DeverQuestContractStatus.Submitted);
+                    DeverQuestAdventurerService.Adventurer
+                        .characterName);
             }
 
             WriteTimecard(session);
+            if (DeverQuestSettingsStore.Profile
+                .notificationSoundsEnabled)
+            {
+                DeverQuestAudioDirector.PlayCue(
+                    DeverQuestAudioCue.QuestComplete);
+            }
 
             newProjectName = session.projectName;
             newCategory = session.category;
@@ -3729,8 +6985,6 @@ namespace EchoDevGames.DeverQuest
             commitHash = string.Empty;
             closingNotes = string.Empty;
             showFinalization = false;
-            resumeIfFinalizationCancelled = false;
-
             Repaint();
         }
 
@@ -3808,6 +7062,8 @@ namespace EchoDevGames.DeverQuest
 
                 if (GUILayout.Button("Reveal Timecard"))
                 {
+                    DeverQuestIdleMonitor
+                        .BeginIntentionalExternalAction();
                     EditorUtility.RevealInFinder(
                         session.timecardPath);
                 }
@@ -3847,6 +7103,7 @@ namespace EchoDevGames.DeverQuest
             EditorGUI.BeginChangeCheck();
             DrawPolishSetup(profile);
             DrawChronicleIntegritySetup(profile);
+            DrawExternalActivitySetup();
             if (EditorGUI.EndChangeCheck())
             {
                 profile.Sanitize();
@@ -3869,6 +7126,8 @@ namespace EchoDevGames.DeverQuest
             {
                 if (Directory.Exists(developerFolder))
                 {
+                    DeverQuestIdleMonitor
+                        .BeginIntentionalExternalAction();
                     EditorUtility.RevealInFinder(developerFolder);
                 }
                 else
@@ -4006,10 +7265,18 @@ namespace EchoDevGames.DeverQuest
 
         private void RepaintWhileSessionRuns()
         {
-            if (DeverQuestSessionStore.HasActiveSession)
+            if (!DeverQuestSessionStore.HasActiveSession ||
+                (activeWorkspace != DeverQuestWorkspace.Quest &&
+                 activeWorkspace !=
+                 DeverQuestWorkspace.QuestLog) ||
+                EditorApplication.timeSinceStartup <
+                nextSessionRepaintTime)
             {
-                Repaint();
+                return;
             }
+            nextSessionRepaintTime =
+                EditorApplication.timeSinceStartup + 0.25d;
+            Repaint();
         }
 
         private static string FormatDuration(double totalSeconds)

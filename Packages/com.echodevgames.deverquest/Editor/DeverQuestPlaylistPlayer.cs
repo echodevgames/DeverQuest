@@ -38,6 +38,7 @@ namespace EchoDevGames.DeverQuest
         private static int trackIndex;
         private static double trackStartedEditorTime;
         private static bool pausedBySession;
+        private static AudioClip playingClip;
         private static double notPlayingObservedSince = -1d;
 
         public static DeverQuestPlaybackState State { get; private set; }
@@ -109,7 +110,8 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
 
-            DeverQuestEditorAudioBridge.Pause();
+            DeverQuestEditorAudioBridge.Pause(
+                DeverQuestEditorAudioChannel.Music);
             State = DeverQuestPlaybackState.Paused;
         }
 
@@ -120,7 +122,8 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
 
-            DeverQuestEditorAudioBridge.Resume();
+            DeverQuestEditorAudioBridge.Resume(
+                DeverQuestEditorAudioChannel.Music);
             State = DeverQuestPlaybackState.Playing;
             trackStartedEditorTime =
                 EditorApplication.timeSinceStartup;
@@ -128,7 +131,12 @@ namespace EchoDevGames.DeverQuest
 
         public static void Stop()
         {
-            DeverQuestEditorAudioBridge.Stop();
+            if (playingClip != null)
+            {
+                DeverQuestEditorAudioBridge.Stop(
+                    DeverQuestEditorAudioChannel.Music);
+            }
+            playingClip = null;
             State = DeverQuestPlaybackState.Stopped;
             pausedBySession = false;
             notPlayingObservedSince = -1d;
@@ -189,7 +197,7 @@ namespace EchoDevGames.DeverQuest
             if (playlist != null && CurrentTrack != null)
             {
                 DeverQuestEditorAudioBridge.SetVolume(
-                    CurrentTrack,
+                    DeverQuestEditorAudioChannel.Music,
                     playlist.Volume);
             }
         }
@@ -209,6 +217,7 @@ namespace EchoDevGames.DeverQuest
                 playlist.RepeatMode == DeverQuestRepeatMode.One;
 
             if (!DeverQuestEditorAudioBridge.Play(
+                    DeverQuestEditorAudioChannel.Music,
                     clip,
                     loop,
                     playlist.Volume))
@@ -220,6 +229,7 @@ namespace EchoDevGames.DeverQuest
             }
 
             LastError = string.Empty;
+            playingClip = clip;
             State = DeverQuestPlaybackState.Playing;
             pausedBySession = false;
             trackStartedEditorTime =
@@ -288,7 +298,19 @@ namespace EchoDevGames.DeverQuest
                             .ToList();
                 }
 
-                return candidates[Random.Next(candidates.Count)];
+                int totalWeight = candidates.Sum(
+                    index => playlist.GetTrackWeight(index));
+                int choice = Random.Next(
+                    Math.Max(1, totalWeight));
+                foreach (int candidate in candidates)
+                {
+                    choice -= playlist.GetTrackWeight(candidate);
+                    if (choice < 0)
+                    {
+                        return candidate;
+                    }
+                }
+                return candidates[candidates.Count - 1];
             }
 
             int sequentialIndex = trackIndex + 1;
@@ -340,21 +362,14 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
 
-            if (DeverQuestEditorAudioBridge.IsPlaying(CurrentTrack))
+            if (DeverQuestEditorAudioBridge.IsPlaying(
+                    DeverQuestEditorAudioChannel.Music))
             {
                 notPlayingObservedSince = -1d;
                 return;
             }
 
             double now = EditorApplication.timeSinceStartup;
-            double expectedEnd =
-                trackStartedEditorTime +
-                Math.Max(0.5d, CurrentTrack.length - 0.5d);
-
-            if (now < expectedEnd)
-            {
-                return;
-            }
 
             if (notPlayingObservedSince < 0d)
             {

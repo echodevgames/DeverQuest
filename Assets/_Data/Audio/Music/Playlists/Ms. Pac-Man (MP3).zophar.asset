@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Ms. Pac-Man (MP3).zophar
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: a011ca23730271b429957bcfe0f3da52, type: 3}
+  - {fileID: 8300000, guid: 7673345052dc4a74bafcbf692be9f1f8, type: 3}
+  - {fileID: 8300000, guid: d622eca04a0eb0b4695916332580908e, type: 3}
+  - {fileID: 8300000, guid: e80f3e171e216db4aa3b4b837fab1a2c, type: 3}
+  trackWeights: 01000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

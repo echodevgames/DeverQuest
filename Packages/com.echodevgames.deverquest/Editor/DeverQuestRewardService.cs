@@ -143,6 +143,26 @@ namespace EchoDevGames.DeverQuest
                 "Quest Completion",
                 "Quest successfully turned in");
 
+            DeverQuestQuestContract rewardContract =
+                DeverQuestContractService.Find(
+                    session.questContractId);
+            bool fullParty =
+                rewardContract != null &&
+                rewardContract.partyMembers.Count >=
+                rewardContract.maximumParticipants;
+            if (session.questIsGroupQuest &&
+                fullParty &&
+                (session.questGroupBonusCopper > 0 ||
+                 session.questGroupBonusExperience > 0))
+            {
+                AwardProgression(
+                    session,
+                    session.questGroupBonusCopper,
+                    session.questGroupBonusExperience,
+                    "Party Bonus",
+                    "Group Quest participation bonus");
+            }
+
             double blockSeconds =
                 Math.Max(60d, workBlockMinutes * 60d);
 

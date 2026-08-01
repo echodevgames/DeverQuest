@@ -42,6 +42,18 @@ namespace EchoDevGames.DeverQuest
             }
         }
 
+        public static void BeginIntentionalExternalAction(
+            double graceSeconds = 600d)
+        {
+            double editorTime =
+                EditorApplication.timeSinceStartup;
+            exceptionGraceUntil = Math.Max(
+                exceptionGraceUntil,
+                editorTime + Math.Max(0d, graceSeconds));
+            projectInactiveSince = -1d;
+            ResetWarning();
+        }
+
         private static void Update()
         {
             double editorTime = EditorApplication.timeSinceStartup;
@@ -78,9 +90,26 @@ namespace EchoDevGames.DeverQuest
             double thresholdSeconds =
                 Math.Max(60d, profile.idleTimeoutMinutes * 60d);
 
+            if (DeverQuestExternalActivityMonitor
+                .HasRecentConfiguredActivity)
+            {
+                projectInactiveSince = -1d;
+                exceptionGraceUntil =
+                    editorTime + thresholdSeconds;
+                ResetWarning();
+                return;
+            }
+
             if (profile.activityScope ==
                 DeverQuestActivityScope.UnityProjectFocused)
             {
+                if (editorTime < exceptionGraceUntil)
+                {
+                    projectInactiveSince = -1d;
+                    ResetWarning();
+                    return;
+                }
+
                 if (InternalEditorUtility.isApplicationActive &&
                     projectInactiveSince >= 0d)
                 {

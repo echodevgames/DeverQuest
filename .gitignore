@@ -73,3 +73,11 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+
+
+
+#Deverquest stuff
+/DeverQuestTimecards/
+/Assets/Audio/Music
+/Assets/Audio/Music/Sonic the Hedgehog (MP3).zophar/

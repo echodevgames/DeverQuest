@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Double Dragon
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: d62c8128fb7e3874da94ae61ba1f9bb9, type: 3}
+  - {fileID: 8300000, guid: aaacb9a60329d21499953d1f154dd503, type: 3}
+  - {fileID: 8300000, guid: 0452b5787ede4e54897912cb505ee902, type: 3}
+  - {fileID: 8300000, guid: 446fa82a92a60b54c93f1545e1e0fa14, type: 3}
+  - {fileID: 8300000, guid: c7281f92659212c489670bc8e13ea9a1, type: 3}
+  - {fileID: 8300000, guid: 5b001a1b812c184449237edecaf6c21a, type: 3}
+  - {fileID: 8300000, guid: 9149062b6669f8b48b0c243227d7515a, type: 3}
+  - {fileID: 8300000, guid: 25eb997108ee31043abb04aee243ab5b, type: 3}
+  - {fileID: 8300000, guid: d2bef12199ec8e646b3b36131630a04d, type: 3}
+  - {fileID: 8300000, guid: 0d8bffa9fa727ed4999eeecd72178c43, type: 3}
+  - {fileID: 8300000, guid: 79ae941dc4d98f24dbe9698dca6addd9, type: 3}
+  - {fileID: 8300000, guid: 381f941b479358240b311cd3fdd19543, type: 3}
+  - {fileID: 8300000, guid: 54dbb43cad62c4a4e810928f16ac49cd, type: 3}
+  trackWeights: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

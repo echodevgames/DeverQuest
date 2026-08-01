@@ -1,0 +1,232 @@
+﻿{
+    "developerName": "EchoDev",
+    "localDate": "2026-08-01",
+    "chronicleIndex": 1,
+    "sessions": [
+        {
+            "sessionId": "c960a391db8d40e49308d1c792bb6739",
+            "developerName": "EchoDev",
+            "projectName": "DeverQuest",
+            "taskName": "OneHourChallengeTask",
+            "category": "Any",
+            "goal": "Any one hours stand up",
+            "usesQuestProfile": true,
+            "questProfileId": "6f2f4090d4a049529eb261e153cb47b2",
+            "questProfileName": "OneHourChallenge",
+            "questSuggestedFocusMinutes": 60,
+            "questBaseCopper": 100,
+            "questBaseExperience": 100,
+            "questWorkBlockMinutes": 15,
+            "questCopperPerWorkBlock": 25,
+            "questExperiencePerWorkBlock": 25,
+            "usesQuestContract": true,
+            "questContractId": "57dde95097ab4b3c89d646a72cb2a105",
+            "questContractTitle": "OneHourChallengeQuest",
+            "questContractCreator": "EchoDev",
+            "questContractAssignee": "",
+            "questContractPriority": "Low",
+            "questContractDueDate": "8/02/26",
+            "questContractDeliverables": "Show us whatcu' got!",
+            "questEncounterProfileId": "",
+            "questEncounterNotes": "",
+            "questIsGroupQuest": false,
+            "questMaximumParticipants": 1,
+            "questPartyMembers": "(Quality Assurance)",
+            "questStory": "We need to visi the forest nymphs.",
+            "questGroupBonusCopper": 0,
+            "questGroupBonusExperience": 0,
+            "questStages": [
+                {
+                    "stageId": "e36940e919184bc5871fdf66aa525e2c",
+                    "stageTitle": "",
+                    "workObjective": "",
+                    "focusedMinutesRequired": 1,
+                    "assignedPartyRole": "",
+                    "copperReward": 0,
+                    "experienceReward": 0,
+                    "allowEarlyTurnIn": true,
+                    "earlyCompletionCopperBonus": 0,
+                    "earlyCompletionExperienceBonus": 0,
+                    "encounterProfileId": "",
+                    "startedFocusedSeconds": 0.0,
+                    "completed": true,
+                    "completedUtcTicks": 639211532249337934,
+                    "focusedSecondsAtCompletion": 60.1873851,
+                    "elapsedFocusedSeconds": 60.1873851,
+                    "completedEarly": false,
+                    "survivalMode": false,
+                    "survivalWave": 0,
+                    "nextSurvivalWaveFocusedSeconds": 0.0,
+                    "survivalFightPaused": false,
+                    "survivalExitOffered": false,
+                    "survivalFleeAttempts": 0,
+                    "survivalPauseReason": "",
+                    "survivalEndedSafely": false,
+                    "encounterResolved": false
+                }
+            ],
+            "battleResults": [],
+            "state": 3,
+            "startedUtcTicks": 639211531647464083,
+            "lastStateChangeUtcTicks": 639211589781832586,
+            "completedUtcTicks": 639211589781832586,
+            "accumulatedFocusedSeconds": 3615.0083779000006,
+            "accumulatedPausedSeconds": 2198.4284724,
+            "meditationSeconds": 11.6177053,
+            "idleUnverifiedSeconds": 1891.2102215999998,
+            "approvedBreakSeconds": 295.60054549999998,
+            "approvedBreakUntilUtcTicks": 639211592017199466,
+            "approvedBreakIsWellness": true,
+            "approvedBreakWellnessType": 1,
+            "approvedBreakPlannedMinutes": 5,
+            "pausedByEditorShutdown": false,
+            "pauseReason": "Approved Break: Movement Break",
+            "idlePauseAcknowledged": true,
+            "closingNotes": "i hung up pushing after adding a voice memo dont know if their related...\nbut i switched to github desktop to hope to push past deverquests hangup, and its taking ages to complete...\ni have to close deverquest for now... restarting got me back to the same place i was, but git wont commit apparently \nmy push is gigantic and i cant get it to so i need to see why that is...  but either way heres my time card with a confirmation \nof the end of my 1 hr challenge...\n\nsomething along the way caused the",
+            "commitEntries": [
+                {
+                    "entryId": "9217aa0caf134adf9562b9a846696f5b",
+                    "comment": "Making a note here as a test... im about 10 minutes into my one hour quest...(WITH A LINK TO COMMIT?)",
+                    "branch": "main",
+                    "commitHash": "1c96239",
+                    "entryType": "Linked Commit Note",
+                    "createdUtcTicks": 639211537214681129,
+                    "focusedSecondsAtEntry": 556.7217046
+                },
+                {
+                    "entryId": "1b4d27c3d9c24461ae1f9e9bf0ea4a19",
+                    "comment": "Making a note here as a test... im about 10 minutes into my one hour quest...and without a commit?",
+                    "branch": "main",
+                    "commitHash": "",
+                    "entryType": "Quest Log Note",
+                    "createdUtcTicks": 639211537509737356,
+                    "focusedSecondsAtEntry": 586.2273273
+                },
+                {
+                    "entryId": "4be316073ba140b1851a8b1d598f0a76",
+                    "comment": "Making a commit now... I need to make sure to link up the guilds dedicated git repo",
+                    "branch": "main",
+                    "commitHash": "1c96239",
+                    "entryType": "Linked Commit Note",
+                    "createdUtcTicks": 639211562924539412,
+                    "focusedSecondsAtEntry": 2623.9584063
+                },
+                {
+                    "entryId": "b9964518e05c4cd19a7f3425678c85c9",
+                    "comment": "Attaching a voice memo...",
+                    "branch": "main",
+                    "commitHash": "",
+                    "entryType": "Quest Log Note",
+                    "createdUtcTicks": 639211563801931495,
+                    "focusedSecondsAtEntry": 2623.9584063
+                }
+            ],
+            "wellnessEvents": [
+                {
+                    "type": 0,
+                    "action": "Break Started",
+                    "createdUtcTicks": 639211541082627180,
+                    "focusedSecondsAtEvent": 931.8789644
+                },
+                {
+                    "type": 0,
+                    "action": "Break Ended Early",
+                    "createdUtcTicks": 639211542302369045,
+                    "focusedSecondsAtEvent": 931.8789644
+                },
+                {
+                    "type": 0,
+                    "action": "Break Started",
+                    "createdUtcTicks": 639211584428360590,
+                    "focusedSecondsAtEvent": 3253.2671874000002
+                },
+                {
+                    "type": 0,
+                    "action": "Break Ended Early",
+                    "createdUtcTicks": 639211584960440336,
+                    "focusedSecondsAtEvent": 3253.2671874000002
+                },
+                {
+                    "type": 2,
+                    "action": "Break Started",
+                    "createdUtcTicks": 639211585125676518,
+                    "focusedSecondsAtEvent": 3269.7902995000004
+                },
+                {
+                    "type": 2,
+                    "action": "Break Ended Early",
+                    "createdUtcTicks": 639211585565018682,
+                    "focusedSecondsAtEvent": 3269.7902995000004
+                },
+                {
+                    "type": 0,
+                    "action": "Acknowledged",
+                    "createdUtcTicks": 639211585693494280,
+                    "focusedSecondsAtEvent": 3282.6378593000004
+                },
+                {
+                    "type": 1,
+                    "action": "Break Started",
+                    "createdUtcTicks": 639211589017209836,
+                    "focusedSecondsAtEvent": 3615.0083779000006
+                }
+            ],
+            "externalActivityEvents": [],
+            "mediaAttachments": [
+                {
+                    "attachmentId": "8beaea1d68734a9a9a0817d40f886a9a",
+                    "attachmentType": "Voice Memo",
+                    "displayName": "004504_Quest_Memo",
+                    "filePath": "C:\\GitRepos\\DeverQuestRepo\\DeverquestWorkspace\\DeverQuest\\DeverQuestTimecards\\EchoDev\\Media\\2026-08-01\\004504_Quest_Memo.wav",
+                    "createdUtcTicks": 639211563046127085,
+                    "durationSeconds": 5.47
+                }
+            ],
+            "rewardTransactions": [
+                {
+                    "categoryName": "Focus Stage",
+                    "transactionType": "Stage Completion",
+                    "minutes": 0.0,
+                    "copper": 0,
+                    "experience": 0,
+                    "startingLevel": 1,
+                    "endingLevel": 1,
+                    "createdUtcTicks": 639211532249337934,
+                    "note": " completed in 1.0 minutes"
+                },
+                {
+                    "categoryName": "Adventurer Progression",
+                    "transactionType": "Quest Completion",
+                    "minutes": 0.0,
+                    "copper": 100,
+                    "experience": 100,
+                    "startingLevel": 1,
+                    "endingLevel": 2,
+                    "createdUtcTicks": 639211589783224167,
+                    "note": "Quest successfully turned in"
+                },
+                {
+                    "categoryName": "Adventurer Progression",
+                    "transactionType": "Work Block",
+                    "minutes": 0.0,
+                    "copper": 100,
+                    "experience": 100,
+                    "startingLevel": 2,
+                    "endingLevel": 2,
+                    "createdUtcTicks": 639211589783499153,
+                    "note": "4 completed work block(s)"
+                }
+            ],
+            "rewardsProcessed": true,
+            "nextCheckInFocusedSeconds": 3600.0,
+            "nextFocusCheckInScheduleIndex": 3,
+            "nextMovementBreakFocusedSeconds": 7215.008377900001,
+            "nextHydrationFocusedSeconds": 5969.7902995,
+            "nextExerciseFocusedSeconds": 7200.2628398,
+            "timecardWriteSucceeded": false,
+            "timecardWriteAttempted": false,
+            "timecardPath": "",
+            "timecardWriteError": ""
+        }
+    ]
+}

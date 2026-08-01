@@ -1,6 +1,335 @@
 # DeverQuest Developer Companion
 
-Current package version: **0.17.0**
+Current package version: **0.30.6 Beta 1**
+
+
+
+
+## 0.30.6 Identity Catalog Registry Repair
+
+Version 0.30.6 repairs an invalid or Missing Script Guild Identity Registry
+at its canonical project path, then activates the generated starter catalog.
+Guild Hall generation is deferred outside Unity's IMGUI draw event to prevent
+secondary layout-state errors when asset creation reports a failure.
+
+## 0.30.5 Beta Asset Persistence and Audio Channels
+
+Version 0.30.5 adds stable Unity `.meta` files to the newly separated
+ScriptableObject source files introduced during the 0.30.4 asset correction.
+This stabilizes new Ambience and starter-catalog assets without forcing new
+GUIDs onto every established DeverQuest script during the Beta test. Assets
+already showing **Missing Script** must be recreated once after 0.30.5 is
+installed.
+
+Music and Ambience now use separate logical channels. Their Play, Pause, Stop,
+Next, and replacement actions preserve the other channel while still rebuilding
+Unity's global preview transport to prevent abandoned clips from accumulating.
+Warning cues may play over both channels.
+
+## 0.30.4 Beta Asset Association Hotfix
+
+Version 0.30.4 fixes the missing-script failure confirmed during Ambience
+Profile testing. Unity requires independently creatable ScriptableObject types
+to have importable script assets. Ambience and starter Identity types now live
+in dedicated source files, and the same secondary-asset pattern was corrected
+for Ability, Spell, Companion Catalog, Encounter Profile, and Shop Profile
+types before it could surface later in Beta.
+
+Assets created while 0.30.3 showed **Missing Script** cannot be repaired by
+assigning them in the picker. Delete those broken assets and create them again
+after installing 0.30.4. For the starter Identity Catalog, delete the partial
+`Assets/DeverQuest/IdentityCatalogs/OriginalStarter` folder and rerun the
+generator.
+
+See `Documentation~/DeverQuest_0.30.4_Asset_Association_Hotfix.md`.
+
+
+## 0.30.3 Beta 1 Stabilization
+
+Version 0.30.3 begins the first formal Beta test campaign. It fixes Ambience
+Profile assignment, makes Quest and Contract Spoils previews agree with the
+values that will be awarded, hardens original starter Identity Catalog
+generation, and adds a live progress panel to the main Quest workspace.
+
+The progress panel shows elapsed progress, time remaining or overtime, the
+current Encounter, pacing feedback, and a current Spoils estimate. Release
+Readiness now also checks repository hygiene, starter Identity data, and
+refreshable Contract Spoils snapshots.
+
+See `Documentation~/DeverQuest_0.30.3_Beta_Stabilization.md` and
+`Documentation~/DeverQuest_0.30.3_Beta_Test_Checklist.md`, and
+`Documentation~/DeverQuest_0.30.3_Beta_Issue_Log.md`.
+
+
+## 0.30.2 Namespace Compatibility Hotfix
+
+Version 0.30.2 resolves the `PackageInfo` namespace collision reported by
+Unity 2022.3 in the release-readiness service. The service now explicitly uses
+`UnityEditor.PackageManager.PackageInfo`. No gameplay or productivity behavior
+was changed.
+
+See `Documentation~/DeverQuest_0.30.2_Namespace_Hotfix.md`.
+
+## 0.30.1 Compilation Hotfix
+
+Version 0.30.1 restores Unity 2022.3 / C# 9 compilation for the 0.30 release
+candidate. It removes unsupported multiline interpolation expressions, supplies
+explicit generic types to Tactical Starter Kit asset generation, removes an
+invalid combat variable reference, and qualifies Unity's `Object` type where
+`System.Object` was also in scope.
+
+See `Documentation~/DeverQuest_0.30.1_Compilation_Hotfix.md`.
+
+## Release Candidate and Scope Lock
+
+Version 0.30.0 began the release-candidate phase by replacing unsupported
+preview layering with deterministic ownership, safe warning-cue restoration,
+accurate pause/completion behavior, and cleanup during assembly reload or editor
+exit. Its mutually exclusive Music/Ambience rule was superseded by the
+independent logical channels introduced in 0.30.5.
+
+Run **Tools > DeverQuest > Run Release Readiness Check** before regression to
+validate the package version, Unity version, profile, timecard storage,
+Chronicle policy, shared Guild path, audio transport, and active Quest state.
+Major new systems are frozen until after the release candidate.
+
+See `Documentation~/DeverQuest_0.30.0_Release_Candidate.md` and
+`Documentation~/DeverQuest_0.30.0_Regression_Checklist.md`.
+
+## Tactical Abilities and Survival Quests
+
+Version 0.29.0 adds class-linked tactical Ability Profiles, structured
+Spells and Attack Techniques, cascading Focus-stage pace bonuses, encounter
+par rewards, Survival expeditions, low-health safety pauses, weighted loot,
+coin encumbrance, and Guild Hall denomination exchange.
+
+Generate the original starter abilities plus the 15-minute and Survival Quest
+templates from the Rules Laboratory. See
+`Documentation~/DeverQuest_0.29.0_Tactical_Survival.md`.
+
+## Compensation Preview
+
+Version 0.28.0 added an optional, local Compensation Preview for an
+authenticated Adventurer. A Boss or CEO can configure an hourly rate or an
+annual-salary tracking equivalent, currency code, scheduled weekly hours,
+approved-break treatment, and Chronicle-integrity policy from **Guild Hall >
+Guild Accounts and Authority > Compensation Preview Policies**.
+
+The Adventurer can then open **Rewards & History > Compensation Preview** to
+see current-workweek and filtered-history eligible time and estimated gross
+equivalents. Modified or unavailable Chronicles are excluded. Legacy
+Chronicles are included only when the policy explicitly permits them.
+Configured long/frequent Quest flags remain visible for manual review.
+
+This is a planning estimate, not payroll, a wage statement, a promise of
+payment, tax advice, or authorization to pay. It never transfers money.
+Meditation and Idle/Unverified time never qualify, and active Quests are
+excluded until finalized. Rates remain in local editor preferences and are not
+written to daily timecards or shared Guild snapshots; that local storage is
+not encrypted payroll storage.
+
+See `Documentation~/DeverQuest_0.28.0_Compensation_Preview.md`.
+
+## Pets, Familiars, Minions, and Companions
+
+Version 0.27.0 adds persistent Companion rosters to each authenticated
+Adventurer. Companion Profile assets define original pet, familiar, minion,
+spirit, construct, or mercenary identities with Class eligibility, combat
+role, creature and damage types, affinities, recruitment cost, and recovery
+rules.
+
+One active Companion joins deterministic encounters. Strikers gain damage,
+Guardians intercept more attacks, Support Companions may restore HP, and
+Controllers can hinder an enemy attack. Companion HP, loyalty, battles,
+victories, XP, and levels persist per Guild account and appear in the
+Character Sheet, compact Quest view, Battle Chronicle, shared Adventurer
+snapshot, and daily timecard.
+
+Generate the five commercially clean original starters from **Guild Hall >
+Campaign Content Scaffolding > Generate Original Companion Stable** or from
+the Character workspace's **Companion Stable**. New characters receive their
+Class's configured starter Companion; existing characters may recruit from
+the Stable. Companions affect RPG outcomes only and never create focused-work
+time or productivity rewards.
+
+See `Documentation~/DeverQuest_0.27.0_Companions.md`.
+
+## Creature Types, Damage Types, and Resistances
+
+Version 0.26.0 adds a commercially safe Guild Combat Codex with seventeen
+creature families and fourteen damage types. Monster attacks, weapons, and
+spells now carry a damage type; Monsters, Ancestries, and Equipment can grant
+vulnerability, resistance, immunity, or absorption.
+
+The deterministic encounter resolver applies those rules without stacking
+duplicate defenses. Resistance halves damage, vulnerability doubles it,
+immunity prevents it, absorption converts it to healing, and a vulnerability
+paired with resistance cancels to normal damage. Typed damage events and raw
+versus final values are preserved in the Battle Chronicle and daily timecard.
+
+Generate the full reference asset from **Character > Rules Laboratory >
+Generate Guild Combat Codex**. The tutorial campaign demonstrates an Undead
+opponent, typed spell and weapon damage, a resistant ring, and multiple enemy
+affinities.
+
+See `Documentation~/DeverQuest_0.26.0_Combat_Typing.md`.
+
+## Ancestries, Classes, Faiths, and Identity Catalogs
+
+Version 0.25.0 replaces hard-coded character-creation choices with reusable
+Ancestry, Class Definition, Faith, and Identity Catalog ScriptableObjects.
+Character creation now validates playable/sapient Ancestries, Class
+eligibility, Alignment, Faith restrictions, starting attributes, Department,
+HP, Mana, traits, languages, and the future companion tradition hook.
+
+Authenticated CEOs and Bosses can open **Guild Hall > Campaign Content
+Scaffolding** to generate a commercially clean original starter catalog, make
+blank identity assets, or add identity templates to the organized studio
+structure. Existing Adventurers migrate to stable catalog IDs without losing
+their names, progression, stats, coin, inventory, or Chronicle history.
+
+The shipped starter content uses original DeverQuest names. Private Guilds can
+author their own catalog assets, but they remain responsible for the rights to
+any third-party names, art, audio, or lore they add.
+
+See `Documentation~/DeverQuest_0.25.0_Identity_Catalogs.md`.
+
+## Starter Campaign and Content Organization
+
+Open **Guild Hall > Campaign Content Scaffolding** and choose:
+
+- **Create Empty Studio Structure** for organized production folders and
+  blank ScriptableObject templates.
+- **Create Tutorial Campaign** for a complete connected walkthrough named
+  **Trouble in the Tutorial Crypt**.
+
+Both generators are safe to rerun. Existing assets are preserved, production
+templates live under `Assets/DeverQuest/Templates`, and tutorial content stays
+under `Assets/DeverQuest/DemoCampaign`.
+
+See `Documentation~/DeverQuest_0.24.2_Content_Organization.md`.
+
+## Performance and Workspace Hotfix
+
+Version 0.24.1 splits DeverQuest's full interface into lazy workspaces. Only
+the selected tab is rendered, preventing inactive Guild, Character,
+AssetDatabase, history, Git, and shared-record panels from participating in
+every timer repaint.
+
+Use the in-window workspace bar or open a section directly from:
+
+`Tools > DeverQuest > Workspaces`
+
+The live Quest and Quest Log tabs update four times per second. Other tabs do
+not request continuous repainting. Background Git commit observation uses a
+lightweight HEAD check every fifteen seconds and expands to full status only
+when a commit actually changes.
+
+See `Documentation~/DeverQuest_0.24.1_Performance_Checklist.md`.
+
+## Trading, Rare Loot, and Real Rewards
+
+Milestone 24 gives inventory items durable ownership identities, rarity,
+binding, acquisition provenance, and trade eligibility. The Trading Post
+supports escrowed offers, acceptance, rejection, cancellation, reclamation,
+and a permanent local ledger.
+
+Real-world rewards such as Nitro, merchandise, gift cards, bonuses, or
+custom rewards use an explicit workflow: request, leadership approval, and
+manual fulfillment confirmation. DeverQuest records the result but never
+pretends an external benefit was delivered automatically.
+
+See `Documentation~/DeverQuest_0.24.0_Regression_Checklist.md`.
+
+## Shared Guild Records and Hall of Heroes
+
+Milestone 23 publishes finalized Quests into a configured shared Guild
+repository. The Hall of Heroes compares Adventurers by healthy ranked focus,
+raw focus, XP, coin, levels, streaks, Quests, and Contracts, with additional
+Project and Department standings.
+
+Long sessions, high idle ratios, excessive daily Quest counts, modified
+records, and unhealthy daily totals are flagged or capped instead of being
+rewarded. The source JSON remains available for leadership review.
+
+The shared folder is tamper-evident, but its authority depends on external
+permissions. Use a studio-controlled server, network share, or cloud folder
+where ordinary Members cannot rewrite Guild records.
+
+See
+`Documentation~/DeverQuest_0.23.0_Regression_Checklist.md`.
+
+## External Activity and Voice Memos
+
+Milestone 22 adds reusable External Activity Profiles. On Windows, a configured
+foreground creative tool can prevent Unity-project-focus idle pausing while
+recent keyboard or pointer input continues. Generate the included Aseprite
+preset or author providers for other applications by process name and optional
+window-title text. External activity is Chronicle evidence; it never creates
+focused seconds or rewards by itself.
+
+The active Quest can record microphone voice memos or copy an existing media
+file into the Adventurer's dated `Media` folder. Each attachment is preserved
+in session data and linked from the generated Chronicle.
+
+See
+`Documentation~/DeverQuest_0.22.0_Regression_Checklist.md`
+before promoting the package.
+
+## 0.21.1 Stabilization
+
+This checkpoint clarifies wellness behavior and protects intentional Chronicle
+review. **Acknowledge Only** dismisses a reminder without claiming a break.
+**Take Approved Break** pauses and classifies the configured duration, then
+grants the configured XP and character-state benefit only after at least 80%
+is completed. Opening or revealing a timecard grants a temporary
+external-action grace period so Chronicle review does not pause the Quest or
+change session-aware music.
+
+The package includes
+`Documentation~/DeverQuest_0.21.1_Regression_Checklist.md` for the recommended
+Unity verification pass.
+
+## Audio, Warning Profiles, and Ambience
+
+DeverQuest supports custom Warning Audio Profiles for idle, wellness,
+Focus Stage, combat, danger, victory, defeat, Quest completion, purchase, and
+level-up cues. Ambience Profiles provide looping environmental audio alongside
+playlist music. Because Unity exposes global editor-preview transport controls,
+DeverQuest maintains Music and Ambience as independent logical channels and
+rebuilds their expected native clips after transport changes. Warning cues play
+over the active long-form channels
+position. Playlist shuffle honors per-track weights.
+
+## Encounter Profiles and Quest Battles
+
+Focus Stages can now resolve deterministic tabletop battles against reusable
+Monster and Encounter Profile assets. Encounters support waves, bosses, dice,
+attacks, damage, bonus coin/XP, drop tables, injuries, defeat, optional
+character death, and Guild Shrine resurrection. Every round and seed is
+preserved in the Battle Chronicle. Work and Focus rewards are guaranteed and
+remain separate from combat outcomes.
+
+## Guild Shop, Inventory, and Wellness Economy
+
+Adventurers can now spend earned coin through Shop Profile and Shop Item
+assets. The Quartermaster supports equipment, spells, provisions, potions,
+inn rest, approved-break permits, and controlled redemption rewards.
+Purchases, approval decisions, deliveries, and redemptions remain in the Guild
+ledger, while inventory and character effects persist per account.
+
+## Parties, Quest Stages, and Character Creation
+
+New Member accounts now complete guided Adventurer creation on first login.
+Classes establish the starting Department and expanded character foundation.
+Quest Contracts support solo or capacity-limited parties, reserved rosters,
+eligibility rules, party roles, authored story, staged focus objectives, and
+coordinated submission. Compact mode shows the active Quest, party, Stages,
+core combat statistics, and wellness needs.
+
+Dungeon Masters can generate Copper, Bronze, Iron, and Steel starter gear for
+the full equipment-slot model, then create additional Equipment and Starter
+Loadout assets in the Unity Editor.
 
 ## Character Sheet and Rules Engine
 
@@ -47,6 +376,22 @@ This package currently contains:
 - **Milestone 9 — Goals, Streaks, and Polish**
 - **Milestone 10 — Stability and Quality of Life**
 - **Milestone 11 — Git Integration**
+- **Milestone 12 — Adventurer Progression**
+- **Milestone 13 — Roadmap Checkpoint**
+- **Milestone 14 — Quest Contracts and Assignment Board**
+- **Milestone 15 — Chronicle Integrity and Review**
+- **Milestone 16 — Guild Accounts and Authority**
+- **Milestone 17 — Character Sheet and Rules Engine**
+- **Milestone 18 — Parties, Quest Stages, and Character Creation**
+- **Milestone 19 — Guild Shop, Inventory, and Wellness Economy**
+- **Milestone 20 — Encounter Profiles and Quest Battles**
+- **Milestone 21 — Audio, Warning Profiles, and Ambience**
+- **Milestone 22 — External Activity and Voice Memos**
+- **Milestone 23 — Shared Guild Records and Hall of Heroes**
+- **Milestone 24 — Trading, Rare Loot, and Real Rewards**
+- **Milestone 25 — Ancestries, Classes, Faiths, and Catalogs**
+- **Milestone 26 — Creature Types, Damage Types, and Resistances**
+- **Milestone 27 — Pets, Familiars, Minions, and Companions**
 
 ## Requirements
 

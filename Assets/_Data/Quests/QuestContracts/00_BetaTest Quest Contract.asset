@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94d364b1d2c383442b4a4db50228f911, type: 3}
+  m_Name: 00_BetaTest Quest Contract
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
+  contractId: b3d53712f8314a5496a34403c73cfabd
+  contractTitle: BetaTestQuestContract
+  status: 1
+  priority: 3
+  createdBy: EchoDev
+  assignedAdventurer: 
+  openToAnyMember: 1
+  minimumAdventurerLevel: 1
+  dueDate: 7/31/26
+  groupQuest: 0
+  maximumParticipants: 1
+  assignedAdventurers: []
+  partyMembers: []
+  stageProgress: []
+  questStory: For my Beta test the quest is Minimal of course.
+  restrictToClasses: 0
+  eligibleClassDefinitions: []
+  eligibleClasses: []
+  restrictToAncestries: 0
+  eligibleAncestries: []
+  restrictToDepartments: 0
+  eligibleDepartments:
+  - 
+  groupBonusCopper: 0
+  groupBonusExperience: 0
+  focusStages:
+  - stageId: 7d792e99628f4d3eb2aecd9b9b8d5d16
+    stageTitle: 
+    workObjective: 
+    focusedMinutesRequired: 1
+    assignedPartyRole: 
+    copperReward: 0
+    experienceReward: 0
+    allowEarlyTurnIn: 0
+    earlyCompletionCopperBonus: 0
+    earlyCompletionExperienceBonus: 0
+    encounterProfileId: 
+    encounterProfile: {fileID: 0}
+  questProfile: {fileID: 11400000, guid: a77b68ba458d528479d9c8c363fac85e, type: 2}
+  projectName: 
+  taskName: 
+  department: Programming
+  objective: "Using this as a test environment for the entire projects beta. \n-This
+    objective should just inherit from the task or not be exposed to the inspector..."
+  deliverables: I also think this should be inherited from the task info.
+  suggestedFocusMinutes: 15
+  baseCopper: 100
+  baseExperience: 33
+  workBlockMinutes: 1
+  copperPerWorkBlock: 11
+  experiencePerWorkBlock: 99
+  encounterProfileId: 
+  encounterNotes: This is maybe a location for a comiled message about the Encounters?

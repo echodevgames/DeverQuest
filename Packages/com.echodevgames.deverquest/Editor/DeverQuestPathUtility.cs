@@ -33,6 +33,17 @@ namespace EchoDevGames.DeverQuest
                 MakeSafeFolderName(developerName));
         }
 
+        public static string GetMediaFolder(
+            string rootPath,
+            string developerName,
+            DateTime localDate)
+        {
+            return Path.Combine(
+                GetDeveloperFolder(rootPath, developerName),
+                "Media",
+                localDate.ToString("yyyy-MM-dd"));
+        }
+
         public static string MakeSafeFolderName(string value)
         {
             string trimmed = value?.Trim() ?? string.Empty;

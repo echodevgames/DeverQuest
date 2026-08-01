@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Home Alone
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: 6245bd639be9f054592b6d469fb821c6, type: 3}
+  - {fileID: 8300000, guid: 0d7f57eae1e97aa4babac6b7419bb741, type: 3}
+  - {fileID: 8300000, guid: 5064ec77a5a003d40812fc868db0d3df, type: 3}
+  - {fileID: 8300000, guid: 9af56838775c7c543843c012c1d3670f, type: 3}
+  - {fileID: 8300000, guid: 9eba5fca6b93f6645ac2e9d6f267dfbd, type: 3}
+  - {fileID: 8300000, guid: 2312b253ec6b05143b7895f51389ba88, type: 3}
+  - {fileID: 8300000, guid: 8878e302aafb39a4d95cad467da19c0c, type: 3}
+  - {fileID: 8300000, guid: b6617944a34b0a142a3e3dedee3f94e4, type: 3}
+  - {fileID: 8300000, guid: 1dd0094205cb50b4e846727a5c1deed9, type: 3}
+  trackWeights: 010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

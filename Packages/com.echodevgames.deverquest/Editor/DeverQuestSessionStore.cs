@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace EchoDevGames.DeverQuest
         public static event Action SessionPaused;
         public static event Action SessionResumed;
         public static event Action SessionCompleted;
+        public static event Action SessionFinalized;
         public static event Action SessionDiscarded;
 
         private const string ActiveSessionKey =
@@ -177,6 +179,64 @@ namespace EchoDevGames.DeverQuest
                     questContract == null
                         ? string.Empty
                         : questContract.encounterNotes,
+                questIsGroupQuest =
+                    questContract != null &&
+                    questContract.groupQuest,
+                questMaximumParticipants =
+                    questContract == null
+                        ? 1
+                        : questContract.maximumParticipants,
+                questPartyMembers =
+                    questContract == null ||
+                    questContract.partyMembers == null
+                        ? string.Empty
+                        : string.Join(
+                            ", ",
+                            questContract.partyMembers.ConvertAll(
+                                member =>
+                                    $"{member.adventurerName} " +
+                                    $"({member.partyRole})")),
+                questStory =
+                    questContract == null
+                        ? string.Empty
+                        : questContract.questStory,
+                questGroupBonusCopper =
+                    questContract == null
+                        ? 0
+                        : questContract.groupBonusCopper,
+                questGroupBonusExperience =
+                    questContract == null
+                        ? 0
+                        : questContract.groupBonusExperience,
+                questStages =
+                    questContract == null ||
+                    questContract.focusStages == null
+                        ? new List<DeverQuestSessionStage>()
+                        : questContract.focusStages.ConvertAll(
+                            stage =>
+                                new DeverQuestSessionStage
+                                {
+                                    stageId = stage.stageId,
+                                    stageTitle = stage.stageTitle,
+                                    workObjective =
+                                        stage.workObjective,
+                                    focusedMinutesRequired =
+                                        stage.focusedMinutesRequired,
+                                    assignedPartyRole =
+                                        stage.assignedPartyRole,
+                                    copperReward =
+                                        stage.copperReward,
+                                    experienceReward =
+                                        stage.experienceReward,
+                                    allowEarlyTurnIn =
+                                        stage.allowEarlyTurnIn,
+                                    earlyCompletionCopperBonus =
+                                        stage.earlyCompletionCopperBonus,
+                                    earlyCompletionExperienceBonus =
+                                        stage.earlyCompletionExperienceBonus,
+                                    encounterProfileId =
+                                        stage.encounterProfileId
+                                }),
                 state = DeverQuestSessionState.Running,
                 startedUtcTicks = nowTicks,
                 lastStateChangeUtcTicks = nowTicks
@@ -211,6 +271,35 @@ namespace EchoDevGames.DeverQuest
             SessionPaused?.Invoke();
         }
 
+        public static bool PauseForApprovedBreak(
+            int minutes,
+            string permitName,
+            DeverQuestWellnessType wellnessType =
+                DeverQuestWellnessType.CheckIn,
+            bool isWellnessReminder = false)
+        {
+            if (!HasActiveSession ||
+                ActiveSession.state !=
+                DeverQuestSessionState.Running)
+            {
+                return false;
+            }
+            minutes = Math.Max(1, minutes);
+            PauseSession(
+                "Approved Break: " +
+                (permitName?.Trim() ?? "Guild Permit"));
+            ActiveSession.approvedBreakUntilUtcTicks =
+                DateTime.UtcNow.AddMinutes(minutes).Ticks;
+            ActiveSession.approvedBreakIsWellness =
+                isWellnessReminder;
+            ActiveSession.approvedBreakWellnessType =
+                wellnessType;
+            ActiveSession.approvedBreakPlannedMinutes =
+                minutes;
+            SaveActiveSession();
+            return true;
+        }
+
         public static void ResumeSession()
         {
             if (!HasActiveSession ||
@@ -229,7 +318,25 @@ namespace EchoDevGames.DeverQuest
                     ActiveSession.lastStateChangeUtcTicks,
                     nowTicks);
             ActiveSession.accumulatedPausedSeconds += pausedSeconds;
-            if (ActiveSession.pauseReason == "Idle Detection" ||
+            if (ActiveSession.pauseReason.StartsWith(
+                    "Approved Break:",
+                    StringComparison.Ordinal))
+            {
+                double approvedSeconds = Math.Min(
+                    pausedSeconds,
+                    Math.Max(
+                        0d,
+                        GetSecondsBetween(
+                            ActiveSession.lastStateChangeUtcTicks,
+                            ActiveSession.approvedBreakUntilUtcTicks)));
+                ActiveSession.approvedBreakSeconds +=
+                    approvedSeconds;
+                ActiveSession.idleUnverifiedSeconds +=
+                    Math.Max(0d, pausedSeconds - approvedSeconds);
+                CompleteWellnessBreakIfEligible(
+                    approvedSeconds);
+            }
+            else if (ActiveSession.pauseReason == "Idle Detection" ||
                 ActiveSession.pauseReason == "Unity Project Lost Focus")
             {
                 ActiveSession.idleUnverifiedSeconds += pausedSeconds;
@@ -243,8 +350,101 @@ namespace EchoDevGames.DeverQuest
             ActiveSession.state = DeverQuestSessionState.Running;
             ActiveSession.pausedByEditorShutdown = false;
             ActiveSession.pauseReason = string.Empty;
+            ActiveSession.approvedBreakUntilUtcTicks = 0L;
+            ActiveSession.approvedBreakIsWellness = false;
+            ActiveSession.approvedBreakPlannedMinutes = 0;
             SaveActiveSession();
             SessionResumed?.Invoke();
+        }
+
+        private static void CompleteWellnessBreakIfEligible(
+            double approvedSeconds)
+        {
+            if (!ActiveSession.approvedBreakIsWellness)
+            {
+                return;
+            }
+
+            int plannedMinutes = Math.Max(
+                1,
+                ActiveSession.approvedBreakPlannedMinutes);
+            double requiredSeconds =
+                plannedMinutes * 60d * 0.8d;
+            bool completed =
+                approvedSeconds >= requiredSeconds;
+
+            ActiveSession.wellnessEvents.Add(
+                new DeverQuestWellnessEvent
+                {
+                    type =
+                        ActiveSession.approvedBreakWellnessType,
+                    action = completed
+                        ? "Break Completed"
+                        : "Break Ended Early",
+                    createdUtcTicks = DateTime.UtcNow.Ticks,
+                    focusedSecondsAtEvent = GetFocusedSeconds()
+                });
+
+            if (!completed)
+            {
+                return;
+            }
+
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            switch (ActiveSession.approvedBreakWellnessType)
+            {
+                case DeverQuestWellnessType.Hydration:
+                    adventurer.hunger =
+                        Math.Min(100, adventurer.hunger + 5);
+                    adventurer.happiness =
+                        Math.Min(100, adventurer.happiness + 1);
+                    break;
+                case DeverQuestWellnessType.Lunch:
+                case DeverQuestWellnessType.Dinner:
+                    adventurer.hunger =
+                        Math.Min(100, adventurer.hunger + 20);
+                    adventurer.happiness =
+                        Math.Min(100, adventurer.happiness + 3);
+                    break;
+                case DeverQuestWellnessType.QuietHours:
+                    adventurer.rest =
+                        Math.Min(100, adventurer.rest + 15);
+                    break;
+                case DeverQuestWellnessType.MovementBreak:
+                case DeverQuestWellnessType.Exercise:
+                    adventurer.rest =
+                        Math.Min(100, adventurer.rest + 5);
+                    adventurer.happiness =
+                        Math.Min(100, adventurer.happiness + 3);
+                    break;
+                default:
+                    adventurer.happiness =
+                        Math.Min(100, adventurer.happiness + 2);
+                    break;
+            }
+
+            long experience = Math.Max(
+                0,
+                DeverQuestSettingsStore.Profile
+                    .wellnessBreakExperience);
+            DeverQuestProgressionResult result =
+                DeverQuestAdventurerService.Award(
+                    0L,
+                    experience);
+            ActiveSession.rewardTransactions.Add(
+                new DeverQuestRewardTransaction
+                {
+                    categoryName = "Adventurer Wellness",
+                    transactionType = "Completed Wellness Break",
+                    experience = experience,
+                    startingLevel = result.StartingLevel,
+                    endingLevel = result.EndingLevel,
+                    createdUtcTicks = DateTime.UtcNow.Ticks,
+                    note =
+                        $"{ActiveSession.approvedBreakWellnessType} " +
+                        $"break completed"
+                });
         }
 
         public static void AcknowledgeIdlePause()
@@ -301,6 +501,355 @@ namespace EchoDevGames.DeverQuest
                          entry.entryId == entryId);
 
             SaveActiveSession();
+        }
+
+        public static List<string> UpdateQuestStages()
+        {
+            List<string> completedTitles = new List<string>();
+            if (!HasActiveSession ||
+                ActiveSession.questStages == null ||
+                ActiveSession.questStages.Count == 0)
+            {
+                return completedTitles;
+            }
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            double focused = GetFocusedSeconds();
+            bool changed = false;
+            foreach (DeverQuestSessionStage stage
+                     in ActiveSession.questStages)
+            {
+                bool assigned =
+                    string.IsNullOrWhiteSpace(
+                        stage.assignedPartyRole) ||
+                    string.Equals(
+                        stage.assignedPartyRole,
+                        adventurer.homeDepartment,
+                        StringComparison.OrdinalIgnoreCase);
+                if (!assigned)
+                {
+                    continue;
+                }
+                if (stage.completed)
+                {
+                    continue;
+                }
+                bool survival =
+                    DeverQuestEncounterService.IsSurvival(stage);
+                stage.survivalMode = survival;
+                if (survival)
+                {
+                    int interval =
+                        DeverQuestEncounterService
+                            .SurvivalIntervalMinutes(stage);
+                    if (stage.nextSurvivalWaveFocusedSeconds <= 0d)
+                    {
+                        stage.nextSurvivalWaveFocusedSeconds =
+                            stage.startedFocusedSeconds +
+                            interval * 60d;
+                        changed = true;
+                    }
+                    if (!stage.survivalFightPaused &&
+                        focused >=
+                        stage.nextSurvivalWaveFocusedSeconds)
+                    {
+                        DeverQuestBattleResult survivalBattle =
+                            DeverQuestEncounterService.Resolve(
+                                ActiveSession,
+                                stage,
+                                DeverQuestSettingsStore.Profile
+                                    .dailyDecreeCheckModifier);
+                        stage.nextSurvivalWaveFocusedSeconds +=
+                            interval * 60d;
+                        completedTitles.Add(
+                            survivalBattle == null
+                                ? $"{stage.stageTitle} · wave unavailable"
+                                : $"{stage.stageTitle} · wave " +
+                                  $"{stage.survivalWave} · " +
+                                  BattleOutcome(survivalBattle));
+                        if (survivalBattle?.safetyPaused == true &&
+                            ActiveSession.state ==
+                            DeverQuestSessionState.Running)
+                        {
+                            PauseSession(
+                                "Combat Safety: " +
+                                survivalBattle.safetyPauseReason);
+                        }
+                        changed = true;
+                    }
+                    break;
+                }
+                double elapsed =
+                    Math.Max(0d, focused - stage.startedFocusedSeconds);
+                if (elapsed <
+                    Math.Max(1, stage.focusedMinutesRequired) * 60d)
+                {
+                    break;
+                }
+                DeverQuestBattleResult battle =
+                    CompleteStage(stage, false, focused);
+                completedTitles.Add(
+                    battle == null
+                        ? stage.stageTitle
+                        : $"{stage.stageTitle} · " +
+                          BattleOutcome(battle));
+                changed = true;
+            }
+            if (changed)
+            {
+                SaveActiveSession();
+            }
+            return completedTitles;
+        }
+
+        public static bool CompleteCurrentStageEarly(
+            out string message)
+        {
+            message = string.Empty;
+            DeverQuestSessionStage stage = CurrentQuestStage();
+            if (stage == null)
+            {
+                message = "There is no active Quest stage to report.";
+                return false;
+            }
+            if (stage.survivalMode ||
+                DeverQuestEncounterService.IsSurvival(stage))
+            {
+                message =
+                    "Survival stages end through Flee, Return, or the " +
+                    "Guild wagon—not early objective turn-in.";
+                return false;
+            }
+            if (!stage.allowEarlyTurnIn)
+            {
+                message =
+                    "This stage does not permit early objective turn-in.";
+                return false;
+            }
+            double focused = GetFocusedSeconds();
+            double elapsed =
+                Math.Max(0d, focused - stage.startedFocusedSeconds);
+            double target =
+                Math.Max(1, stage.focusedMinutesRequired) * 60d;
+            if (elapsed >= target)
+            {
+                message =
+                    "The Focus target has already been reached; normal " +
+                    "completion will be recorded.";
+                UpdateQuestStages();
+                return true;
+            }
+            DeverQuestBattleResult battle =
+                CompleteStage(stage, true, focused);
+            SaveActiveSession();
+            message =
+                $"{stage.stageTitle} reported early at " +
+                $"{elapsed / 60d:0.0}/{target / 60d:0.#} minutes" +
+                (battle == null
+                    ? "."
+                    : $" · {BattleOutcome(battle)}.");
+            return true;
+        }
+
+        public static bool TryExitSurvival(
+            string method,
+            out string message)
+        {
+            message = string.Empty;
+            DeverQuestSessionStage stage = CurrentQuestStage();
+            if (stage == null ||
+                (!stage.survivalMode &&
+                 !DeverQuestEncounterService.IsSurvival(stage)))
+            {
+                message = "No survival expedition is active.";
+                return false;
+            }
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            string normalized = method?.Trim() ?? string.Empty;
+            bool success;
+            if (normalized == "Return")
+            {
+                success =
+                    DeverQuestTacticalCombatService.HasReturnAbility(
+                        adventurer);
+                message = success
+                    ? "A prepared homeward passage returns the party."
+                    : "This Adventurer has no prepared return ability.";
+            }
+            else if (normalized == "Wagon")
+            {
+                success = stage.survivalExitOffered;
+                message = success
+                    ? "The Guild wagon carries the party and spoils home."
+                    : "The Guild wagon has not reached this checkpoint.";
+            }
+            else
+            {
+                stage.survivalFleeAttempts++;
+                int difficultyClass =
+                    10 + Math.Max(0, stage.survivalWave / 2);
+                DeverQuestRuleResult flee =
+                    DeverQuestRulesService.ResolveCheck(
+                        adventurer,
+                        DeverQuestAbility.Agility,
+                        true,
+                        difficultyClass,
+                        $"{ActiveSession.sessionId}:{stage.stageId}:" +
+                        $"flee:{stage.survivalWave}:" +
+                        $"{stage.survivalFleeAttempts}",
+                        DeverQuestSettingsStore.Profile
+                            .dailyDecreeCheckModifier);
+                success = flee.Success;
+                message = success
+                    ? $"Safe escape succeeded ({flee.Formula})."
+                    : $"Escape failed ({flee.Formula}); the fight " +
+                      "remains paused before another enemy turn.";
+            }
+            if (!success)
+            {
+                stage.survivalFightPaused = true;
+                stage.survivalPauseReason = message;
+                if (ActiveSession.state ==
+                    DeverQuestSessionState.Running)
+                {
+                    PauseSession("Combat Safety: failed escape");
+                }
+                SaveActiveSession();
+                return false;
+            }
+            stage.survivalFightPaused = false;
+            stage.survivalEndedSafely = true;
+            CompleteStage(stage, false, GetFocusedSeconds());
+            SaveActiveSession();
+            return true;
+        }
+
+        public static bool ContinueSurvival(out string message)
+        {
+            DeverQuestSessionStage stage = CurrentQuestStage();
+            if (stage == null || !stage.survivalMode)
+            {
+                message = "No survival expedition is active.";
+                return false;
+            }
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            if (DeverQuestEncumbranceService.IsEncumbered(adventurer))
+            {
+                message =
+                    "Drop carried loot or exchange coin at the Guild " +
+                    "Hall before continuing.";
+                return false;
+            }
+            int threshold = Math.Max(
+                1, adventurer.maximumHitPoints / 4);
+            if (adventurer.currentHitPoints <= threshold)
+            {
+                message =
+                    "Recover above one-quarter Hit Points before " +
+                    "continuing.";
+                return false;
+            }
+            stage.survivalFightPaused = false;
+            stage.survivalPauseReason = string.Empty;
+            stage.survivalExitOffered = false;
+            SaveActiveSession();
+            message = "The survival expedition continues.";
+            return true;
+        }
+
+        public static DeverQuestSessionStage CurrentQuestStage()
+        {
+            if (!HasActiveSession ||
+                ActiveSession.questStages == null)
+            {
+                return null;
+            }
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            return ActiveSession.questStages.FirstOrDefault(stage =>
+                stage != null &&
+                !stage.completed &&
+                (string.IsNullOrWhiteSpace(
+                     stage.assignedPartyRole) ||
+                 string.Equals(
+                     stage.assignedPartyRole,
+                     adventurer.homeDepartment,
+                     StringComparison.OrdinalIgnoreCase)));
+        }
+
+        private static DeverQuestBattleResult CompleteStage(
+            DeverQuestSessionStage stage,
+            bool early,
+            double focused)
+        {
+            stage.completed = true;
+            stage.completedEarly = early;
+            stage.completedUtcTicks = DateTime.UtcNow.Ticks;
+            stage.focusedSecondsAtCompletion = focused;
+            stage.elapsedFocusedSeconds =
+                Math.Max(0d, focused - stage.startedFocusedSeconds);
+            long copper =
+                stage.copperReward +
+                (early ? stage.earlyCompletionCopperBonus : 0);
+            long experience =
+                stage.experienceReward +
+                (early ? stage.earlyCompletionExperienceBonus : 0);
+            DeverQuestProgressionResult progression =
+                DeverQuestAdventurerService.Award(
+                    copper, experience);
+            ActiveSession.rewardTransactions.Add(
+                new DeverQuestRewardTransaction
+                {
+                    categoryName = "Focus Stage",
+                    transactionType = early
+                        ? "Early Stage Completion"
+                        : stage.survivalMode
+                        ? "Survival Expedition Exit"
+                        : "Stage Completion",
+                    copper = copper,
+                    experience = experience,
+                    startingLevel = progression.StartingLevel,
+                    endingLevel = progression.EndingLevel,
+                    createdUtcTicks = DateTime.UtcNow.Ticks,
+                    note =
+                        $"{stage.stageTitle} completed in " +
+                        $"{stage.elapsedFocusedSeconds / 60d:0.0} minutes"
+                });
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            DeverQuestContractService.RecordStageCompletion(
+                ActiveSession.questContractId,
+                stage.stageId,
+                stage.stageTitle,
+                adventurer.characterName);
+            DeverQuestBattleResult battle =
+                stage.survivalMode
+                    ? null
+                    : DeverQuestEncounterService.Resolve(
+                        ActiveSession,
+                        stage,
+                        DeverQuestSettingsStore.Profile
+                            .dailyDecreeCheckModifier);
+            DeverQuestSessionStage next = CurrentQuestStage();
+            if (next != null && next.startedFocusedSeconds <= 0d)
+            {
+                next.startedFocusedSeconds = focused;
+            }
+            return battle;
+        }
+
+        private static string BattleOutcome(
+            DeverQuestBattleResult battle)
+        {
+            return battle.safetyPaused
+                ? "Safety Pause"
+                : battle.victory
+                ? battle.earlyVictory
+                    ? "Early Victory"
+                    : "Victory"
+                : "Defeat";
         }
 
         public static void EnsureWellnessSchedule(
@@ -462,6 +1011,61 @@ namespace EchoDevGames.DeverQuest
             SaveActiveSession();
         }
 
+        public static void RecordExternalActivity(
+            string toolName,
+            bool started,
+            long createdUtcTicks,
+            double durationSeconds)
+        {
+            if (!HasActiveSession ||
+                string.IsNullOrWhiteSpace(toolName))
+            {
+                return;
+            }
+
+            ActiveSession.externalActivityEvents.Add(
+                new DeverQuestExternalActivityEvent
+                {
+                    toolName = toolName.Trim(),
+                    action = started ? "Activity Started" : "Activity Ended",
+                    createdUtcTicks = createdUtcTicks,
+                    durationSeconds = Math.Max(0d, durationSeconds)
+                });
+            SaveActiveSession();
+        }
+
+        public static void AddMediaAttachment(
+            DeverQuestMediaAttachment attachment)
+        {
+            if (!HasActiveSession || attachment == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(attachment.attachmentId))
+            {
+                attachment.attachmentId =
+                    Guid.NewGuid().ToString("N");
+            }
+            ActiveSession.mediaAttachments.Add(attachment);
+            SaveActiveSession();
+        }
+
+        public static void RemoveMediaAttachment(
+            string attachmentId)
+        {
+            if (!HasActiveSession ||
+                string.IsNullOrWhiteSpace(attachmentId))
+            {
+                return;
+            }
+
+            ActiveSession.mediaAttachments.RemoveAll(
+                value => value != null &&
+                         value.attachmentId == attachmentId);
+            SaveActiveSession();
+        }
+
         public static DeverQuestSession CompleteSession(
             string closingNotes)
         {
@@ -469,6 +1073,10 @@ namespace EchoDevGames.DeverQuest
             {
                 return null;
             }
+
+            DeverQuestExternalActivityMonitor
+                .EndSessionActivity();
+            DeverQuestVoiceMemoService.CancelRecording();
 
             long nowTicks = DateTime.UtcNow.Ticks;
             AccumulateCurrentState(nowTicks);
@@ -502,10 +1110,14 @@ namespace EchoDevGames.DeverQuest
             completedSession.Sanitize();
             lastCompletedSession = completedSession;
             SaveLastCompletedSession();
+            SessionFinalized?.Invoke();
         }
 
         public static void DiscardSession()
         {
+            DeverQuestExternalActivityMonitor
+                .EndSessionActivity();
+            DeverQuestVoiceMemoService.CancelRecording();
             activeSession = null;
             EditorPrefs.DeleteKey(ActiveSessionKey);
             SessionDiscarded?.Invoke();
@@ -613,7 +1225,26 @@ namespace EchoDevGames.DeverQuest
                 ActiveSession.state == DeverQuestSessionState.Paused)
             {
                 ActiveSession.accumulatedPausedSeconds += elapsedSeconds;
-                if (ActiveSession.pauseReason == "Idle Detection" ||
+                if (ActiveSession.pauseReason.StartsWith(
+                        "Approved Break:",
+                        StringComparison.Ordinal))
+                {
+                    double approvedSeconds = Math.Min(
+                        elapsedSeconds,
+                        Math.Max(
+                            0d,
+                            GetSecondsBetween(
+                                ActiveSession.lastStateChangeUtcTicks,
+                                ActiveSession
+                                    .approvedBreakUntilUtcTicks)));
+                    ActiveSession.approvedBreakSeconds +=
+                        approvedSeconds;
+                    ActiveSession.idleUnverifiedSeconds +=
+                        Math.Max(
+                            0d,
+                            elapsedSeconds - approvedSeconds);
+                }
+                else if (ActiveSession.pauseReason == "Idle Detection" ||
                     ActiveSession.pauseReason ==
                     "Unity Project Lost Focus")
                 {

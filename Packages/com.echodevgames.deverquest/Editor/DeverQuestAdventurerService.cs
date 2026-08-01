@@ -15,10 +15,21 @@ namespace EchoDevGames.DeverQuest
         public string guildName = "Isekai Studios";
         public string guildRank = "Member";
         public string characterClass = "Warrior";
+        public string classId = string.Empty;
+        public string ancestryName = string.Empty;
+        public string ancestryId = string.Empty;
+        public string deityName = "Agnostic";
+        public string deityId = string.Empty;
+        public DeverQuestAlignment alignment =
+            DeverQuestAlignment.TrueNeutral;
         public int level = 1;
         public long currentExperience;
         public long lifetimeExperience;
         public long copperBalance;
+        public long platinumCoins;
+        public long goldCoins;
+        public long silverCoins;
+        public long copperCoins;
         public long totalCopperEarned;
         public long totalCopperSpent;
         public int strength = 10;
@@ -27,9 +38,20 @@ namespace EchoDevGames.DeverQuest
         public int intelligence = 10;
         public int wisdom = 10;
         public int charisma = 10;
+        public int agility = 10;
+        public int stamina = 10;
+        public int luck = 10;
         public int hitDie = 8;
         public int maximumHitPoints = 8;
         public int currentHitPoints = 8;
+        public int maximumMana;
+        public int currentMana;
+        public int hunger = 100;
+        public int rest = 100;
+        public int happiness = 100;
+        public bool isFallen;
+        public int defeats;
+        public string homeDepartment = "Programming";
         public List<string> proficientSaves =
             new List<string>();
         public List<string> statusEffects =
@@ -38,22 +60,61 @@ namespace EchoDevGames.DeverQuest
             new List<string>();
         public List<string> knownSpellIds =
             new List<string>();
+        public string activeCompanionInstanceId = string.Empty;
+        public List<DeverQuestCompanionState> companions =
+            new List<DeverQuestCompanionState>();
+        public List<DeverQuestInventoryEntry> inventory =
+            new List<DeverQuestInventoryEntry>();
 
         public void Sanitize()
         {
+            if (dataVersion < 6)
+            {
+                alignment = DeverQuestAlignment.TrueNeutral;
+            }
             if (dataVersion < 2)
             {
                 DeverQuestAdventurerService.ApplyClassFoundation(
                     this, characterClass, false);
             }
+            if (dataVersion < 3)
+            {
+                agility = dexterity;
+                stamina = constitution;
+                luck = 10;
+                homeDepartment =
+                    DeverQuestAdventurerService
+                        .DefaultDepartment(characterClass);
+                maximumMana =
+                    Math.Max(0,
+                        DeverQuestRulesService.AbilityModifier(
+                            intelligence) * 2 + level * 5);
+                currentMana = maximumMana;
+                hunger = 100;
+                rest = 100;
+                happiness = 100;
+            }
             characterName = characterName?.Trim() ?? string.Empty;
             guildName = guildName?.Trim() ?? string.Empty;
             guildRank = guildRank?.Trim() ?? string.Empty;
             characterClass = characterClass?.Trim() ?? string.Empty;
+            classId = classId?.Trim() ?? string.Empty;
+            ancestryName = ancestryName?.Trim() ?? string.Empty;
+            ancestryId = ancestryId?.Trim() ?? string.Empty;
+            deityName = deityName?.Trim() ?? string.Empty;
+            deityId = deityId?.Trim() ?? string.Empty;
             level = Math.Max(1, level);
             currentExperience = Math.Max(0L, currentExperience);
             lifetimeExperience = Math.Max(0L, lifetimeExperience);
             copperBalance = Math.Max(0L, copperBalance);
+            if (dataVersion < 8)
+            {
+                DeverQuestAdventurerService.NormalizeCoinPurse(this);
+            }
+            platinumCoins = Math.Max(0L, platinumCoins);
+            goldCoins = Math.Max(0L, goldCoins);
+            silverCoins = Math.Max(0L, silverCoins);
+            copperCoins = Math.Max(0L, copperCoins);
             totalCopperEarned = Math.Max(0L, totalCopperEarned);
             totalCopperSpent = Math.Max(0L, totalCopperSpent);
             strength = ClampAbility(strength);
@@ -62,18 +123,65 @@ namespace EchoDevGames.DeverQuest
             intelligence = ClampAbility(intelligence);
             wisdom = ClampAbility(wisdom);
             charisma = ClampAbility(charisma);
+            agility = ClampAbility(agility);
+            stamina = ClampAbility(stamina);
+            luck = ClampAbility(luck);
             hitDie = Math.Max(4, hitDie);
             maximumHitPoints = Math.Max(1, maximumHitPoints);
             currentHitPoints =
                 Math.Min(maximumHitPoints,
                     Math.Max(0, currentHitPoints));
+            maximumMana = Math.Max(0, maximumMana);
+            currentMana =
+                Math.Min(maximumMana, Math.Max(0, currentMana));
+            hunger = Math.Min(100, Math.Max(0, hunger));
+            rest = Math.Min(100, Math.Max(0, rest));
+            happiness = Math.Min(100, Math.Max(0, happiness));
+            defeats = Math.Max(0, defeats);
+            homeDepartment =
+                homeDepartment?.Trim() ?? string.Empty;
             proficientSaves = proficientSaves ??
                                new List<string>();
             statusEffects = statusEffects ?? new List<string>();
             equippedEquipmentIds = equippedEquipmentIds ??
                                    new List<string>();
             knownSpellIds = knownSpellIds ?? new List<string>();
-            dataVersion = 2;
+            activeCompanionInstanceId =
+                activeCompanionInstanceId?.Trim() ?? string.Empty;
+            companions = companions ??
+                         new List<DeverQuestCompanionState>();
+            companions.RemoveAll(value => value == null);
+            foreach (DeverQuestCompanionState companion in companions)
+            {
+                companion.Sanitize();
+            }
+            if (!string.IsNullOrWhiteSpace(
+                    activeCompanionInstanceId) &&
+                !companions.Exists(value =>
+                    value.instanceId ==
+                    activeCompanionInstanceId &&
+                    !value.isFallen))
+            {
+                activeCompanionInstanceId = string.Empty;
+            }
+            foreach (DeverQuestCompanionState companion in companions)
+            {
+                companion.isActive =
+                    companion.instanceId ==
+                    activeCompanionInstanceId &&
+                    !companion.isFallen;
+            }
+            inventory = inventory ??
+                        new List<DeverQuestInventoryEntry>();
+            inventory.RemoveAll(item =>
+                item == null || item.quantity <= 0);
+            foreach (DeverQuestInventoryEntry item in inventory)
+            {
+                item.EnsureOwnership(string.Empty);
+            }
+            DeverQuestIdentityCatalogService.Migrate(this);
+            DeverQuestAdventurerService.EnsureCoinPurseValue(this);
+            dataVersion = 8;
         }
 
         private static int ClampAbility(int value)
@@ -206,6 +314,11 @@ namespace EchoDevGames.DeverQuest
             target.intelligence = scores[3];
             target.wisdom = scores[4];
             target.charisma = scores[5];
+            target.agility = target.dexterity;
+            target.stamina = target.constitution;
+            target.luck = 10;
+            target.homeDepartment =
+                DefaultDepartment(target.characterClass);
             target.proficientSaves =
                 new List<string>(saves);
             int constitutionModifier =
@@ -218,9 +331,46 @@ namespace EchoDevGames.DeverQuest
                     (target.hitDie / 2 + 1 +
                      constitutionModifier));
             target.maximumHitPoints = calculatedMaximum;
+            bool caster =
+                target.characterClass == "Necromancer" ||
+                target.characterClass == "Wizard" ||
+                target.characterClass == "Sorcerer" ||
+                target.characterClass == "Cleric" ||
+                target.characterClass == "Druid" ||
+                target.characterClass == "Bard" ||
+                target.characterClass == "Paladin";
+            target.maximumMana = caster
+                ? Math.Max(1,
+                    target.level * 5 +
+                    DeverQuestRulesService.AbilityModifier(
+                        target.intelligence) * 2)
+                : 0;
             if (resetVitals || target.currentHitPoints <= 0)
             {
                 target.currentHitPoints = calculatedMaximum;
+                target.currentMana = target.maximumMana;
+            }
+        }
+
+        public static string DefaultDepartment(string characterClass)
+        {
+            switch (characterClass)
+            {
+                case "Ranger":
+                case "Rogue":
+                case "Bard":
+                    return "Art";
+                case "Paladin":
+                case "Cleric":
+                    return "Design";
+                case "Druid":
+                    return "Audio";
+                case "Warrior":
+                case "Barbarian":
+                case "Monk":
+                    return "Quality Assurance";
+                default:
+                    return "Programming";
             }
         }
 
@@ -234,6 +384,7 @@ namespace EchoDevGames.DeverQuest
             experience = Math.Max(0L, experience);
 
             target.copperBalance += copper;
+            target.copperCoins += copper;
             target.totalCopperEarned += copper;
             target.currentExperience += experience;
             target.lifetimeExperience += experience;
@@ -253,9 +404,20 @@ namespace EchoDevGames.DeverQuest
                     constitutionModifier);
                 target.maximumHitPoints += hitPointGain;
                 target.currentHitPoints += hitPointGain;
+                int manaGain =
+                    target.maximumMana > 0 ? 5 : 0;
+                target.maximumMana += manaGain;
+                target.currentMana += manaGain;
             }
 
             Save();
+            if (target.level > startingLevel &&
+                DeverQuestSettingsStore.Profile
+                    .notificationSoundsEnabled)
+            {
+                DeverQuestAudioDirector.PlayCue(
+                    DeverQuestAudioCue.LevelUp);
+            }
             return new DeverQuestProgressionResult(
                 startingLevel,
                 target.level,
@@ -280,6 +442,7 @@ namespace EchoDevGames.DeverQuest
             }
 
             Adventurer.copperBalance -= copper;
+            NormalizeCoinPurse(Adventurer);
             Adventurer.totalCopperSpent += copper;
             Save();
             return true;
@@ -309,6 +472,55 @@ namespace EchoDevGames.DeverQuest
             long copper = remainder % 100L;
 
             return $"{platinum}p {gold}g {silver}s {copper}c";
+        }
+
+        public static void ExchangeCoinAtGuildHall()
+        {
+            NormalizeCoinPurse(Adventurer);
+            Save();
+        }
+
+        public static long CoinPieceCount(
+            DeverQuestAdventurer target = null)
+        {
+            target = target ?? Adventurer;
+            EnsureCoinPurseValue(target);
+            return target.platinumCoins + target.goldCoins +
+                   target.silverCoins + target.copperCoins;
+        }
+
+        internal static void NormalizeCoinPurse(
+            DeverQuestAdventurer target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+            long total = Math.Max(0L, target.copperBalance);
+            target.platinumCoins = total / 1000000L;
+            total %= 1000000L;
+            target.goldCoins = total / 10000L;
+            total %= 10000L;
+            target.silverCoins = total / 100L;
+            target.copperCoins = total % 100L;
+        }
+
+        internal static void EnsureCoinPurseValue(
+            DeverQuestAdventurer target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+            long purseValue =
+                Math.Max(0L, target.platinumCoins) * 1000000L +
+                Math.Max(0L, target.goldCoins) * 10000L +
+                Math.Max(0L, target.silverCoins) * 100L +
+                Math.Max(0L, target.copperCoins);
+            if (purseValue != Math.Max(0L, target.copperBalance))
+            {
+                NormalizeCoinPurse(target);
+            }
         }
 
         public static void Save()

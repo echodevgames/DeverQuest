@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Robocop 3 (MP3).zophar
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: c89d39e03a4a73c439d311ba7ea80e32, type: 3}
+  - {fileID: 8300000, guid: 77d7c07b61eee484fa8e7111744dfc6c, type: 3}
+  - {fileID: 8300000, guid: caab9e163fb41cf4383f3829ca933ed0, type: 3}
+  - {fileID: 8300000, guid: 513add4e45caff944bf09a20a49b58e9, type: 3}
+  - {fileID: 8300000, guid: 625157672095d0e479294d27ea591b1f, type: 3}
+  - {fileID: 8300000, guid: d40d18f4979ef6d49875a82b13b916c0, type: 3}
+  trackWeights: 010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

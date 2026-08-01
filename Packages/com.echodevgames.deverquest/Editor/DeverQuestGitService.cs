@@ -182,6 +182,43 @@ namespace EchoDevGames.DeverQuest
             return status;
         }
 
+        internal static bool TryGetHeadSnapshot(
+            out string repositoryRoot,
+            out string headHash)
+        {
+            repositoryRoot = string.Empty;
+            headHash = string.Empty;
+            string projectRoot = Path.GetFullPath(
+                Path.Combine(Application.dataPath, ".."));
+            string configuredRoot =
+                DeverQuestSettingsStore.Profile
+                    .gitRepositoryOverridePath;
+            string searchRoot =
+                !string.IsNullOrWhiteSpace(configuredRoot) &&
+                Directory.Exists(configuredRoot)
+                    ? configuredRoot
+                    : projectRoot;
+            DeverQuestGitResult root = Run(
+                searchRoot,
+                "rev-parse",
+                "--show-toplevel");
+            if (!root.Succeeded)
+            {
+                return false;
+            }
+            repositoryRoot = root.Output.Trim();
+            DeverQuestGitResult head = Run(
+                repositoryRoot,
+                "rev-parse",
+                "HEAD");
+            if (!head.Succeeded)
+            {
+                return false;
+            }
+            headHash = head.Output.Trim();
+            return !string.IsNullOrWhiteSpace(headHash);
+        }
+
         public static DeverQuestGitResult CommitStaged(
             string repositoryRoot,
             string message)
@@ -447,18 +484,16 @@ namespace EchoDevGames.DeverQuest
             }
 
             nextCheckTime =
-                EditorApplication.timeSinceStartup + 5d;
+                EditorApplication.timeSinceStartup + 15d;
 
             if (!DeverQuestSessionStore.HasActiveSession)
             {
                 return;
             }
 
-            DeverQuestGitStatus status =
-                DeverQuestGitService.Refresh();
-            LatestStatus = status;
-            if (!status.IsRepository ||
-                string.IsNullOrWhiteSpace(status.HeadHash))
+            if (!DeverQuestGitService.TryGetHeadSnapshot(
+                    out string repositoryRoot,
+                    out string headHash))
             {
                 return;
             }
@@ -468,32 +503,38 @@ namespace EchoDevGames.DeverQuest
             string observedHead =
                 EditorPrefs.GetString(HeadKey, string.Empty);
 
-            if (observedRepository != status.RepositoryRoot ||
+            if (observedRepository != repositoryRoot ||
                 string.IsNullOrWhiteSpace(observedHead))
             {
+                DeverQuestGitStatus status =
+                    DeverQuestGitService.Refresh();
+                LatestStatus = status;
                 MarkObserved(status);
                 TryRecordFirstCommitDuringQuest(status);
                 return;
             }
 
-            if (observedHead == status.HeadHash)
+            if (observedHead == headHash)
             {
                 return;
             }
 
-            MarkObserved(status);
+            DeverQuestGitStatus changedStatus =
+                DeverQuestGitService.Refresh();
+            LatestStatus = changedStatus;
+            MarkObserved(changedStatus);
 
             if (DeverQuestSessionStore.HasActiveSession)
             {
                 string subject = string.IsNullOrWhiteSpace(
-                    status.HeadSubject)
+                    changedStatus.HeadSubject)
                     ? "Git commit detected"
-                    : status.HeadSubject;
+                    : changedStatus.HeadSubject;
 
                 DeverQuestSessionStore.AddCommitEntry(
                     subject,
-                    status.Branch,
-                    status.ShortHash,
+                    changedStatus.Branch,
+                    changedStatus.ShortHash,
                     "Git Commit");
             }
         }

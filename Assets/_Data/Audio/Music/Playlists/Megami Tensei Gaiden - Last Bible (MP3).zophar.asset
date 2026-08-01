@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
+  m_Name: Megami Tensei Gaiden - Last Bible (MP3).zophar
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
+  tracks:
+  - {fileID: 8300000, guid: 409462e54c90126438a7622eb89a3d79, type: 3}
+  - {fileID: 8300000, guid: 4a4f82b32df3e3941a39639eff81c644, type: 3}
+  - {fileID: 8300000, guid: d737270667663314fba33bd9a42fe02e, type: 3}
+  - {fileID: 8300000, guid: a67ff8c5bb4c63d41a20ab40bb6e9a07, type: 3}
+  - {fileID: 8300000, guid: 1659b09cdd101654aa785dab498d0a5e, type: 3}
+  - {fileID: 8300000, guid: 1c9cdd11e3a1ccf4b8b8f7f2ac244783, type: 3}
+  - {fileID: 8300000, guid: 5738adf25ef332743bbdd4ef3b4cb02d, type: 3}
+  - {fileID: 8300000, guid: 0de343a5679f9b2409bb02e22721d08c, type: 3}
+  - {fileID: 8300000, guid: 89eece312808e3a4d9f02626546d2af9, type: 3}
+  - {fileID: 8300000, guid: bd266cd95b551a94888fd3c3b2df5f9b, type: 3}
+  - {fileID: 8300000, guid: b321795e9a0d3e24f8b54b224b29b9a0, type: 3}
+  - {fileID: 8300000, guid: 25a9a03df0cf6c142bb23e143fa23fff, type: 3}
+  - {fileID: 8300000, guid: 59c89d5b845f2a7488f38d8321fa6526, type: 3}
+  - {fileID: 8300000, guid: f39173d37ef72124590156d4d330ed5f, type: 3}
+  - {fileID: 8300000, guid: c86f3a78f7371124f8da99f35db0293a, type: 3}
+  - {fileID: 8300000, guid: 1d592a96c47bcee40a936c2badc7f7f8, type: 3}
+  - {fileID: 8300000, guid: be9910743e1693e48a402c0137fc55f3, type: 3}
+  - {fileID: 8300000, guid: 73163d0e09e7a9f428003347679ee85e, type: 3}
+  - {fileID: 8300000, guid: 72b00714ad9e5d14fa392598c7b48983, type: 3}
+  - {fileID: 8300000, guid: 8d149466b69d3124292ab273fcb31109, type: 3}
+  - {fileID: 8300000, guid: 0b9bec6be71dbed43bb2ec1caf7c1258, type: 3}
+  - {fileID: 8300000, guid: 52656b06dc6aa894dad1687ff1d57a3e, type: 3}
+  - {fileID: 8300000, guid: 8dd67b0ebf08b044793fd653f3c45d38, type: 3}
+  - {fileID: 8300000, guid: 07881b83be9e91e478878e50e12085e2, type: 3}
+  trackWeights: 010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  shuffle: 0
+  repeatMode: 1
+  volume: 0.75

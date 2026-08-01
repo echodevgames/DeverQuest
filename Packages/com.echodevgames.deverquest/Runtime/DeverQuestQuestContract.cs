@@ -1,6 +1,8 @@
 //----- DeverQuestQuestContract.cs START -----
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace EchoDevGames.DeverQuest
@@ -25,6 +27,67 @@ namespace EchoDevGames.DeverQuest
         Critical = 3
     }
 
+    [Serializable]
+    public sealed class DeverQuestFocusStage
+    {
+        public string stageId = string.Empty;
+        public string stageTitle = "New Focus Stage";
+        [TextArea(2, 6)]
+        public string workObjective = string.Empty;
+        public int focusedMinutesRequired = 15;
+        public string assignedPartyRole = string.Empty;
+        public int copperReward;
+        public int experienceReward;
+        public bool allowEarlyTurnIn = true;
+        public int earlyCompletionCopperBonus;
+        public int earlyCompletionExperienceBonus;
+        public string encounterProfileId = string.Empty;
+        public DeverQuestEncounterProfile encounterProfile;
+
+        public void Sanitize()
+        {
+            if (string.IsNullOrWhiteSpace(stageId))
+            {
+                stageId = Guid.NewGuid().ToString("N");
+            }
+            stageTitle = stageTitle?.Trim() ?? string.Empty;
+            assignedPartyRole =
+                assignedPartyRole?.Trim() ?? string.Empty;
+            encounterProfileId =
+                encounterProfile == null
+                    ? encounterProfileId?.Trim() ?? string.Empty
+                    : encounterProfile.EncounterId;
+            focusedMinutesRequired =
+                Mathf.Max(1, focusedMinutesRequired);
+            copperReward = Mathf.Max(0, copperReward);
+            experienceReward = Mathf.Max(0, experienceReward);
+            earlyCompletionCopperBonus =
+                Mathf.Max(0, earlyCompletionCopperBonus);
+            earlyCompletionExperienceBonus =
+                Mathf.Max(0, earlyCompletionExperienceBonus);
+        }
+    }
+
+    [Serializable]
+    public sealed class DeverQuestPartyMember
+    {
+        public string adventurerName = string.Empty;
+        public string developerName = string.Empty;
+        public string partyRole = string.Empty;
+        public string joinedUtc = string.Empty;
+        public bool submitted;
+        public string submittedUtc = string.Empty;
+    }
+
+    [Serializable]
+    public sealed class DeverQuestPartyStageProgress
+    {
+        public string stageId = string.Empty;
+        public string stageTitle = string.Empty;
+        public string adventurerName = string.Empty;
+        public string completedUtc = string.Empty;
+    }
+
     [CreateAssetMenu(
         fileName = "NewQuestContract",
         menuName = "DeverQuest/Quest Contract")]
@@ -44,6 +107,32 @@ namespace EchoDevGames.DeverQuest
         public bool openToAnyMember;
         public int minimumAdventurerLevel = 1;
         public string dueDate = string.Empty;
+        public bool groupQuest;
+        public int maximumParticipants = 1;
+        public List<string> assignedAdventurers =
+            new List<string>();
+        public List<DeverQuestPartyMember> partyMembers =
+            new List<DeverQuestPartyMember>();
+        public List<DeverQuestPartyStageProgress> stageProgress =
+            new List<DeverQuestPartyStageProgress>();
+        [TextArea(2, 8)]
+        public string questStory = string.Empty;
+        public bool restrictToClasses;
+        public List<DeverQuestClassDefinition>
+            eligibleClassDefinitions =
+                new List<DeverQuestClassDefinition>();
+        public List<string> eligibleClasses =
+            new List<string>();
+        public bool restrictToAncestries;
+        public List<DeverQuestAncestry> eligibleAncestries =
+            new List<DeverQuestAncestry>();
+        public bool restrictToDepartments;
+        public List<string> eligibleDepartments =
+            new List<string>();
+        public int groupBonusCopper;
+        public int groupBonusExperience;
+        public List<DeverQuestFocusStage> focusStages =
+            new List<DeverQuestFocusStage>();
 
         [Header("Template")]
         public DeverQuestQuestProfile questProfile;
@@ -79,6 +168,20 @@ namespace EchoDevGames.DeverQuest
             }
         }
 
+        public bool HasOpenPartySlot =>
+            partyMembers == null ||
+            partyMembers.Count < Mathf.Max(1, maximumParticipants);
+
+        public bool ContainsAdventurer(string adventurerName)
+        {
+            return partyMembers != null &&
+                   partyMembers.Any(member =>
+                       string.Equals(
+                           member.adventurerName,
+                           adventurerName,
+                           StringComparison.OrdinalIgnoreCase));
+        }
+
         public void InitializeFromProfile(
             DeverQuestQuestProfile profile,
             string creator)
@@ -97,13 +200,52 @@ namespace EchoDevGames.DeverQuest
             objective = profile.goalTemplate;
             minimumAdventurerLevel =
                 profile.minimumAdventurerLevel;
-            suggestedFocusMinutes = profile.suggestedFocusMinutes;
-            baseCopper = profile.baseCopper;
-            baseExperience = profile.baseExperience;
-            workBlockMinutes = profile.workBlockMinutes;
-            copperPerWorkBlock = profile.copperPerWorkBlock;
+            RefreshSpoilsFromProfile();
+            Sanitize();
+        }
+
+        public bool SpoilsMatchLinkedProfile()
+        {
+            if (questProfile == null)
+            {
+                return true;
+            }
+
+            return suggestedFocusMinutes ==
+                   questProfile.suggestedFocusMinutes &&
+                   baseCopper == questProfile.baseCopper &&
+                   baseExperience == questProfile.baseExperience &&
+                   workBlockMinutes == questProfile.workBlockMinutes &&
+                   copperPerWorkBlock ==
+                   questProfile.copperPerWorkBlock &&
+                   experiencePerWorkBlock ==
+                   questProfile.experiencePerWorkBlock;
+        }
+
+        public bool CanRefreshSpoilsFromProfile()
+        {
+            return questProfile != null &&
+                   (status == DeverQuestContractStatus.Draft ||
+                    status == DeverQuestContractStatus.Offered ||
+                    status == DeverQuestContractStatus.Returned);
+        }
+
+        public void RefreshSpoilsFromProfile()
+        {
+            if (questProfile == null)
+            {
+                return;
+            }
+
+            suggestedFocusMinutes =
+                questProfile.suggestedFocusMinutes;
+            baseCopper = questProfile.baseCopper;
+            baseExperience = questProfile.baseExperience;
+            workBlockMinutes = questProfile.workBlockMinutes;
+            copperPerWorkBlock =
+                questProfile.copperPerWorkBlock;
             experiencePerWorkBlock =
-                profile.experiencePerWorkBlock;
+                questProfile.experiencePerWorkBlock;
             Sanitize();
         }
 
@@ -133,6 +275,44 @@ namespace EchoDevGames.DeverQuest
             createdBy = createdBy?.Trim() ?? string.Empty;
             assignedAdventurer =
                 assignedAdventurer?.Trim() ?? string.Empty;
+            maximumParticipants =
+                groupQuest
+                    ? Mathf.Max(2, maximumParticipants)
+                    : 1;
+            partyMembers = partyMembers ??
+                           new List<DeverQuestPartyMember>();
+            assignedAdventurers = assignedAdventurers ??
+                                  new List<string>();
+            stageProgress = stageProgress ??
+                            new List<DeverQuestPartyStageProgress>();
+            if (!groupQuest && partyMembers.Count > 1)
+            {
+                partyMembers.RemoveRange(
+                    1, partyMembers.Count - 1);
+            }
+            eligibleClasses = eligibleClasses ??
+                              new List<string>();
+            eligibleClassDefinitions =
+                eligibleClassDefinitions ??
+                new List<DeverQuestClassDefinition>();
+            eligibleAncestries =
+                eligibleAncestries ??
+                new List<DeverQuestAncestry>();
+            eligibleClassDefinitions.RemoveAll(
+                value => value == null);
+            eligibleAncestries.RemoveAll(
+                value => value == null);
+            eligibleDepartments = eligibleDepartments ??
+                                  new List<string>();
+            focusStages = focusStages ??
+                          new List<DeverQuestFocusStage>();
+            foreach (DeverQuestFocusStage stage in focusStages)
+            {
+                stage?.Sanitize();
+            }
+            groupBonusCopper = Mathf.Max(0, groupBonusCopper);
+            groupBonusExperience =
+                Mathf.Max(0, groupBonusExperience);
             dueDate = dueDate?.Trim() ?? string.Empty;
             projectName = projectName?.Trim() ?? string.Empty;
             taskName = taskName?.Trim() ?? string.Empty;
