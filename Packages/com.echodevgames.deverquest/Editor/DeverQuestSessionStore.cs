@@ -71,7 +71,8 @@ namespace EchoDevGames.DeverQuest
             string category,
             string goal,
             DeverQuestQuestProfile questProfile = null,
-            DeverQuestQuestContract questContract = null)
+            DeverQuestQuestContract questContract = null,
+            string questContractRunId = "")
         {
             if (HasActiveSession)
             {
@@ -147,6 +148,10 @@ namespace EchoDevGames.DeverQuest
                     questContract == null
                         ? string.Empty
                         : questContract.ContractId,
+                questContractRunId =
+                    questContract == null
+                        ? string.Empty
+                        : questContractRunId?.Trim() ?? string.Empty,
                 questContractTitle =
                     questContract == null
                         ? string.Empty
@@ -212,12 +217,16 @@ namespace EchoDevGames.DeverQuest
                     questContract == null ||
                     questContract.focusStages == null
                         ? new List<DeverQuestSessionStage>()
-                        : questContract.focusStages.ConvertAll(
-                            stage =>
+                        : questContract.focusStages
+                            .Select((stage, index) =>
                                 new DeverQuestSessionStage
                                 {
                                     stageId = stage.stageId,
-                                    stageTitle = stage.stageTitle,
+                                    stageTitle =
+                                        string.IsNullOrWhiteSpace(
+                                            stage.stageTitle)
+                                            ? $"Encounter {index + 1}"
+                                            : stage.stageTitle,
                                     workObjective =
                                         stage.workObjective,
                                     focusedMinutesRequired =
@@ -236,7 +245,8 @@ namespace EchoDevGames.DeverQuest
                                         stage.earlyCompletionExperienceBonus,
                                     encounterProfileId =
                                         stage.encounterProfileId
-                                }),
+                                })
+                            .ToList(),
                 state = DeverQuestSessionState.Running,
                 startedUtcTicks = nowTicks,
                 lastStateChangeUtcTicks = nowTicks
@@ -384,6 +394,12 @@ namespace EchoDevGames.DeverQuest
                     createdUtcTicks = DateTime.UtcNow.Ticks,
                     focusedSecondsAtEvent = GetFocusedSeconds()
                 });
+
+            DeverQuestWellnessHistoryService.RecordBreakOutcome(
+                ActiveSession.approvedBreakWellnessType,
+                completed,
+                plannedMinutes,
+                approvedSeconds);
 
             if (!completed)
             {
@@ -720,7 +736,17 @@ namespace EchoDevGames.DeverQuest
             }
             stage.survivalFightPaused = false;
             stage.survivalEndedSafely = true;
+            stage.survivalExitMethod = normalized;
+            stage.survivalExitSummary = message;
+            stage.survivalExitUtcTicks = DateTime.UtcNow.Ticks;
             CompleteStage(stage, false, GetFocusedSeconds());
+            DeverQuestGuildAccountService.AddAudit(
+                "Survival Expedition Exit",
+                string.IsNullOrWhiteSpace(stage.stageTitle)
+                    ? "Survival Encounter"
+                    : stage.stageTitle,
+                $"{adventurer.characterName} · {normalized} · " +
+                $"wave {stage.survivalWave}");
             SaveActiveSession();
             return true;
         }

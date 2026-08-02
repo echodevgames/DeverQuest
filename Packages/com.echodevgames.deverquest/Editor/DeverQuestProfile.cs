@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace EchoDevGames.DeverQuest
 {
@@ -10,7 +11,8 @@ namespace EchoDevGames.DeverQuest
         System = 0,
         Dark = 1,
         Light = 2,
-        EchoNeon = 3
+        EchoNeon = 3,
+        Custom = 4
     }
 
     internal enum DeverQuestActivityScope
@@ -30,7 +32,7 @@ namespace EchoDevGames.DeverQuest
     [Serializable]
     internal sealed class DeverQuestProfile
     {
-        public const int CurrentDataVersion = 14;
+        public const int CurrentDataVersion = 16;
 
         public int dataVersion = CurrentDataVersion;
         public bool setupComplete;
@@ -64,6 +66,10 @@ namespace EchoDevGames.DeverQuest
 
         public bool quietHoursEnabled = true;
         public int quietHoursStartHour = 22;
+        public int quietHoursEndHour = 7;
+        public bool suppressWellnessDuringQuietHours = true;
+        public bool showWellnessInQuestHud = true;
+        public int wellnessHistoryLimit = 200;
 
         public bool rewardsEnabled = true;
         public int rewardWorkBlockMinutes = 30;
@@ -81,6 +87,19 @@ namespace EchoDevGames.DeverQuest
         public bool stopMusicOnSessionEnd = true;
         public bool compactMode;
         public DeverQuestTheme theme = DeverQuestTheme.EchoNeon;
+        public float interfaceScale = 1f;
+        public int workspaceTabColumns = 4;
+        public bool useCompactWorkspaceLabels;
+        public bool showWorkspaceHints = true;
+        public bool showHeaderTagline = true;
+        public bool autoOpenQuestHudOnSessionStart;
+        public bool questHudShowStory = true;
+        public Color customTitleColor =
+            new Color(0.20f, 0.94f, 0.86f, 1f);
+        public Color customTimerColor =
+            new Color(1f, 0.30f, 0.70f, 1f);
+        public Color customAccentColor =
+            new Color(0.55f, 0.82f, 1f, 1f);
         public bool showEditorNotifications = true;
         public bool notificationSoundsEnabled = true;
         public bool autoOpenWindowForReminders = true;
@@ -223,6 +242,32 @@ namespace EchoDevGames.DeverQuest
                 healthyDailyFocusMinutes = 600;
             }
 
+            if (dataVersion < 15)
+            {
+                interfaceScale = 1f;
+                workspaceTabColumns = 4;
+                useCompactWorkspaceLabels = false;
+                showWorkspaceHints = true;
+                showHeaderTagline = true;
+                autoOpenQuestHudOnSessionStart = false;
+                questHudShowStory = true;
+                customTitleColor =
+                    new Color(0.20f, 0.94f, 0.86f, 1f);
+                customTimerColor =
+                    new Color(1f, 0.30f, 0.70f, 1f);
+                customAccentColor =
+                    new Color(0.55f, 0.82f, 1f, 1f);
+            }
+
+
+            if (dataVersion < 16)
+            {
+                quietHoursEndHour = 7;
+                suppressWellnessDuringQuietHours = true;
+                showWellnessInQuestHud = true;
+                wellnessHistoryLimit = 200;
+            }
+
             developerName = developerName?.Trim() ?? string.Empty;
             timecardRootPath = timecardRootPath?.Trim() ?? string.Empty;
             lastProjectName = lastProjectName?.Trim() ?? string.Empty;
@@ -272,6 +317,10 @@ namespace EchoDevGames.DeverQuest
             dinnerMinute = Math.Min(59, Math.Max(0, dinnerMinute));
             quietHoursStartHour =
                 Math.Min(23, Math.Max(0, quietHoursStartHour));
+            quietHoursEndHour =
+                Math.Min(23, Math.Max(0, quietHoursEndHour));
+            wellnessHistoryLimit =
+                Math.Min(1000, Math.Max(25, wellnessHistoryLimit));
             rewardWorkBlockMinutes =
                 Math.Max(1, rewardWorkBlockMinutes);
             dailyWorkGoalMinutes =
@@ -297,11 +346,46 @@ namespace EchoDevGames.DeverQuest
                     dailyDecreeCheckModifier));
             healthyDailyFocusMinutes =
                 Math.Max(60, healthyDailyFocusMinutes);
+            interfaceScale = Mathf.Clamp(interfaceScale, 0.85f, 1.35f);
+            workspaceTabColumns =
+                Math.Min(6, Math.Max(2, workspaceTabColumns));
+            customTitleColor = SanitizeColor(
+                customTitleColor,
+                new Color(0.20f, 0.94f, 0.86f, 1f));
+            customTimerColor = SanitizeColor(
+                customTimerColor,
+                new Color(1f, 0.30f, 0.70f, 1f));
+            customAccentColor = SanitizeColor(
+                customAccentColor,
+                new Color(0.55f, 0.82f, 1f, 1f));
             if (!Enum.IsDefined(typeof(DeverQuestTheme), theme))
             {
                 theme = DeverQuestTheme.EchoNeon;
             }
             dataVersion = CurrentDataVersion;
+        }
+
+        private static Color SanitizeColor(
+            Color value,
+            Color fallback)
+        {
+            if (float.IsNaN(value.r) ||
+                float.IsNaN(value.g) ||
+                float.IsNaN(value.b) ||
+                float.IsNaN(value.a))
+            {
+                return fallback;
+            }
+
+            value.r = Mathf.Clamp01(value.r);
+            value.g = Mathf.Clamp01(value.g);
+            value.b = Mathf.Clamp01(value.b);
+            value.a = Mathf.Clamp01(value.a);
+            if (value.a <= 0.01f)
+            {
+                value.a = 1f;
+            }
+            return value;
         }
     }
 }

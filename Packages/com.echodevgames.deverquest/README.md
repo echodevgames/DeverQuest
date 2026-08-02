@@ -1,9 +1,79 @@
 # DeverQuest Developer Companion
 
-Current package version: **0.30.6 Beta 1**
+Current package version: **0.31.9 Beta 1**
 
 
 
+
+## 0.31.8 Beta Administration and Content Validation
+
+Version 0.31.8 adds a dedicated **Beta Administration** workspace for bulk production-content validation, safe data repair, starter-generator reruns, and exportable Markdown or JSON health reports. The validator scans Quest Profiles, Contracts, Identity assets and Catalogs, Companions, Encounters, Monsters, Shops, items, audio profiles, and Starter Loadouts for duplicate stable IDs, incomplete records, broken references, unsafe Quest-item rules, empty catalogs, invalid run history, and refreshable reward mismatches. Release Readiness now summarizes the current content-health result.
+
+## 0.31.7 Notifications and Wellness Command Center
+
+Version 0.31.7 consolidates active reminders, snoozes, queued prompts, quiet hours, break qualification, cue testing, and local notification history inside Audio & Wellness. Reminders persist through Editor restarts, multiple prompts queue instead of silently disappearing, session reminders may be suppressed during configured quiet hours, and the dockable Quest HUD can display and act on wellness state. Completed and early-ended Approved Breaks enter both the Session Wellness Journal and the local command history. Release Readiness verifies that the local history store is writable.
+
+
+## 0.31.6 Supported Audio Host and Mixer Reliability
+
+Version 0.31.6 replaces the preferred DeverQuest playback path with a hidden Editor-only AudioSource host containing separate Music, Ambience, and warning/SFX sources. This provides independent channel gain, mute controls, cue ducking, Inspector-preview isolation, focus and Play Mode recovery, and audio-device-change recovery. The previous internal preview bridge remains as a clearly identified compatibility fallback when supported Edit Mode AudioSource playback is unavailable. Mixer and transport preferences are local Editor settings and do not enter Guild, Quest, Chronicle, or shared data.
+
+## 0.31.5 Editor UX and Workspace Organization
+
+Version 0.31.5 separates **Quest Log** from **Git**, adds a normal dockable **Quest HUD** window, reorganizes workspace navigation, improves no-data guidance, and introduces persistent local Visual settings for theme, custom colors, DeverQuest text scale, workspace columns, compact tab labels, header guidance, and HUD behavior. The Quest HUD uses the same active Session and timer services as the main DeverQuest window; it does not create a second Quest or duplicate focused time. Git commit messages are now independent from Quest Log notes, while commits and pushes made during an active Quest continue to enter that Quest's evidence log.
+
+## 0.31.4 Quest Archive and Chronicle Navigation
+
+Version 0.31.4 adds a dedicated **Chronicle** workspace that combines the active Quest event feed with a searchable completed Quest archive. Live work now presents Quest Story, Task Objective, current Encounter, timer state, recent notes, rewards, wellness events, media, external activity, and tactical outcomes in one timeline. Completed Quest cards expose rewards, closing notes, Git/Quest entries, attachments, combat reports, source Contract navigation, Run IDs, generated Timecards, and correction-request routing. Release Readiness audits duplicate Session IDs, missing Timecards, and missing media paths. The workspace is a read/navigation layer over existing Chronicle data and cannot award rewards or create focused time.
+
+## 0.31.3 Guild Economy and Item Operations
+
+Version 0.31.3 adds a dedicated **Economy** workspace for active-Quartermaster configuration, coin denomination clarity, audited leadership item and coin grants, and searchable transaction history with CSV export. Purchases and Inventory sales now respect the active Shop Profile's open, member-access, purchase, sale, and approval-threshold rules. Economy events retain recipient, item, quantity, copper delta, resulting balance, actor, note, and related purchase IDs. This strengthens the current merchant loop without opening deferred banking, loans, auction-house, crafting-market, or housing-storage systems.
+
+## 0.31.2 Inventory and Equipment Clarity
+
+Version 0.31.2 adds a dedicated **Inventory** workspace with durable item categories, tags, lore, equipment comparison, exact ownership records, loot provenance, carry-load breakdowns, and guarded Equip, Unequip, Use, Sell, and Drop actions. Encounter drops, Guild Shop purchases, trades, starter gear, and legacy migrations now retain clearer origin data. Release Readiness audits duplicate ownership IDs, unresolved equipment, unsafe Quest items, and equipped gear missing pack records. This release strengthens the existing item loop without opening the deferred crafting, banking, housing, or broad skill systems.
+
+## 0.31.1 Tactical Operations
+
+Version 0.31.1 adds a dedicated **Tactics** workspace for combat readiness, Companion operations, current Encounter inspection, and a searchable local Battle Archive. New Battle Results are archived automatically, while current and last-session reports can be imported without duplication. The archive stores the newest 100 records locally, supports outcome and text filters, copies readable reports or JSON, and keeps Timecards as the permanent Chronicle. Companion operations now include quick activation, stable dismissal, individual recovery, and confirmed full-roster recovery. Release Readiness verifies that the Tactical Archive can safely write local diagnostic data.
+
+## Previous Beta work
+
+## 0.31.0 Tactical Visibility
+
+Version 0.31.0 makes the existing deterministic Companion, Combat, and Survival systems readable without changing their underlying rules. Active Quests now show Tactical Encounter previews and compact Tactical Field Reports containing outcome, typed damage, conditions, Companion contribution, defeated foes, loot, recent turns, and copyable full logs. Survival stages show the next wave, difficulty tier, Guild Wagon timing, carry state, and safe-exit result. Companion Stable cards now retain lifetime contribution metrics and a last-battle summary. Generated Timecards keep combat readable by showing highlights first and placing the full turn transcript inside a collapsible details block.
+
+
+
+
+
+## 0.30.9 Quest Board and Run Management
+
+Version 0.30.9 adds a Guild Hall management panel for active Quest Run reservations and waiting Parties, leadership cancellation controls for stale reservations, explicit Contract archiving, a searchable completed Quest Run archive in Rewards & History, and a Release Readiness advisory for invalid or older-than-24-hour reservations. The full 0.30.8 behavior checklist remains deferred for later regression.
+
+
+## 0.30.8 Beta Loop Stabilization
+
+Version 0.30.8 responds to the first sustained one-hour Beta expedition. It
+adds explicit Music and Ambience track selectors, automatic and manual recovery
+when Unity's Inspector preview player steals the shared editor-audio transport,
+and an emergency full-audio reset. True independent channel gain remains limited
+by Unity's internal preview API when only global preview volume is available.
+
+The only active Guild account is now repaired and preserved as CEO, Guild rank
+is no longer overwritten by stale character-sheet data, existing founders can
+reopen character creation, and newly completed characters begin with five
+silver. Quest acceptance now explains why it is blocked, Party Quests show a
+waiting state and allow withdrawal before launch, Quest Story appears during
+selection and active work, Focus Stages are presented as Encounters, and break
+reminders show both recommended and minimum qualifying durations.
+
+Automatic Git observation now runs outside Unity's main update thread. Release
+Readiness also checks sole-founder authority and warns when timecards or voice
+memos live inside the repository without a matching `.gitignore` entry.
+
+See `Documentation~/DeverQuest_0.30.8_Beta_Issue_Log.md`.
 
 ## 0.30.6 Identity Catalog Registry Repair
 
@@ -396,6 +466,11 @@ This package currently contains:
 ## Requirements
 
 - Unity 2022.3 LTS or newer
+
+## 0.30.8 reusable Quest Contracts
+
+Quest Contracts now act as reusable Guild Board definitions, while each acceptance creates an independent Quest Run. Contracts may be configured as one-time, limited to a completion target, or repeatable. Limited Contracts may require unique Adventurers, and Party Quests may require a full roster or begin at a configured minimum size. Each completed run is retained in the Contract's Completion History and receives a unique Run ID in the generated Timecard.
+
 
 ## Installation
 

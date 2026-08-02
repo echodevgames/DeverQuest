@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26853b4538a4c09ec382ef521ab0795b, type: 3}
+  m_Name: DruidAbilities
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestAbilityProfile
+  profileId: ce2b9bf282af4a049c40f55cbe1adfb0
+  displayName: Druid Tactical Codex
+  description: An editable class-specific copy of the original DeverQuest starter
+    tactics.
+  tacticalStyle: 4
+  abilities:
+  - spell: {fileID: 11400000, guid: e670c53e808e15b4883fdfc2b1c5e09d, type: 2}
+    technique: {fileID: 0}
+    priority: 95
+    useBelowHitPointPercent: 45
+    maintainEffect: 0
+  - spell: {fileID: 11400000, guid: 1e55e3b1933a97546b1c271026c0a6d2, type: 2}
+    technique: {fileID: 0}
+    priority: 85
+    useBelowHitPointPercent: 100
+    maintainEffect: 1
+  - spell: {fileID: 11400000, guid: def13d1f4dfeabb4d8c0da1e8055a425, type: 2}
+    technique: {fileID: 0}
+    priority: 75
+    useBelowHitPointPercent: 100
+    maintainEffect: 1
+  - spell: {fileID: 11400000, guid: 50b1e6d15e76ff54b9f5c214472acac4, type: 2}
+    technique: {fileID: 0}
+    priority: 70
+    useBelowHitPointPercent: 65
+    maintainEffect: 0
+  - spell: {fileID: 11400000, guid: 6d5af015160d35d44a1a36edd2af78c6, type: 2}
+    technique: {fileID: 0}
+    priority: 60
+    useBelowHitPointPercent: 100
+    maintainEffect: 0
+  - spell: {fileID: 11400000, guid: 01a72d5c9f357064d895848057c71c4b, type: 2}
+    technique: {fileID: 0}
+    priority: 1
+    useBelowHitPointPercent: 100
+    maintainEffect: 0

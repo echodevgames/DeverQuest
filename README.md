@@ -1,8 +1,39 @@
 # DeverQuest Developer Companion
 
-Current package version: **0.30.5 Beta 1**
+Current package version: **0.30.7 Beta 1**
 
 
+
+
+
+## 0.30.7 Beta Loop Stabilization
+
+Version 0.30.7 responds to the first sustained one-hour Beta expedition. It
+adds explicit Music and Ambience track selectors, automatic and manual recovery
+when Unity's Inspector preview player steals the shared editor-audio transport,
+and an emergency full-audio reset. True independent channel gain remains limited
+by Unity's internal preview API when only global preview volume is available.
+
+The only active Guild account is now repaired and preserved as CEO, Guild rank
+is no longer overwritten by stale character-sheet data, existing founders can
+reopen character creation, and newly completed characters begin with five
+silver. Quest acceptance now explains why it is blocked, Party Quests show a
+waiting state and allow withdrawal before launch, Quest Story appears during
+selection and active work, Focus Stages are presented as Encounters, and break
+reminders show both recommended and minimum qualifying durations.
+
+Automatic Git observation now runs outside Unity's main update thread. Release
+Readiness also checks sole-founder authority and warns when timecards or voice
+memos live inside the repository without a matching `.gitignore` entry.
+
+See `Documentation~/DeverQuest_0.30.7_Beta_Issue_Log.md`.
+
+## 0.30.6 Identity Catalog Registry Repair
+
+Version 0.30.6 repairs an invalid or Missing Script Guild Identity Registry
+at its canonical project path, then activates the generated starter catalog.
+Guild Hall generation is deferred outside Unity's IMGUI draw event to prevent
+secondary layout-state errors when asset creation reports a failure.
 
 ## 0.30.5 Beta Asset Persistence and Audio Channels
 

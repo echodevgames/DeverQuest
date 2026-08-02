@@ -351,9 +351,21 @@ namespace EchoDevGames.DeverQuest
                         "Heavy salvage that can fill an expedition pack.";
                     item.itemType =
                         DeverQuestShopItemType.Equipment;
+                    item.itemCategory =
+                        DeverQuestItemCategory.MerchantTrash;
+                    item.subcategory = "Salvage";
+                    item.tags = new List<string>
+                    {
+                        "Monster Drop",
+                        "Marsh",
+                        "Salvage"
+                    };
                     item.copperCost = 2;
+                    item.merchantSellValueCopper = 2;
                     item.unitWeight = 4f;
                     item.maximumOwned = 99;
+                    item.maximumStackSize = 99;
+                    item.autoEquipOnAcquire = false;
                     item.tradable = true;
                 });
             DeverQuestMonsterProfile scout = Upsert<DeverQuestMonsterProfile>(

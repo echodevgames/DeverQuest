@@ -27,6 +27,38 @@ namespace EchoDevGames.DeverQuest
         Critical = 3
     }
 
+    public enum DeverQuestContractAvailabilityPolicy
+    {
+        SingleCompletion = 0,
+        LimitedCompletions = 1,
+        Repeatable = 2
+    }
+
+    [Serializable]
+    public sealed class DeverQuestContractRunReservation
+    {
+        public string runId = string.Empty;
+        public string startedUtc = string.Empty;
+        public bool groupRun;
+        public List<string> adventurerNames = new List<string>();
+        public List<string> developerNames = new List<string>();
+    }
+
+    [Serializable]
+    public sealed class DeverQuestContractCompletionRecord
+    {
+        public string completionId = string.Empty;
+        public string runId = string.Empty;
+        public string sessionId = string.Empty;
+        public List<string> sessionIds = new List<string>();
+        public string completedUtc = string.Empty;
+        public List<string> adventurerNames = new List<string>();
+        public List<string> developerNames = new List<string>();
+        public double focusedMinutes;
+        public long awardedCopper;
+        public long awardedExperience;
+    }
+
     [Serializable]
     public sealed class DeverQuestFocusStage
     {
@@ -51,6 +83,10 @@ namespace EchoDevGames.DeverQuest
                 stageId = Guid.NewGuid().ToString("N");
             }
             stageTitle = stageTitle?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(stageTitle))
+            {
+                stageTitle = "Encounter";
+            }
             assignedPartyRole =
                 assignedPartyRole?.Trim() ?? string.Empty;
             encounterProfileId =
@@ -77,6 +113,10 @@ namespace EchoDevGames.DeverQuest
         public string joinedUtc = string.Empty;
         public bool submitted;
         public string submittedUtc = string.Empty;
+        public string sessionId = string.Empty;
+        public double focusedMinutes;
+        public long awardedCopper;
+        public long awardedExperience;
     }
 
     [Serializable]
@@ -107,14 +147,38 @@ namespace EchoDevGames.DeverQuest
         public bool openToAnyMember;
         public int minimumAdventurerLevel = 1;
         public string dueDate = string.Empty;
+        [Header("Board Availability")]
+        [Tooltip("Archived Contracts remain in run history but are hidden from the Member Assignment Board.")]
+        public bool archived;
+        public DeverQuestContractAvailabilityPolicy availabilityPolicy =
+            DeverQuestContractAvailabilityPolicy.SingleCompletion;
+        [Min(1)]
+        public int requiredCompletions = 1;
+        [Tooltip("When enabled, one Adventurer cannot satisfy more than one completion of this Contract.")]
+        public bool oneCompletionPerAdventurer;
+
+        [Header("Party Rules")]
         public bool groupQuest;
+        [Min(1)]
+        public int minimumParticipants = 1;
+        [Min(1)]
         public int maximumParticipants = 1;
+        public bool requireFullParty = true;
         public List<string> assignedAdventurers =
             new List<string>();
         public List<DeverQuestPartyMember> partyMembers =
             new List<DeverQuestPartyMember>();
         public List<DeverQuestPartyStageProgress> stageProgress =
             new List<DeverQuestPartyStageProgress>();
+
+        [Header("Run History")]
+        [SerializeField]
+        private string activePartyRunId = string.Empty;
+        public List<DeverQuestContractRunReservation> activeRuns =
+            new List<DeverQuestContractRunReservation>();
+        public List<DeverQuestContractCompletionRecord> completionHistory =
+            new List<DeverQuestContractCompletionRecord>();
+
         [TextArea(2, 8)]
         public string questStory = string.Empty;
         public bool restrictToClasses;
@@ -146,7 +210,8 @@ namespace EchoDevGames.DeverQuest
         [TextArea(3, 10)]
         public string deliverables = string.Empty;
 
-        [Header("Snapshotted Spoils")]
+        [Header("Contract Reward Snapshot (Copied from Quest Profile)")]
+        [InspectorName("Predicted Task Length (Minutes)")]
         public int suggestedFocusMinutes = 50;
         public int baseCopper = 10;
         public int baseExperience = 10;
@@ -168,18 +233,132 @@ namespace EchoDevGames.DeverQuest
             }
         }
 
+        public int CompletedRunCount =>
+            completionHistory == null ? 0 : completionHistory.Count;
+
+        public int ActiveRunCount =>
+            activeRuns == null ? 0 : activeRuns.Count;
+
+        public int RemainingCompletions
+        {
+            get
+            {
+                if (availabilityPolicy ==
+                    DeverQuestContractAvailabilityPolicy.Repeatable)
+                {
+                    return int.MaxValue;
+                }
+
+                int target = availabilityPolicy ==
+                    DeverQuestContractAvailabilityPolicy.SingleCompletion
+                        ? 1
+                        : Mathf.Max(1, requiredCompletions);
+                return Mathf.Max(0, target - CompletedRunCount);
+            }
+        }
+
+        public bool IsBoardComplete =>
+            availabilityPolicy !=
+            DeverQuestContractAvailabilityPolicy.Repeatable &&
+            RemainingCompletions <= 0;
+
+        public int RequiredPartySize =>
+            !groupQuest
+                ? 1
+                : requireFullParty
+                    ? Mathf.Max(1, maximumParticipants)
+                    : Mathf.Clamp(
+                        minimumParticipants,
+                        1,
+                        Mathf.Max(1, maximumParticipants));
+
+        public bool CanPartyStart =>
+            !groupQuest ||
+            (partyMembers != null &&
+             partyMembers.Count >= RequiredPartySize);
+
         public bool HasOpenPartySlot =>
             partyMembers == null ||
             partyMembers.Count < Mathf.Max(1, maximumParticipants);
 
+        public string ActivePartyRunId => activePartyRunId;
+
+        public void SetActivePartyRunId(string runId)
+        {
+            activePartyRunId = runId?.Trim() ?? string.Empty;
+        }
+
         public bool ContainsAdventurer(string adventurerName)
         {
-            return partyMembers != null &&
-                   partyMembers.Any(member =>
-                       string.Equals(
-                           member.adventurerName,
-                           adventurerName,
-                           StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(adventurerName))
+            {
+                return false;
+            }
+
+            bool inParty = partyMembers != null &&
+                partyMembers.Any(member =>
+                    string.Equals(
+                        member.adventurerName,
+                        adventurerName,
+                        StringComparison.OrdinalIgnoreCase));
+            if (inParty)
+            {
+                return true;
+            }
+
+            return activeRuns != null &&
+                   activeRuns.Any(run =>
+                       run != null &&
+                       run.adventurerNames != null &&
+                       run.adventurerNames.Any(name =>
+                           string.Equals(
+                               name,
+                               adventurerName,
+                               StringComparison.OrdinalIgnoreCase)));
+        }
+
+        public bool HasCompletedBy(string adventurerName)
+        {
+            return completionHistory != null &&
+                   completionHistory.Any(record =>
+                       record != null &&
+                       record.adventurerNames != null &&
+                       record.adventurerNames.Any(name =>
+                           string.Equals(
+                               name,
+                               adventurerName,
+                               StringComparison.OrdinalIgnoreCase)));
+        }
+
+        public DeverQuestContractRunReservation FindActiveRun(
+            string runId)
+        {
+            if (string.IsNullOrWhiteSpace(runId) || activeRuns == null)
+            {
+                return null;
+            }
+
+            return activeRuns.FirstOrDefault(run =>
+                run != null && run.runId == runId);
+        }
+
+        public DeverQuestContractRunReservation FindActiveRunFor(
+            string adventurerName)
+        {
+            if (string.IsNullOrWhiteSpace(adventurerName) ||
+                activeRuns == null)
+            {
+                return null;
+            }
+
+            return activeRuns.FirstOrDefault(run =>
+                run != null &&
+                run.adventurerNames != null &&
+                run.adventurerNames.Any(name =>
+                    string.Equals(
+                        name,
+                        adventurerName,
+                        StringComparison.OrdinalIgnoreCase)));
         }
 
         public void InitializeFromProfile(
@@ -277,14 +456,99 @@ namespace EchoDevGames.DeverQuest
                 assignedAdventurer?.Trim() ?? string.Empty;
             maximumParticipants =
                 groupQuest
-                    ? Mathf.Max(2, maximumParticipants)
+                    ? Mathf.Max(1, maximumParticipants)
                     : 1;
+            minimumParticipants =
+                groupQuest
+                    ? Mathf.Clamp(
+                        minimumParticipants,
+                        1,
+                        maximumParticipants)
+                    : 1;
+            requiredCompletions = Mathf.Max(1, requiredCompletions);
+            if (availabilityPolicy ==
+                DeverQuestContractAvailabilityPolicy.SingleCompletion)
+            {
+                requiredCompletions = 1;
+            }
             partyMembers = partyMembers ??
                            new List<DeverQuestPartyMember>();
             assignedAdventurers = assignedAdventurers ??
                                   new List<string>();
             stageProgress = stageProgress ??
                             new List<DeverQuestPartyStageProgress>();
+            activeRuns = activeRuns ??
+                         new List<DeverQuestContractRunReservation>();
+            completionHistory = completionHistory ??
+                                new List<DeverQuestContractCompletionRecord>();
+            activeRuns.RemoveAll(run => run == null);
+            completionHistory.RemoveAll(record => record == null);
+            if (status == DeverQuestContractStatus.Completed &&
+                completionHistory.Count == 0 &&
+                availabilityPolicy ==
+                DeverQuestContractAvailabilityPolicy.SingleCompletion)
+            {
+                List<string> legacyAdventurers = partyMembers
+                    .Where(member =>
+                        member != null &&
+                        !string.IsNullOrWhiteSpace(
+                            member.adventurerName))
+                    .Select(member => member.adventurerName)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                if (legacyAdventurers.Count == 0 &&
+                    !string.IsNullOrWhiteSpace(assignedAdventurer))
+                {
+                    legacyAdventurers.Add(assignedAdventurer);
+                }
+
+                completionHistory.Add(
+                    new DeverQuestContractCompletionRecord
+                    {
+                        completionId = Guid.NewGuid().ToString("N"),
+                        completedUtc = string.Empty,
+                        adventurerNames = legacyAdventurers,
+                        developerNames = new List<string>()
+                    });
+            }
+            if (status == DeverQuestContractStatus.Completed &&
+                !IsBoardComplete)
+            {
+                status = DeverQuestContractStatus.Offered;
+            }
+            else if (IsBoardComplete)
+            {
+                status = DeverQuestContractStatus.Completed;
+            }
+            foreach (DeverQuestContractRunReservation run in activeRuns)
+            {
+                run.runId = run.runId?.Trim() ?? string.Empty;
+                run.startedUtc = run.startedUtc?.Trim() ?? string.Empty;
+                run.adventurerNames = run.adventurerNames ??
+                                      new List<string>();
+                run.developerNames = run.developerNames ??
+                                     new List<string>();
+            }
+            foreach (DeverQuestContractCompletionRecord record
+                     in completionHistory)
+            {
+                if (string.IsNullOrWhiteSpace(record.completionId))
+                {
+                    record.completionId = Guid.NewGuid().ToString("N");
+                }
+                record.sessionIds = record.sessionIds ??
+                                    new List<string>();
+                record.adventurerNames = record.adventurerNames ??
+                                         new List<string>();
+                record.developerNames = record.developerNames ??
+                                        new List<string>();
+                record.focusedMinutes =
+                    Math.Max(0d, record.focusedMinutes);
+                record.awardedCopper =
+                    Math.Max(0L, record.awardedCopper);
+                record.awardedExperience =
+                    Math.Max(0L, record.awardedExperience);
+            }
             if (!groupQuest && partyMembers.Count > 1)
             {
                 partyMembers.RemoveRange(

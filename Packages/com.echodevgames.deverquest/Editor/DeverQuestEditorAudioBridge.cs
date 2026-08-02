@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace EchoDevGames.DeverQuest
@@ -22,8 +23,11 @@ namespace EchoDevGames.DeverQuest
     /// per-clip transport controls. DeverQuest therefore snapshots both
     /// logical channels, stops the native preview transport, and rebuilds
     /// only the channels that should remain active after each user action.
-    /// This allows Music and Ambience to be controlled independently while
-    /// also preventing abandoned preview clips from accumulating.
+    ///
+    /// Unity's Inspector preview player uses the same native transport. This
+    /// bridge detects lost editor focus, native transport loss, and external
+    /// preview interruption, then rebuilds the DeverQuest channels without
+    /// discarding their logical playback state.
     /// </summary>
     [InitializeOnLoad]
     internal static class DeverQuestEditorAudioBridge
@@ -44,6 +48,7 @@ namespace EchoDevGames.DeverQuest
             BindingFlags.NonPublic;
 
         private const double CueCompletionGraceSeconds = 0.15d;
+        private const double NativeRecoveryDelaySeconds = 0.4d;
 
         private static readonly Type AudioUtilType =
             typeof(AudioImporter).Assembly.GetType("UnityEditor.AudioUtil");
@@ -66,6 +71,17 @@ namespace EchoDevGames.DeverQuest
                 method => method.GetParameters().Any(
                     parameter => parameter.ParameterType == typeof(float)));
 
+        private static readonly MethodInfo IsPlayingMethod =
+            FindMethod(
+                new[] { "IsPreviewClipPlaying", "IsClipPlaying" },
+                method =>
+                    method.ReturnType == typeof(bool) &&
+                    (method.GetParameters().Length == 0 ||
+                     method.GetParameters().Any(
+                         parameter =>
+                             parameter.ParameterType ==
+                             typeof(AudioClip))));
+
         private static readonly ChannelState MusicState =
             new ChannelState();
 
@@ -75,9 +91,16 @@ namespace EchoDevGames.DeverQuest
         private static AudioClip cueClip;
         private static bool cueActive;
         private static double cueExpectedEnd;
+        private static bool applicationWasActive;
+        private static bool transportSuspended;
+        private static bool recoveryInProgress;
+        private static double nativePlaybackMissingSince = -1d;
 
         static DeverQuestEditorAudioBridge()
         {
+            applicationWasActive =
+                InternalEditorUtility.isApplicationActive;
+
             EditorApplication.update -= Update;
             EditorApplication.update += Update;
 
@@ -98,6 +121,9 @@ namespace EchoDevGames.DeverQuest
 
         public static bool IndependentVolumeSupported =>
             PlayMethodAcceptsVolume;
+
+        public static bool NativePlaybackStatusSupported =>
+            IsPlayingMethod != null;
 
         /// <summary>
         /// DeverQuest can determine logical playback completion from the
@@ -142,17 +168,18 @@ namespace EchoDevGames.DeverQuest
             AudioClip clip,
             float volume)
         {
-            if (clip == null || !IsAvailable)
+            if (clip == null || !IsAvailable ||
+                !InternalEditorUtility.isApplicationActive)
             {
                 return false;
             }
 
-            // Rebuild the two long-form channels first. This removes an
-            // earlier cue or abandoned native preview clip without changing
-            // either channel's logical position.
             CapturePositions();
             ClearCue();
 
+            // Inspector audio previews share Unity's global preview
+            // transport. Rebuilding here clears any foreign preview before
+            // the warning cue is layered over DeverQuest audio.
             if (!RebuildNativeChannels())
             {
                 return false;
@@ -167,6 +194,17 @@ namespace EchoDevGames.DeverQuest
 
             if (InvokePlay(clip, 0, false, volume))
             {
+                nativePlaybackMissingSince = -1d;
+                return true;
+            }
+
+            // One hard retry helps Unity recover after its Inspector preview
+            // transport has been left in an unusual state.
+            StopAllNative();
+            if (RebuildNativeChannels() &&
+                InvokePlay(clip, 0, false, volume))
+            {
+                nativePlaybackMissingSince = -1d;
                 return true;
             }
 
@@ -211,6 +249,9 @@ namespace EchoDevGames.DeverQuest
             ChannelState state = GetState(channel);
             if (state.clip == null)
             {
+                // A foreign Inspector preview may still be occupying the
+                // native transport even when the logical channel is empty.
+                RecoverNativeTransport();
                 return false;
             }
 
@@ -221,12 +262,56 @@ namespace EchoDevGames.DeverQuest
             return true;
         }
 
-        public static void StopAll()
+        /// <summary>
+        /// Stops every native preview clip and clears both logical channels.
+        /// Use this as the emergency brake after testing audio in Unity's
+        /// Inspector or when the preview transport behaves unexpectedly.
+        /// </summary>
+        public static void ResetTransport()
         {
             StopAllNative();
             ClearState(MusicState);
             ClearState(AmbienceState);
             ClearCue();
+            transportSuspended = false;
+            nativePlaybackMissingSince = -1d;
+        }
+
+        /// <summary>
+        /// Reclaims Unity's native preview transport while preserving the
+        /// logical Music and Ambience selections and positions.
+        /// </summary>
+        public static bool RecoverNativeTransport()
+        {
+            if (!IsAvailable || recoveryInProgress)
+            {
+                return false;
+            }
+
+            if (!InternalEditorUtility.isApplicationActive)
+            {
+                transportSuspended = true;
+                return true;
+            }
+
+            try
+            {
+                recoveryInProgress = true;
+                CapturePositions();
+                ClearCue();
+                bool result = RebuildNativeChannels();
+                nativePlaybackMissingSince = -1d;
+                return result;
+            }
+            finally
+            {
+                recoveryInProgress = false;
+            }
+        }
+
+        public static void StopAll()
+        {
+            ResetTransport();
         }
 
         public static bool IsPlaying(
@@ -250,6 +335,11 @@ namespace EchoDevGames.DeverQuest
             DeverQuestEditorAudioChannel channel)
         {
             return GetState(channel).clip;
+        }
+
+        public static void SetGlobalVolume(float volume)
+        {
+            InvokeGlobalVolume(Mathf.Clamp01(volume));
         }
 
         public static void SetVolume(
@@ -293,6 +383,14 @@ namespace EchoDevGames.DeverQuest
             NormalizeCompletedChannels();
             StopAllNative();
 
+            if (!InternalEditorUtility.isApplicationActive)
+            {
+                transportSuspended = true;
+                ResetActiveStartTimes();
+                return true;
+            }
+
+            transportSuspended = false;
             bool success = true;
             double now = EditorApplication.timeSinceStartup;
 
@@ -315,6 +413,7 @@ namespace EchoDevGames.DeverQuest
                 InvokeGlobalVolume(active.volume);
             }
 
+            nativePlaybackMissingSince = -1d;
             return true;
         }
 
@@ -348,6 +447,11 @@ namespace EchoDevGames.DeverQuest
 
         private static void CapturePositions()
         {
+            if (transportSuspended)
+            {
+                return;
+            }
+
             double now = EditorApplication.timeSinceStartup;
             CapturePosition(MusicState, now);
             CapturePosition(AmbienceState, now);
@@ -390,6 +494,11 @@ namespace EchoDevGames.DeverQuest
 
         private static void NormalizeCompletedChannels()
         {
+            if (transportSuspended)
+            {
+                return;
+            }
+
             double now = EditorApplication.timeSinceStartup;
             NormalizeCompletedChannel(MusicState, now);
             NormalizeCompletedChannel(AmbienceState, now);
@@ -469,6 +578,20 @@ namespace EchoDevGames.DeverQuest
 
         private static void Update()
         {
+            bool applicationActive =
+                InternalEditorUtility.isApplicationActive;
+
+            if (applicationActive != applicationWasActive)
+            {
+                HandleApplicationActivityChanged(applicationActive);
+                applicationWasActive = applicationActive;
+            }
+
+            if (!applicationActive)
+            {
+                return;
+            }
+
             NormalizeCompletedChannels();
 
             if (cueActive &&
@@ -476,6 +599,101 @@ namespace EchoDevGames.DeverQuest
             {
                 ClearCue();
             }
+
+            if (cueActive ||
+                CountPlayingChannels() == 0 ||
+                IsPlayingMethod == null ||
+                recoveryInProgress)
+            {
+                nativePlaybackMissingSince = -1d;
+                return;
+            }
+
+            if (ExpectedNativePlaybackPresent())
+            {
+                nativePlaybackMissingSince = -1d;
+                return;
+            }
+
+            double now = EditorApplication.timeSinceStartup;
+            if (nativePlaybackMissingSince < 0d)
+            {
+                nativePlaybackMissingSince = now;
+                return;
+            }
+
+            if (now - nativePlaybackMissingSince >=
+                NativeRecoveryDelaySeconds)
+            {
+                RecoverNativeTransport();
+            }
+        }
+
+        private static void HandleApplicationActivityChanged(
+            bool applicationActive)
+        {
+            if (!applicationActive)
+            {
+                CapturePositions();
+                StopAllNative();
+                transportSuspended = true;
+                nativePlaybackMissingSince = -1d;
+                return;
+            }
+
+            if (!transportSuspended)
+            {
+                return;
+            }
+
+            transportSuspended = false;
+            ResetActiveStartTimes();
+            RebuildNativeChannels();
+        }
+
+        private static void ResetActiveStartTimes()
+        {
+            double now = EditorApplication.timeSinceStartup;
+            if (MusicState.clip != null && !MusicState.paused)
+            {
+                MusicState.startedAt = now;
+            }
+            if (AmbienceState.clip != null && !AmbienceState.paused)
+            {
+                AmbienceState.startedAt = now;
+            }
+        }
+
+        private static bool ExpectedNativePlaybackPresent()
+        {
+            if (IsPlayingMethod == null)
+            {
+                return true;
+            }
+
+            bool acceptsClip =
+                IsPlayingMethod.GetParameters().Any(
+                    parameter =>
+                        parameter.ParameterType == typeof(AudioClip));
+
+            if (!acceptsClip)
+            {
+                return InvokeIsPlaying(null);
+            }
+
+            if (IsLogicallyPlaying(MusicState) &&
+                !InvokeIsPlaying(MusicState.clip))
+            {
+                return false;
+            }
+
+            if (IsLogicallyPlaying(AmbienceState) &&
+                !InvokeIsPlaying(AmbienceState.clip))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static bool InvokePlay(
@@ -507,6 +725,31 @@ namespace EchoDevGames.DeverQuest
                     "[DeverQuest] Editor preview playback failed: " +
                     exception.GetBaseException().Message);
                 return false;
+            }
+        }
+
+        private static bool InvokeIsPlaying(AudioClip clip)
+        {
+            if (IsPlayingMethod == null)
+            {
+                return true;
+            }
+
+            try
+            {
+                object result = IsPlayingMethod.Invoke(
+                    null,
+                    BuildArguments(
+                        IsPlayingMethod,
+                        clip,
+                        0,
+                        false,
+                        1f));
+                return result is bool playing && playing;
+            }
+            catch
+            {
+                return true;
             }
         }
 
@@ -565,7 +808,7 @@ namespace EchoDevGames.DeverQuest
 
         private static void Shutdown()
         {
-            StopAll();
+            ResetTransport();
         }
 
         private static void ClearState(ChannelState state)

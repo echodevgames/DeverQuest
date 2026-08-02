@@ -27,9 +27,25 @@ namespace EchoDevGames.DeverQuest
         public string shopItemId = string.Empty;
         public string itemName = string.Empty;
         public DeverQuestShopItemType itemType;
+        public DeverQuestItemCategory itemCategory =
+            DeverQuestItemCategory.Unknown;
+        public string subcategory = string.Empty;
+        public List<string> tags = new List<string>();
         public DeverQuestItemRarity rarity;
         public DeverQuestItemBinding binding;
+        public bool droppable = true;
         public float unitWeight = 0.25f;
+        public int unitValueCopper;
+        public DeverQuestItemOriginKind originKind =
+            DeverQuestItemOriginKind.Unknown;
+        public string originSource = string.Empty;
+        public string originAcquiredUtc = string.Empty;
+        public string sourceContractId = string.Empty;
+        public string sourceRunId = string.Empty;
+        public string sourceEncounterId = string.Empty;
+        public string sourceMonsterId = string.Empty;
+        public string sourceMonsterName = string.Empty;
+        public string equipmentId = string.Empty;
         public DeverQuestTradeStatus status;
         public string offeredUtc = string.Empty;
         public string resolvedUtc = string.Empty;
@@ -77,6 +93,9 @@ namespace EchoDevGames.DeverQuest
             }
             if (entry == null || entry.quantity <= 0 ||
                 !entry.tradable ||
+                entry.questProtected ||
+                entry.itemCategory ==
+                DeverQuestItemCategory.QuestItem ||
                 entry.itemType == DeverQuestShopItemType.Redemption ||
                 entry.binding == DeverQuestItemBinding.BindOnPickup ||
                 entry.binding == DeverQuestItemBinding.AccountBound ||
@@ -117,9 +136,24 @@ namespace EchoDevGames.DeverQuest
                 shopItemId = entry.shopItemId,
                 itemName = entry.displayName,
                 itemType = entry.itemType,
+                itemCategory = entry.itemCategory,
+                subcategory = entry.subcategory,
+                tags = new List<string>(
+                    entry.tags ?? new List<string>()),
                 rarity = entry.rarity,
                 binding = entry.binding,
+                droppable = entry.droppable,
                 unitWeight = entry.unitWeight,
+                unitValueCopper = entry.unitValueCopper,
+                originKind = entry.originKind,
+                originSource = entry.originSource,
+                originAcquiredUtc = entry.originAcquiredUtc,
+                sourceContractId = entry.sourceContractId,
+                sourceRunId = entry.sourceRunId,
+                sourceEncounterId = entry.sourceEncounterId,
+                sourceMonsterId = entry.sourceMonsterId,
+                sourceMonsterName = entry.sourceMonsterName,
+                equipmentId = entry.equipmentId,
                 status = DeverQuestTradeStatus.Offered,
                 offeredUtc = DateTime.UtcNow.ToString("O")
             };
@@ -163,12 +197,28 @@ namespace EchoDevGames.DeverQuest
                     shopItemId = trade.shopItemId,
                     displayName = trade.itemName,
                     itemType = trade.itemType,
+                    itemCategory = trade.itemCategory,
+                    subcategory = trade.subcategory,
+                    tags = new List<string>(
+                        trade.tags ?? new List<string>()),
                     rarity = trade.rarity,
                     binding = trade.binding,
                     tradable = true,
+                    droppable = trade.droppable,
                     acquiredUtc = DateTime.UtcNow.ToString("O"),
                     acquisitionSource =
                         $"Trade from {trade.fromName}",
+                    originKind = trade.originKind,
+                    originSource = trade.originSource,
+                    originAcquiredUtc = trade.originAcquiredUtc,
+                    sourceContractId = trade.sourceContractId,
+                    sourceRunId = trade.sourceRunId,
+                    sourceEncounterId = trade.sourceEncounterId,
+                    sourceMonsterId = trade.sourceMonsterId,
+                    sourceMonsterName = trade.sourceMonsterName,
+                    equipmentId = trade.equipmentId,
+                    unitValueCopper =
+                        Math.Max(0, trade.unitValueCopper),
                     unitWeight = Math.Max(0f, trade.unitWeight),
                     quantity = 1
                 };
@@ -222,11 +272,27 @@ namespace EchoDevGames.DeverQuest
                     shopItemId = trade.shopItemId,
                     displayName = trade.itemName,
                     itemType = trade.itemType,
+                    itemCategory = trade.itemCategory,
+                    subcategory = trade.subcategory,
+                    tags = new List<string>(
+                        trade.tags ?? new List<string>()),
                     rarity = trade.rarity,
                     binding = trade.binding,
                     tradable = true,
+                    droppable = trade.droppable,
                     acquiredUtc = DateTime.UtcNow.ToString("O"),
                     acquisitionSource = "Trade escrow return",
+                    originKind = trade.originKind,
+                    originSource = trade.originSource,
+                    originAcquiredUtc = trade.originAcquiredUtc,
+                    sourceContractId = trade.sourceContractId,
+                    sourceRunId = trade.sourceRunId,
+                    sourceEncounterId = trade.sourceEncounterId,
+                    sourceMonsterId = trade.sourceMonsterId,
+                    sourceMonsterName = trade.sourceMonsterName,
+                    equipmentId = trade.equipmentId,
+                    unitValueCopper =
+                        Math.Max(0, trade.unitValueCopper),
                     unitWeight = Math.Max(0f, trade.unitWeight),
                     quantity = 1
                 };

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a59974490688c4f3d2dc605324d9bdae, type: 3}
+  m_Name: GuildQuartermaster
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestShopProfile
+  displayName: Guild Quartermaster
+  welcomeMessage: Provisions, rest, potions, and sanctioned breaks for working Adventurers.
+  closedMessage: The Quartermaster is currently away from the counter.
+  shopOpen: 1
+  availableToMembers: 1
+  allowPurchases: 1
+  buyItemsFromMembers: 1
+  leadershipApprovalThresholdCopper: 0
+  items:
+  - {fileID: 11400000, guid: 53d8c90579bc1654789d3631d3ec513b, type: 2}
+  - {fileID: 11400000, guid: a818e265591a38248ac2b8f7927d8013, type: 2}
+  - {fileID: 11400000, guid: 98cc47b2667964c43aac65189adb51c2, type: 2}
+  - {fileID: 11400000, guid: 42f177a51a7799a43bda8ae2232d1260, type: 2}
+  - {fileID: 11400000, guid: eb22e8683bbbf0543940ec7149de4100, type: 2}
+  - {fileID: 11400000, guid: aa7f488247259284d9f1b39084c6e996, type: 2}
+  - {fileID: 11400000, guid: ee676ef1189a51c419d316558a6ca678, type: 2}

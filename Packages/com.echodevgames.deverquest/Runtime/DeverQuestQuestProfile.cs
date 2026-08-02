@@ -26,6 +26,7 @@ namespace EchoDevGames.DeverQuest
         public string department = "Programming";
         [TextArea(3, 8)]
         public string goalTemplate = string.Empty;
+        [InspectorName("Predicted Task Length (Minutes)")]
         public int suggestedFocusMinutes = 50;
 
         [Header("Spoils")]

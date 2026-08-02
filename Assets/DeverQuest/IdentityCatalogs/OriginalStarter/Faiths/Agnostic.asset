@@ -13,12 +13,13 @@ MonoBehaviour:
   m_Name: Agnostic
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestDeity
   identityId: 0a5e5d6101b74072b801d86f5e817f78
-  displayName: 
-  lore: 
-  allowsAgnosticFollowers: 0
-  alignment: 0
+  displayName: Agnostic
+  lore: No declared patron; conscience and Guild oath guide the Adventurer.
+  allowsAgnosticFollowers: 1
+  alignment: 4
   allowedAlignments: 
-  domains: []
+  domains:
+  - Freedom
   favoredClassIds: []
   restrictedAncestryIds: []
-  grantedTrait: 
+  grantedTrait: Freedom Devotion

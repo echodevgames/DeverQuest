@@ -1,5 +1,299 @@
 # Changelog
 
+## [0.31.9] - 2026-08-01
+
+### Fixed
+
+- Fixed a compilation error in `DeverQuestTimecardWriter` where the Battle Chronicle referenced an `adventurer` variable outside its scope.
+- Passed the current Adventurer explicitly into Session rendering so combat summaries use stable report context and safely fall back to the Session developer name.
+- Updated package, readiness, and Beta health-report version declarations to 0.31.9.
+
+## [0.31.8] - 2026-08-01
+
+### Added
+
+- Beta Administration workspace.
+- Bulk validation for Quest Profiles, Contracts, Identity Catalogs, Companions, Encounters, Shops, audio profiles, and Starter Loadouts.
+- Duplicate stable-ID and Quest Run/Completion ID diagnostics.
+- Safe repairs for null list entries, missing Catalog defaults, incomplete linked Contracts, and refreshable reward snapshots.
+- Deferred, GUI-safe starter generator repair pass.
+- Exportable Markdown and JSON Beta health reports.
+- Beta content health integration in Release Readiness.
+
+### Changed
+
+- Package version advanced to 0.31.8 Beta 1.
+
+## [0.31.7] - 2026-08-01
+
+### Added
+
+- Wellness Command Center in Audio & Wellness.
+- Persistent active, queued, and snoozed reminder state.
+- Local searchable Wellness notification history under `Library/DeverQuest`.
+- Quiet Hours end time and optional session-reminder suppression.
+- Reminder queue management and 5/default/30-minute snooze actions.
+- Manual cue tests for every wellness reminder category.
+- Quest HUD wellness status and reminder actions.
+- Release Readiness check for Wellness History storage and settings.
+
+### Changed
+
+- Multiple simultaneous reminder conditions queue instead of being silently skipped.
+- Approved Break outcomes are copied into local notification history while remaining in the Session Wellness Journal.
+- Reminder and break timing are visible from the Command Center and Quest HUD.
+- Daily reminder handling and snoozes survive assembly reloads and Editor restarts.
+
+### Guardrails
+
+- Local notification history never replaces Timecards or Session Wellness Journal evidence.
+- Test reminders do not advance real reminder schedules or award benefits.
+- Quiet-hour suppression advances the due session reminder without creating an endless one-second retry loop.
+- Clearing the local history does not alter Chronicle or Timecard records.
+
+## [0.31.6] - 2026-08-01
+
+### Added
+
+- Hidden Editor-only AudioSource host in an Editor preview scene.
+- Separate Music, Ambience, and warning/SFX sources.
+- Local Master, Music, Ambience, and cue mixer controls.
+- Per-channel and Master mute controls.
+- Optional long-form ducking during warning and SFX cues.
+- Audio focus, Play Mode, and output-device recovery.
+- Active transport status, host reinitialization, and mixer reset controls.
+- Release Readiness check for independent audio mixing.
+
+### Changed
+
+- Playlist, Ambience, and cue playback now route through the supported host when available.
+- Unity's internal Inspector preview bridge remains as a compatibility fallback rather than the preferred transport.
+- Audio workspace warnings now identify the active transport and fallback limitations.
+- Audio preferences remain local and do not alter shared Guild or Quest data.
+
+### Guardrails
+
+- The host is hidden, unsaved, and explicitly destroyed on assembly reload or Editor shutdown.
+- Switching transport stops current audio rather than attempting unsafe live migration.
+- Host failure clears stale playback state before entering fallback mode.
+- No audio media is included in the package.
+
+## [0.31.5] - 2026-08-01
+
+### Added
+
+- Dedicated Git workspace and menu command, separate from the live Quest Log.
+- Dockable Quest HUD sharing the active DeverQuest Session, timer, pause, break, turn-in, Encounter, and Chronicle services.
+- Optional automatic Quest HUD opening when a local Quest starts.
+- Visuals workspace with persistent local theme, custom colors, text scale, workspace-column, compact-label, header, guidance, and HUD controls.
+- User-facing workspace guidance and stronger no-active-Quest navigation.
+- Release Readiness reporting for the local Editor workspace configuration.
+
+### Changed
+
+- Workspace tabs are arranged by workflow rather than enum order and can use two to six columns.
+- Quest Log now focuses on notes, commit links, external activity, media, Encounters, and live evidence.
+- Git commit messages no longer reuse the Quest Log note field.
+- Chronicle navigation now offers separate Quest Log and Git actions.
+- Compact View includes a direct Quest HUD button.
+- Focus Stage wording in the Quest Log is presented as Encounter wording.
+
+### Guardrails
+
+- The Quest HUD uses the existing active Session and does not create a second timer, reward path, Contract run, or Chronicle.
+- Visual settings are local presentation data and do not modify Guild, Quest, reward, or Timecard records.
+- Git operations remain explicit and never force-push.
+- Saved named Visual Profile assets, portraits, and complete per-panel styling remain deferred polish.
+
+## [0.31.4] - 2026-08-01
+
+### Added
+
+- Dedicated Chronicle workspace and menu command for active Quest events and completed Quest navigation.
+- Live Quest Chronicle combining story, objective, current Encounter, timer state, rewards, notes, media, wellness, external activity, and tactical events.
+- Searchable completed Quest archive with filters for Contract runs, rewards, commits, media, and combat.
+- Expandable completed-Quest cards containing rewards, Git/Quest notes, attachments, tactical results, closing notes, and a chronological event timeline.
+- Direct Timecard open/reveal, Contract selection, Run ID copy, summary copy, and correction-request navigation.
+- Release Readiness validation for duplicate Session IDs, missing generated Timecards, and missing attachment paths.
+
+### Changed
+
+- The main Quest workspace now shows a compact recent-event feed with a direct Chronicle shortcut.
+- The empty Quest Log workspace now routes users toward the completed Chronicle instead of ending at a dead panel.
+- Active Chronicle repainting follows running Quests.
+
+### Guardrails
+
+- The Chronicle workspace reads existing Session and Timecard data; it does not create rewards, focused time, or new Quest runs.
+- Missing media files are reported without deleting the recorded attachment metadata.
+- Correction approval and compensation reporting remain in Rewards & History.
+
+## [0.31.3] - 2026-08-01
+
+### Added
+
+- Dedicated Guild Economy workspace and menu command.
+- Persistent local economy transaction ledger for purchases, sales, grants, denomination exchange, approvals, denials, and fulfillment.
+- Audited leadership item and coin grants with recipient, quantity, note, and balance history.
+- Merchant availability controls for opening, member access, purchases, member sales, and automatic leadership-approval thresholds.
+- Searchable transaction filters and CSV export.
+- Release Readiness validation for the active Quartermaster and economy-ledger IDs.
+
+### Changed
+
+- Guild Shop purchases now enforce the active Shop Profile and its availability rules.
+- Inventory sales now require an active Quartermaster that buys member items.
+- Coin denomination exchange reports physical pieces before and after while preserving canonical copper value.
+- Purchase approvals, denials, sales, grants, and fulfillment now create dedicated economy records in addition to Guild audit entries.
+
+### Guardrails
+
+- Real-world redemptions cannot be bypassed through leadership item grants.
+- Leadership grants require confirmation and never silently auto-equip equipment.
+- Selling remains blocked during active Quests and for protected, equipped, or zero-value items.
+- Banking, loans, crafting markets, player auctions, and housing storage remain deferred.
+
+## [0.31.2] - 2026-08-01
+
+### Added
+
+- Dedicated Inventory and Equipment workspace.
+- Durable item categories, subcategories, tags, lore, provenance, and resale metadata.
+- Equipment-family metadata and side-by-side equipped-item comparison.
+- Guarded Equip, Unequip, exact-entry Use, Sell, and Drop operations.
+- Carry-load breakdown for inventory weight, coin weight, remaining capacity, and load status.
+- Inventory integrity checks in Release Readiness.
+- Quest Run, Encounter, monster, Guild Shop, trade, starter-loadout, and migration provenance.
+- Repair action for legacy equipped gear that lacks an inventory ownership record.
+
+### Changed
+
+- Guild Shop cards now show category, resale value, equipment comparison, and projected encumbrance.
+- Encounter loot and trades preserve item identity and origin details.
+- Starter equipment is represented in the pack before it is equipped.
+- Timecards summarize inventory categories, origins, and carry-load composition.
+- Adventurer persistence schema advanced to data version 9.
+
+### Guardrails
+
+- Quest-protected items cannot be dropped or traded.
+- Equipped items must be unequipped before dropping or selling.
+- Guild Hall sales are blocked during an active Quest.
+- Crafting, banking, housing, and broad skill progression remain deferred.
+
+## [0.31.1] - 2026-08-01
+
+### Added
+
+- Added a dedicated Tactics workspace and menu command.
+- Added combat-readiness reporting for Adventurer vitals, armor, load, status effects, equipment, actions, and the active Encounter.
+- Added quick Companion activation, stable dismissal, individual recovery, and confirmed full-roster recovery.
+- Added a persistent local Battle Archive capped at the newest 100 Battle Results.
+- Added Battle Archive search and outcome filters for victory, early victory, safety pause, defeat, and Survival.
+- Added report, JSON, Encounter Profile, and record-removal actions to archived battles.
+- Added import of Battle Results from the active and last-completed Sessions without duplicate records.
+- Added a Release Readiness write/delete probe for the Tactical Archive.
+
+### Changed
+
+- New resolved Encounters automatically write a Battle Archive record in addition to the Session and Timecard.
+- Active Quest repainting now includes the Tactics workspace.
+- Updated package metadata and Beta guidance for Tactical Operations.
+
+### Compatibility
+
+- Existing Timecards and Sessions remain unchanged.
+- Existing 0.31.0 Battle Results may be imported from the active or last-completed Session.
+- The local Battle Archive uses a project-local Library file and is not a replacement for Timecards or shared Guild records.
+
+## [0.31.0] - 2026-08-01
+
+### Added
+
+- Tactical Field Reports with compact outcome, damage, condition, Companion, loot, and recent-turn summaries.
+- Full combat-log copy controls while keeping the visible Quest interface compact.
+- Tactical Encounter preview before a staged battle resolves.
+- Companion lifetime damage, healing, damage-taken, win-rate, and last-battle reporting.
+- Survival expedition milestone visibility for next wave, difficulty tier, wagon timing, and exit state.
+- Persistent Survival exit method and summary in Sessions, Timecards, and Guild audit.
+
+### Changed
+
+- Timecards now lead with compact combat highlights and place the full turn-by-turn log in a collapsible details block.
+- Battle reward wording is presented as Rewards rather than Spoils in the new tactical reports.
+- Companion Stable cards now explain contribution rather than only level and Hit Points.
+
+### Compatibility
+
+- Existing Battle Results remain readable; summaries are derived from their stored damage, action, and combat-log events.
+- Existing Companions begin with zero lifetime contribution metrics and accumulate them from battles resolved under 0.31.0 or later.
+
+## [0.30.9] - 2026-08-01
+
+### Added
+
+- Quest Run Management in Guild Hall.
+- Searchable Completed Quest Run Archive in Rewards & History.
+- Leadership cancellation of stale run reservations and waiting Party rosters.
+- Contract archive/restore controls.
+- Release Readiness check for stale or invalid Quest Run reservations.
+
+### Changed
+
+- Archived Contracts are hidden from the Member Assignment Board while preserving completion history.
+- The 0.30.8 repeatable-Contract checklist is retained as deferred regression rather than marked complete.
+
+## [0.30.8] - 2026-08-01
+
+### Added
+
+- Added one-time, limited-completion, and repeatable Contract availability policies.
+- Added independent Quest Run reservations so reusable solo Contracts can remain on the Assignment Board while different Adventurers complete separate runs.
+- Added durable per-Contract completion history recording run IDs, Adventurers, developers, sessions, focused time, coin, XP, and completion timestamps.
+- Added optional one-completion-per-Adventurer enforcement for limited team assignments.
+- Added Party minimum size and full-party-required controls.
+- Added automatic board lifecycle handling: one-time Contracts close after one run, limited Contracts close at their target, and repeatable Contracts reopen after each run.
+- Added Assignment Board availability, completion counts, last completer, and Party start-rule feedback.
+- Added Quest Run IDs to generated Timecards.
+
+### Changed
+
+- Quest completion now records a run directly instead of leaving every completed assignment waiting in the Contract-level Submitted/Approved pipeline.
+- Abandoning a Quest releases its run reservation and reopens the Contract when appropriate.
+- Partial Party Quests may begin once their configured minimum is met; full-party Contracts still require maximum capacity.
+
+### Compatibility
+
+- Existing Contracts migrate as one-time Contracts with one required completion.
+- Existing status, reward snapshots, party fields, and Contract IDs are preserved.
+
+## [0.30.7] - 2026-08-01
+
+### Fixed
+
+- Reclaimed Music, Ambience, and warning playback after Unity Inspector preview
+  actions or editor-focus changes, with manual Recover and full Reset controls.
+- Added direct Music and Ambience track selectors without discarding the other
+  logical channel.
+- Repaired the only active Guild account to CEO and stopped character-sheet
+  synchronization from demoting account authority.
+- Added a controlled current-character customization path and a five-silver
+  starting purse for newly completed Adventurers.
+- Moved automatic Git status observation off Unity's main update thread so a
+  slow repository or locked Git process cannot freeze the Editor monitor loop.
+- Added clear Quest-acceptance blocking reasons, Party Quest waiting feedback,
+  and pre-start party withdrawal.
+- Displayed Quest Story during selection and active work, presented Focus Stages
+  as Encounters, and supplied fallback Encounter names in sessions and timecards.
+- Displayed recommended and minimum qualifying Approved Break durations.
+- Added compact reward values directly to Guild Assignment Board entries.
+
+### Readiness
+
+- Added sole-founder Guild-authority validation.
+- Added a timecard Git-hygiene advisory when Chronicles and voice memos are stored
+  inside the project repository without an explicit `.gitignore` rule.
+
 ## [0.30.6] - 2026-07-31
 
 ### Fixed

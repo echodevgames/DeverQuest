@@ -10,7 +10,7 @@ namespace EchoDevGames.DeverQuest
     [Serializable]
     internal sealed class DeverQuestAdventurer
     {
-        public int dataVersion = 1;
+        public int dataVersion = 9;
         public string characterName = string.Empty;
         public string guildName = "Isekai Studios";
         public string guildRank = "Member";
@@ -181,7 +181,7 @@ namespace EchoDevGames.DeverQuest
             }
             DeverQuestIdentityCatalogService.Migrate(this);
             DeverQuestAdventurerService.EnsureCoinPurseValue(this);
-            dataVersion = 8;
+            dataVersion = 9;
         }
 
         private static int ClampAbility(int value)
@@ -476,8 +476,29 @@ namespace EchoDevGames.DeverQuest
 
         public static void ExchangeCoinAtGuildHall()
         {
-            NormalizeCoinPurse(Adventurer);
+            ExchangeCoinAtGuildHall(out _, out _);
+        }
+
+        public static bool ExchangeCoinAtGuildHall(
+            out long piecesBefore,
+            out long piecesAfter)
+        {
+            DeverQuestAdventurer target = Adventurer;
+            piecesBefore =
+                Math.Max(0L, target.platinumCoins) +
+                Math.Max(0L, target.goldCoins) +
+                Math.Max(0L, target.silverCoins) +
+                Math.Max(0L, target.copperCoins);
+            NormalizeCoinPurse(target);
+            piecesAfter =
+                Math.Max(0L, target.platinumCoins) +
+                Math.Max(0L, target.goldCoins) +
+                Math.Max(0L, target.silverCoins) +
+                Math.Max(0L, target.copperCoins);
             Save();
+            DeverQuestEconomyService.RecordDenominationExchange(
+                piecesBefore, piecesAfter);
+            return piecesAfter < piecesBefore;
         }
 
         public static long CoinPieceCount(

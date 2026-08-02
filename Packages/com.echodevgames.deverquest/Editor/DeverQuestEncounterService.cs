@@ -271,6 +271,12 @@ namespace EchoDevGames.DeverQuest
             result.typedDamageSummary =
                 DeverQuestDamageService.DescribeBattle(
                     result.damageEvents);
+            if (companion != null)
+            {
+                DeverQuestCombatSummaryService.RecordCompanionBattle(
+                    companion,
+                    result);
+            }
             if (copper > 0L || experience > 0L)
             {
                 DeverQuestProgressionResult progression =
@@ -302,6 +308,9 @@ namespace EchoDevGames.DeverQuest
             result.carriedWeight =
                 DeverQuestEncumbranceService.CarriedWeight(adventurer);
             session.battleResults.Add(result);
+            DeverQuestTacticalArchiveService.Record(
+                session,
+                result);
             DeverQuestGuildAccountService.AddAudit(
                 victory
                     ? "Encounter Victory"
@@ -337,6 +346,74 @@ namespace EchoDevGames.DeverQuest
             return encounter == null
                 ? Math.Max(1, stage?.focusedMinutesRequired ?? 15)
                 : Math.Max(1, encounter.survivalWaveMinutes);
+        }
+
+        public static string EncounterDisplayName(
+            DeverQuestSessionStage stage)
+        {
+            DeverQuestEncounterProfile encounter =
+                FindEncounter(stage?.encounterProfileId);
+            return encounter == null ||
+                   string.IsNullOrWhiteSpace(encounter.displayName)
+                ? string.IsNullOrWhiteSpace(stage?.stageTitle)
+                    ? "Encounter"
+                    : stage.stageTitle
+                : encounter.displayName;
+        }
+
+        public static string DescribeEncounter(
+            DeverQuestSessionStage stage)
+        {
+            DeverQuestEncounterProfile encounter =
+                FindEncounter(stage?.encounterProfileId);
+            if (encounter == null)
+            {
+                return "No tactical Encounter Profile is assigned.";
+            }
+            int monsterCount = (encounter.waves ??
+                                new List<DeverQuestEncounterWave>())
+                .Where(value => value != null && value.monster != null)
+                .Sum(value => Math.Max(1, value.count));
+            string mode = encounter.encounterMode ==
+                          DeverQuestEncounterMode.Survival
+                ? "Survival"
+                : "Fixed";
+            return $"{mode} · {monsterCount} configured foe" +
+                   (monsterCount == 1 ? string.Empty : "s") +
+                   $" · Par {Math.Max(1, encounter.parRounds)} rounds · " +
+                   $"Victory bonus " +
+                   $"{DeverQuestAdventurerService.FormatCoins(encounter.victoryCopperBonus)} " +
+                   $"+ {encounter.victoryExperienceBonus} XP";
+        }
+
+        public static string DescribeSurvivalProgress(
+            DeverQuestSessionStage stage)
+        {
+            DeverQuestEncounterProfile encounter =
+                FindEncounter(stage?.encounterProfileId);
+            if (encounter == null)
+            {
+                return $"Wave {Math.Max(0, stage?.survivalWave ?? 0)} · " +
+                       "Survival profile unavailable.";
+            }
+            int completedWaves = Math.Max(0, stage?.survivalWave ?? 0);
+            int difficultyEvery = Math.Max(
+                1,
+                encounter.difficultyIncreaseEveryWaves);
+            int wagonEvery = Math.Max(1, encounter.wagonOfferEveryWaves);
+            int currentTier = completedWaves / difficultyEvery;
+            int wavesToTier = difficultyEvery -
+                              completedWaves % difficultyEvery;
+            int wavesToWagon = wagonEvery -
+                               completedWaves % wagonEvery;
+            return $"Next wave {completedWaves + 1} · " +
+                   $"Difficulty tier {currentTier} · " +
+                   $"Tier increases in {wavesToTier} wave" +
+                   (wavesToTier == 1 ? string.Empty : "s") +
+                   $" · Guild wagon in {wavesToWagon} wave" +
+                   (wavesToWagon == 1 ? string.Empty : "s") +
+                   $" · {Math.Max(1, encounter.survivalWaveMinutes)} " +
+                   "focused minutes per wave";
         }
 
         public static bool Resurrect(out string message)
@@ -853,6 +930,23 @@ namespace EchoDevGames.DeverQuest
                 experience += Math.Max(0, drop.experience);
                 if (drop.equipment != null)
                 {
+                    DeverQuestSession activeSession =
+                        DeverQuestSessionStore.ActiveSession;
+                    DeverQuestInventoryService.AddEquipmentAsset(
+                        adventurer.inventory,
+                        drop.equipment,
+                        DeverQuestGuildAccountService
+                            .CurrentAccount?.accountId ??
+                        string.Empty,
+                        DeverQuestItemOriginKind.EncounterLoot,
+                        "Encounter Loot",
+                        activeSession?.questContractId ??
+                        string.Empty,
+                        activeSession?.questContractRunId ??
+                        string.Empty,
+                        result.encounterId,
+                        monster.MonsterId,
+                        monster.displayName);
                     DeverQuestRulesService.Equip(
                         adventurer, drop.equipment);
                 }
@@ -865,45 +959,23 @@ namespace EchoDevGames.DeverQuest
                 }
                 if (drop.shopItem != null)
                 {
-                    bool unique =
-                        drop.shopItem.itemType ==
-                        DeverQuestShopItemType.Equipment ||
-                        drop.shopItem.rarity >=
-                        DeverQuestItemRarity.Rare;
-                    DeverQuestInventoryEntry entry = unique
-                        ? null
-                        : adventurer.inventory.FirstOrDefault(
-                            item =>
-                                item.shopItemId ==
-                                drop.shopItem.ShopItemId);
-                    if (entry == null)
-                    {
-                        entry = new DeverQuestInventoryEntry
-                        {
-                            shopItemId =
-                                drop.shopItem.ShopItemId,
-                            displayName =
-                                drop.shopItem.displayName,
-                            itemType = drop.shopItem.itemType,
-                            rarity = drop.shopItem.rarity,
-                            binding = drop.shopItem.binding,
-                            tradable = drop.shopItem.tradable,
-                            acquiredUtc =
-                                DateTime.UtcNow.ToString("O"),
-                            acquisitionSource = "Encounter Loot"
-                            ,
-                            unitWeight =
-                                drop.shopItem.equipment == null
-                                    ? drop.shopItem.unitWeight
-                                    : drop.shopItem.equipment.weight
-                        };
-                        adventurer.inventory.Add(entry);
-                    }
-                    entry.quantity++;
-                    entry.EnsureOwnership(
+                    DeverQuestSession activeSession =
+                        DeverQuestSessionStore.ActiveSession;
+                    DeverQuestInventoryService.AddItem(
+                        adventurer.inventory,
+                        drop.shopItem,
                         DeverQuestGuildAccountService
                             .CurrentAccount?.accountId ??
-                        string.Empty);
+                        string.Empty,
+                        DeverQuestItemOriginKind.EncounterLoot,
+                        "Encounter Loot",
+                        activeSession?.questContractId ??
+                        string.Empty,
+                        activeSession?.questContractRunId ??
+                        string.Empty,
+                        result.encounterId,
+                        monster.MonsterId,
+                        monster.displayName);
                 }
                 result.loot.Add(
                     string.IsNullOrWhiteSpace(drop.displayName)

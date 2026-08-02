@@ -17,6 +17,27 @@ namespace EchoDevGames.DeverQuest
         Luck = 8
     }
 
+    public enum DeverQuestEquipmentFamily
+    {
+        Unknown = 0,
+        Armor = 1,
+        Sword = 2,
+        Axe = 3,
+        Mace = 4,
+        Hammer = 5,
+        Dagger = 6,
+        Staff = 7,
+        Wand = 8,
+        Spear = 9,
+        Polearm = 10,
+        Bow = 11,
+        Shield = 12,
+        Tool = 13,
+        Trinket = 14,
+        Clothing = 15,
+        Other = 16
+    }
+
     public enum DeverQuestEquipmentSlot
     {
         Helm = 0,
@@ -51,7 +72,15 @@ namespace EchoDevGames.DeverQuest
         public string displayName = "New Equipment";
         [TextArea(2, 5)]
         public string description = string.Empty;
+        [Header("Classification")]
         public DeverQuestEquipmentSlot slot;
+        public DeverQuestEquipmentFamily equipmentFamily =
+            DeverQuestEquipmentFamily.Unknown;
+        public bool twoHanded;
+        public string requiredSkillId = string.Empty;
+        public List<string> tags = new List<string>();
+
+        [Header("Rules")]
         public int armorClassBonus;
         public DeverQuestAbility abilityBonusType;
         public int abilityBonus;
@@ -83,6 +112,15 @@ namespace EchoDevGames.DeverQuest
             copperValue = Mathf.Max(0, copperValue);
             weight = Mathf.Max(0f, weight);
             damageDice = damageDice?.Trim() ?? string.Empty;
+            requiredSkillId =
+                requiredSkillId?.Trim() ?? string.Empty;
+            tags = tags ?? new List<string>();
+            tags.RemoveAll(value =>
+                string.IsNullOrWhiteSpace(value));
+            for (int index = 0; index < tags.Count; index++)
+            {
+                tags[index] = tags[index].Trim();
+            }
             damageAffinities = damageAffinities ??
                                new List<DeverQuestDamageAffinity>();
         }
@@ -94,6 +132,15 @@ namespace EchoDevGames.DeverQuest
             copperValue = Mathf.Max(0, copperValue);
             weight = Mathf.Max(0f, weight);
             damageDice = damageDice?.Trim() ?? string.Empty;
+            requiredSkillId =
+                requiredSkillId?.Trim() ?? string.Empty;
+            tags = tags ?? new List<string>();
+            tags.RemoveAll(value =>
+                string.IsNullOrWhiteSpace(value));
+            for (int index = 0; index < tags.Count; index++)
+            {
+                tags[index] = tags[index].Trim();
+            }
             damageAffinities = damageAffinities ??
                                new List<DeverQuestDamageAffinity>();
         }

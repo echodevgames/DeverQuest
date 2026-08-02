@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "01_Quest_1_Full_Package_Verification.md",
+                "file": "Documentation~/DeverQuest_0.30.7_Beta_Test_Checklist.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "01_Quest_1_Full_Package_Verification"
+              "title": "DeverQuest_0.30.7_Beta_Test_Checklist"
             }
           }
         ]
@@ -41,7 +41,9 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -185,21 +187,37 @@
   },
   "active": "3a8818b5833442e2",
   "lastOpenFiles": [
-    "Chronicles/Records/1b6b7d85ca074ea89b1824e054801b40/2026-07-31/88ad7f79189a4568bdd3bd12cb8c14b6.guildquest.json",
-    "Chronicles/Adventurers/1b6b7d85ca074ea89b1824e054801b40.adventurer.json",
-    "Chronicles/Records/1b6b7d85ca074ea89b1824e054801b40/2026-07-31/ee7ddd847deb493ebc30ead9f3d249da.guildquest.json",
-    "Chronicles/Records/1b6b7d85ca074ea89b1824e054801b40/2026-07-31",
-    "Chronicles/Records/1b6b7d85ca074ea89b1824e054801b40",
-    "Chronicles/Adventurers",
-    "Chronicles/Records",
-    "Chronicles",
+    "SharedGuildRepo/Adventurers/df8d407dcaf845438b88eabaa52f0763.adventurer.json.1881e3b64e034f968a7aeec9a48eac29.tmp",
+    "SharedGuildRepo/Adventurers/df8d407dcaf845438b88eabaa52f0763.adventurer.json",
+    "SharedGuildRepo/Records/df8d407dcaf845438b88eabaa52f0763/2026-08-01/4b0e66ff7a864f4289b9ece459675da3.guildquest.json",
+    "SharedGuildRepo/Records/df8d407dcaf845438b88eabaa52f0763/2026-08-01",
+    "SharedGuildRepo/Records/df8d407dcaf845438b88eabaa52f0763",
+    "SharedGuildRepo/Adventurers",
+    "SharedGuildRepo/Records",
+    "SharedGuildRepo",
     "New folder",
-    "DeverQuestTimecards/Peacebaby313/2026-07-30_Peacebaby313_Timecard.md",
-    "DeverQuestTimecards/Peacebaby313/2026-07-30_Peacebaby313_Timecard.deverquest.json.audit.json",
-    "DeverQuestTimecards/Peacebaby313/2026-07-30_Peacebaby313_Timecard.deverquest.json",
+    "Documentation~/DeverQuest_0.24.2_Content_Organization.md",
+    "Documentation~/DeverQuest_0.25.0_Identity_Catalogs.md",
+    "Documentation~/DeverQuest_0.24.1_Performance_Checklist.md",
+    "Documentation~/DeverQuest_0.24.0_Regression_Checklist.md",
+    "Documentation~/DeverQuest_0.22.0_Regression_Checklist.md",
+    "Documentation~/DeverQuest_0.21.1_Regression_Checklist.md",
+    "11_SECURITY.md",
+    "04_Guild_Admin_Guide.md",
+    "03_Adventurer_User_Guide.md",
+    "02_Quick_Start.md",
+    "01_Quest_1_Full_Package_Verification.md",
+    "00_Documentation_Index.md",
+    "Templates/Test_Run_Summary_Template.md",
+    "Templates/Release_Notes_Template.md",
+    "Templates/Quest_Content_Review_Template.md",
+    "Templates/Bug_Report_Template.md",
+    "Templates/Admin_Onboarding_Checklist.md",
     "DeverQuestTimecards/EchoDev/2026-07-31_EchoDev_Timecard.md",
-    "DeverQuestTimecards/EchoDev/2026-07-30_EchoDev_Timecard_Chronicle_02.md",
     "DeverQuestTimecards/EchoDev/2026-07-30_EchoDev_Timecard.md",
-    "00_Documentation_Index.md"
+    "DeverQuestTimecards/EchoDev/2026-07-30_EchoDev_Timecard_Chronicle_02.md",
+    "DeverQuestTimecards/Peacebaby313/2026-07-30_Peacebaby313_Timecard.md",
+    "Chronicles/Records/1b6b7d85ca074ea89b1824e054801b40/2026-07-31/88ad7f79189a4568bdd3bd12cb8c14b6.guildquest.json",
+    "Chronicles/Adventurers/1b6b7d85ca074ea89b1824e054801b40.adventurer.json"
   ]
 }

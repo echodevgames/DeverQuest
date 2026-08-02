@@ -21,8 +21,8 @@ MonoBehaviour:
   usesMana: 1
   supportsCompanion: 1
   companionTradition: Bound Minion
-  starterCompanion: {fileID: 0}
-  abilityProfile: {fileID: 0}
+  starterCompanion: {fileID: 11400000, guid: 2c84de0b1e9b2e047843a46129036bb4, type: 2}
+  abilityProfile: {fileID: 11400000, guid: dc55ad3c1eb57284bba3833ea5b4683c, type: 2}
   strength: 8
   dexterity: 14
   constitution: 14

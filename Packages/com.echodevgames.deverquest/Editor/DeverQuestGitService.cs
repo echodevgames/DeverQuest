@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -50,17 +51,32 @@ namespace EchoDevGames.DeverQuest
 
         public static DeverQuestGitStatus Refresh()
         {
-            string projectRoot = Path.GetFullPath(
+            ResolveRoots(
+                out string projectRoot,
+                out string searchRoot);
+            return RefreshResolved(projectRoot, searchRoot);
+        }
+
+        internal static void ResolveRoots(
+            out string projectRoot,
+            out string searchRoot)
+        {
+            projectRoot = Path.GetFullPath(
                 Path.Combine(Application.dataPath, ".."));
             string configuredRoot =
                 DeverQuestSettingsStore.Profile
                     .gitRepositoryOverridePath;
-            string searchRoot =
+            searchRoot =
                 !string.IsNullOrWhiteSpace(configuredRoot) &&
                 Directory.Exists(configuredRoot)
                     ? configuredRoot
                     : projectRoot;
+        }
 
+        internal static DeverQuestGitStatus RefreshResolved(
+            string projectRoot,
+            string searchRoot)
+        {
             DeverQuestGitResult rootResult = Run(
                 searchRoot,
                 "rev-parse",
@@ -445,6 +461,7 @@ namespace EchoDevGames.DeverQuest
             "EchoDevGames.DeverQuest.Git.ObservedHead";
 
         private static double nextCheckTime;
+        private static Task<DeverQuestGitStatus> pendingRefresh;
         public static DeverQuestGitStatus LatestStatus
         {
             get;
@@ -478,6 +495,25 @@ namespace EchoDevGames.DeverQuest
 
         private static void Update()
         {
+            if (pendingRefresh != null)
+            {
+                if (!pendingRefresh.IsCompleted)
+                {
+                    return;
+                }
+
+                Task<DeverQuestGitStatus> completed = pendingRefresh;
+                pendingRefresh = null;
+
+                if (completed.IsFaulted || completed.IsCanceled)
+                {
+                    return;
+                }
+
+                ProcessBackgroundStatus(completed.Result);
+                return;
+            }
+
             if (EditorApplication.timeSinceStartup < nextCheckTime)
             {
                 return;
@@ -491,50 +527,60 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
 
-            if (!DeverQuestGitService.TryGetHeadSnapshot(
-                    out string repositoryRoot,
-                    out string headHash))
+            DeverQuestGitService.ResolveRoots(
+                out string projectRoot,
+                out string searchRoot);
+
+            // Git commands can wait on credential helpers, antivirus, large
+            // repositories, or another Git process. Running the automatic
+            // monitor off Unity's main thread prevents EditorApplication
+            // update from freezing the entire Editor.
+            pendingRefresh = Task.Run(() =>
+                DeverQuestGitService.RefreshResolved(
+                    projectRoot,
+                    searchRoot));
+        }
+
+        private static void ProcessBackgroundStatus(
+            DeverQuestGitStatus status)
+        {
+            if (status == null || !status.IsRepository)
             {
+                LatestStatus = status;
                 return;
             }
 
+            LatestStatus = status;
             string observedRepository =
                 EditorPrefs.GetString(RepositoryKey, string.Empty);
             string observedHead =
                 EditorPrefs.GetString(HeadKey, string.Empty);
 
-            if (observedRepository != repositoryRoot ||
+            if (observedRepository != status.RepositoryRoot ||
                 string.IsNullOrWhiteSpace(observedHead))
             {
-                DeverQuestGitStatus status =
-                    DeverQuestGitService.Refresh();
-                LatestStatus = status;
                 MarkObserved(status);
                 TryRecordFirstCommitDuringQuest(status);
                 return;
             }
 
-            if (observedHead == headHash)
+            if (observedHead == status.HeadHash)
             {
                 return;
             }
 
-            DeverQuestGitStatus changedStatus =
-                DeverQuestGitService.Refresh();
-            LatestStatus = changedStatus;
-            MarkObserved(changedStatus);
-
+            MarkObserved(status);
             if (DeverQuestSessionStore.HasActiveSession)
             {
                 string subject = string.IsNullOrWhiteSpace(
-                    changedStatus.HeadSubject)
+                    status.HeadSubject)
                     ? "Git commit detected"
-                    : changedStatus.HeadSubject;
+                    : status.HeadSubject;
 
                 DeverQuestSessionStore.AddCommitEntry(
                     subject,
-                    changedStatus.Branch,
-                    changedStatus.ShortHash,
+                    status.Branch,
+                    status.ShortHash,
                     "Git Commit");
             }
         }

@@ -68,9 +68,10 @@ namespace EchoDevGames.DeverQuest
         public static DeverQuestAmbienceProfile AmbienceProfile =>
             ambienceProfile;
         public static AudioClip CurrentAmbience => ambienceClip;
+        public static int AmbienceIndex => ambienceIndex;
         public static bool AmbiencePlaying =>
             ambienceClip != null &&
-            DeverQuestEditorAudioBridge.IsPlaying(
+            DeverQuestAudioTransport.IsPlaying(
                 DeverQuestEditorAudioChannel.Ambience);
 
         public static void SetWarningProfile(
@@ -94,9 +95,58 @@ namespace EchoDevGames.DeverQuest
         {
             AudioClip clip = ClipFor(cue);
             return clip != null &&
-                   DeverQuestEditorAudioBridge.PlayCue(
+                   DeverQuestAudioTransport.PlayCue(
                        clip,
                        warningProfile.volume);
+        }
+
+        public static void SelectAmbience(int index)
+        {
+            if (ambienceProfile == null ||
+                ambienceProfile.ambienceClips == null ||
+                ambienceProfile.ambienceClips.Count == 0)
+            {
+                return;
+            }
+
+            index = Math.Max(
+                0,
+                Math.Min(
+                    ambienceProfile.ambienceClips.Count - 1,
+                    index));
+            if (index == ambienceIndex)
+            {
+                return;
+            }
+
+            bool resumePlayback = AmbiencePlaying;
+            StopAmbience();
+            ambienceIndex = index;
+            EditorPrefs.SetInt(
+                AmbienceIndexKey, ambienceIndex);
+
+            if (resumePlayback)
+            {
+                PlayAmbience();
+            }
+        }
+
+        public static bool RecoverAudioTransport()
+        {
+            return DeverQuestAudioTransport
+                .Recover();
+        }
+
+        public static void ResetAllAudio()
+        {
+            DeverQuestAudioTransport.ResetAll();
+            ambienceClip = null;
+            DeverQuestPlaylistPlayer.ClearPlaybackState();
+        }
+
+        internal static void ClearAmbiencePlaybackState()
+        {
+            ambienceClip = null;
         }
 
         public static void PlayAmbience()
@@ -135,7 +185,7 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
             bool started =
-                DeverQuestEditorAudioBridge.Play(
+                DeverQuestAudioTransport.Play(
                     DeverQuestEditorAudioChannel.Ambience,
                     ambienceClip,
                     true,
@@ -152,7 +202,7 @@ namespace EchoDevGames.DeverQuest
         {
             if (ambienceClip != null)
             {
-                DeverQuestEditorAudioBridge.Stop(
+                DeverQuestAudioTransport.Stop(
                     DeverQuestEditorAudioChannel.Ambience);
             }
             ambienceClip = null;
@@ -193,7 +243,7 @@ namespace EchoDevGames.DeverQuest
             if (ambienceClip != null &&
                 ambienceProfile != null)
             {
-                DeverQuestEditorAudioBridge.SetVolume(
+                DeverQuestAudioTransport.SetVolume(
                     DeverQuestEditorAudioChannel.Ambience,
                     ambienceProfile.volume);
             }

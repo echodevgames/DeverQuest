@@ -283,6 +283,78 @@ namespace EchoDevGames.DeverQuest
             return true;
         }
 
+        public static int RecoveryCost(
+            DeverQuestCompanionState state)
+        {
+            DeverQuestCompanionProfile profile =
+                FindProfile(state?.profileId);
+            if (state == null || profile == null)
+            {
+                return 0;
+            }
+            int maximumHitPoints =
+                MaximumHitPoints(state, profile);
+            return state.isFallen ||
+                   state.currentHitPoints < maximumHitPoints
+                ? Math.Max(0, profile.recoveryCopperCost)
+                : 0;
+        }
+
+        public static bool RecoverAll(out string message)
+        {
+            message = string.Empty;
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            List<DeverQuestCompanionState> targets =
+                (adventurer.companions ??
+                 new List<DeverQuestCompanionState>())
+                .Where(state =>
+                {
+                    DeverQuestCompanionProfile profile =
+                        FindProfile(state?.profileId);
+                    return state != null &&
+                           profile != null &&
+                           (state.isFallen ||
+                            state.currentHitPoints <
+                            MaximumHitPoints(state, profile));
+                })
+                .ToList();
+            if (targets.Count == 0)
+            {
+                message = "Every Companion is already ready.";
+                return false;
+            }
+
+            int totalCost = targets.Sum(RecoveryCost);
+            if (totalCost > 0 &&
+                !DeverQuestAdventurerService.SpendCopper(
+                    totalCost,
+                    out message))
+            {
+                return false;
+            }
+
+            foreach (DeverQuestCompanionState state in targets)
+            {
+                DeverQuestCompanionProfile profile =
+                    FindProfile(state.profileId);
+                state.isFallen = false;
+                state.currentHitPoints =
+                    MaximumHitPoints(state, profile);
+                state.loyalty = Math.Max(1, state.loyalty - 1);
+            }
+            DeverQuestAdventurerService.Save();
+            DeverQuestGuildAccountService.AddAudit(
+                "Companion Roster Recovered",
+                $"{targets.Count} Companion(s)",
+                DeverQuestAdventurerService.FormatCoins(totalCost));
+            message =
+                $"Recovered {targets.Count} Companion" +
+                (targets.Count == 1 ? string.Empty : "s") +
+                $" for {DeverQuestAdventurerService.FormatCoins(totalCost)}.";
+            return true;
+        }
+
         public static void CompleteBattle(
             DeverQuestCompanionState state,
             bool encounterVictory,

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -87,6 +89,14 @@ namespace EchoDevGames.DeverQuest
                         $"Starter {material.ToLowerInvariant()} equipment " +
                         $"for the {ReadableSlot(slot)} slot.";
                     item.slot = slot;
+                    item.equipmentFamily =
+                        DefaultEquipmentFamily(slot);
+                    item.tags = new List<string>
+                    {
+                        "Starter Gear",
+                        material,
+                        ReadableSlot(slot)
+                    };
                     item.materialTier = material;
                     int tier = System.Array.IndexOf(
                         materials, material) + 1;
@@ -284,6 +294,16 @@ namespace EchoDevGames.DeverQuest
             item.description =
                 $"A Guild-approved {displayName.ToLowerInvariant()}.";
             item.itemType = itemType;
+            item.itemCategory =
+                DeverQuestInventoryEntry.InferCategory(itemType);
+            item.subcategory = itemType.ToString();
+            item.tags = new List<string>
+            {
+                "Starter",
+                "Quartermaster"
+            };
+            item.merchantSellValueCopper =
+                Math.Max(0, copperCost / 2);
             item.copperCost = copperCost;
             item.hungerChange = hunger;
             item.restChange = rest;
@@ -295,6 +315,30 @@ namespace EchoDevGames.DeverQuest
             if (!profile.items.Contains(item))
             {
                 profile.items.Add(item);
+            }
+        }
+
+        private static DeverQuestEquipmentFamily
+            DefaultEquipmentFamily(
+                DeverQuestEquipmentSlot slot)
+        {
+            switch (slot)
+            {
+                case DeverQuestEquipmentSlot.MainHand:
+                    return DeverQuestEquipmentFamily.Sword;
+                case DeverQuestEquipmentSlot.OffHand:
+                    return DeverQuestEquipmentFamily.Shield;
+                case DeverQuestEquipmentSlot.Trinket:
+                case DeverQuestEquipmentSlot.Neck:
+                case DeverQuestEquipmentSlot.EarLeft:
+                case DeverQuestEquipmentSlot.EarRight:
+                case DeverQuestEquipmentSlot.RingLeft:
+                case DeverQuestEquipmentSlot.RingRight:
+                    return DeverQuestEquipmentFamily.Trinket;
+                case DeverQuestEquipmentSlot.Shirt:
+                    return DeverQuestEquipmentFamily.Clothing;
+                default:
+                    return DeverQuestEquipmentFamily.Armor;
             }
         }
 

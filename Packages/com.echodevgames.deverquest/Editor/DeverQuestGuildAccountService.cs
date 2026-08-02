@@ -68,7 +68,7 @@ namespace EchoDevGames.DeverQuest
         public bool isFallen;
         public int defeats;
         public string homeDepartment = "Programming";
-        public bool characterCreationComplete = true;
+        public bool characterCreationComplete;
         public List<string> proficientSaves = new List<string>();
         public List<string> statusEffects = new List<string>();
         public List<string> equippedEquipmentIds = new List<string>();
@@ -96,7 +96,7 @@ namespace EchoDevGames.DeverQuest
     [Serializable]
     internal sealed class DeverQuestGuildAccountCollection
     {
-        public int dataVersion = 9;
+        public int dataVersion = 10;
         public List<DeverQuestGuildAccount> accounts =
             new List<DeverQuestGuildAccount>();
     }
@@ -138,6 +138,7 @@ namespace EchoDevGames.DeverQuest
         {
             Load();
             EnsureLegacyFounder();
+            RepairSoleAccountAuthorityAndOnboarding();
         }
 
         public static IReadOnlyList<DeverQuestGuildAccount> Accounts =>
@@ -166,6 +167,12 @@ namespace EchoDevGames.DeverQuest
         public static bool RequiresPasscodeSetup =>
             CurrentAccount != null &&
             string.IsNullOrWhiteSpace(CurrentAccount.passwordHash);
+
+        public static bool NeedsCharacterCreation =>
+            CurrentAccount != null &&
+            (!CurrentAccount.characterCreationComplete ||
+             string.IsNullOrWhiteSpace(
+                 CurrentAccount.characterName));
 
         public static bool HasPermission(
             DeverQuestGuildPermission permission,
@@ -283,10 +290,6 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
             account.developerName = developerName;
-            if (string.IsNullOrWhiteSpace(account.characterName))
-            {
-                account.characterName = developerName;
-            }
             Save();
         }
 
@@ -455,7 +458,8 @@ namespace EchoDevGames.DeverQuest
                 error = "Authenticate before creating an Adventurer.";
                 return false;
             }
-            if (account.characterCreationComplete)
+            if (account.characterCreationComplete &&
+                !string.IsNullOrWhiteSpace(account.characterName))
             {
                 error = "This Adventurer has already been created.";
                 return false;
@@ -487,7 +491,7 @@ namespace EchoDevGames.DeverQuest
                     characterName = characterName,
                     guildName = account.guildName,
                     guildRank = account.guildRank,
-                    level = 1
+                    level = Math.Max(1, account.level)
                 };
             DeverQuestIdentityCatalogService.ApplyIdentityFoundation(
                 foundation,
@@ -510,6 +514,12 @@ namespace EchoDevGames.DeverQuest
             account.alignment = foundation.alignment;
             account.homeDepartment = foundation.homeDepartment;
             CopyRules(foundation, account);
+
+            // A new Adventurer begins with five silver. Existing Beta
+            // progression is preserved and only topped up when below the
+            // starting purse.
+            account.copperBalance = Math.Max(500L, account.copperBalance);
+            NormalizeAccountCoinPurse(account);
             account.characterCreationComplete = true;
             Save();
             SelectAccount(account);
@@ -517,6 +527,40 @@ namespace EchoDevGames.DeverQuest
                 $"{account.ancestryName} · {account.characterClass} · " +
                 $"{account.alignment} · {account.deityName} · " +
                 $"{account.homeDepartment}");
+            return true;
+        }
+
+        public static bool ReopenCurrentCharacterCreation(
+            out string error)
+        {
+            error = string.Empty;
+            DeverQuestGuildAccount account = CurrentAccount;
+            if (account == null || !IsAuthenticated)
+            {
+                error = "Authenticate before editing an Adventurer.";
+                return false;
+            }
+            if (!HasPermission(DeverQuestGuildPermission.ManageGuild))
+            {
+                error =
+                    "Only a Boss or CEO can reopen character creation.";
+                return false;
+            }
+            if (DeverQuestSessionStore.HasActiveSession)
+            {
+                error =
+                    "Complete or abandon the active Quest before changing " +
+                    "the Adventurer identity.";
+                return false;
+            }
+
+            account.characterCreationComplete = false;
+            Save();
+            AddAudit(
+                "Character Creation Reopened",
+                account.developerName,
+                "Identity may be rebuilt; level, XP, coin, inventory, and " +
+                "ledger history remain attached to the Guild account.");
             return true;
         }
 
@@ -540,6 +584,26 @@ namespace EchoDevGames.DeverQuest
                 }
                 foreach (DeverQuestEquipment item in loadout.equipment)
                 {
+                    if (item == null)
+                    {
+                        continue;
+                    }
+                    bool alreadyCarried =
+                        (target.inventory ??
+                         new List<DeverQuestInventoryEntry>())
+                        .Any(value =>
+                            value != null &&
+                            value.equipmentId == item.EquipmentId &&
+                            value.quantity > 0);
+                    if (!alreadyCarried)
+                    {
+                        DeverQuestInventoryService.AddEquipmentAsset(
+                            target.inventory,
+                            item,
+                            CurrentAccount?.accountId ?? string.Empty,
+                            DeverQuestItemOriginKind.StarterLoadout,
+                            "Starter Loadout");
+                    }
                     DeverQuestRulesService.Equip(target, item);
                 }
                 foreach (DeverQuestSpell spell in loadout.spells)
@@ -572,7 +636,10 @@ namespace EchoDevGames.DeverQuest
             account.deityName = adventurer.deityName;
             account.deityId = adventurer.deityId;
             account.alignment = adventurer.alignment;
-            account.guildRank = adventurer.guildRank;
+            // Guild authority belongs to the account, not the RPG
+            // character sheet. Never allow a legacy Member value on the
+            // Adventurer to demote the only CEO during progression sync.
+            adventurer.guildRank = account.guildRank;
             account.level = adventurer.level;
             account.currentExperience = adventurer.currentExperience;
             account.lifetimeExperience = adventurer.lifetimeExperience;
@@ -654,6 +721,8 @@ namespace EchoDevGames.DeverQuest
                     deityId = old.deityId,
                     alignment = old.alignment,
                     guildRank = "CEO",
+                    characterCreationComplete =
+                        !string.IsNullOrWhiteSpace(old.characterName),
                     level = old.level,
                     currentExperience = old.currentExperience,
                     lifetimeExperience = old.lifetimeExperience,
@@ -669,8 +738,81 @@ namespace EchoDevGames.DeverQuest
             collection.accounts.Add(founder);
             EditorPrefs.SetString(CurrentAccountKey, founder.accountId);
             Save();
+            SelectAccount(founder);
             AddAudit("Legacy Migration", founder.developerName,
                 "Existing Adventurer migrated as the founding CEO.");
+        }
+
+        private static void RepairSoleAccountAuthorityAndOnboarding()
+        {
+            List<DeverQuestGuildAccount> activeAccounts =
+                collection.accounts
+                    .Where(account => account != null && !account.disabled)
+                    .ToList();
+            if (activeAccounts.Count != 1)
+            {
+                return;
+            }
+
+            DeverQuestGuildAccount founder = activeAccounts[0];
+            bool authorityRepaired =
+                !string.Equals(
+                    founder.guildRank,
+                    "CEO",
+                    StringComparison.OrdinalIgnoreCase);
+            bool onboardingRepaired =
+                string.IsNullOrWhiteSpace(founder.characterName) &&
+                founder.characterCreationComplete;
+
+            if (authorityRepaired)
+            {
+                founder.guildRank = "CEO";
+            }
+            if (onboardingRepaired)
+            {
+                founder.characterCreationComplete = false;
+            }
+
+            string currentId = EditorPrefs.GetString(
+                CurrentAccountKey, string.Empty);
+            bool selectionRepaired = currentId != founder.accountId;
+            if (selectionRepaired)
+            {
+                EditorPrefs.SetString(
+                    CurrentAccountKey, founder.accountId);
+            }
+
+            if (!authorityRepaired &&
+                !onboardingRepaired &&
+                !selectionRepaired)
+            {
+                return;
+            }
+
+            Save();
+            SelectAccount(founder);
+            AddAudit(
+                "Sole Founder Repaired",
+                founder.developerName,
+                "The only active Guild account was restored as CEO and " +
+                "prepared for character onboarding when necessary.");
+        }
+
+        private static void NormalizeAccountCoinPurse(
+            DeverQuestGuildAccount account)
+        {
+            if (account == null)
+            {
+                return;
+            }
+
+            long total = Math.Max(0L, account.copperBalance);
+            account.platinumCoins = total / 1000000L;
+            total %= 1000000L;
+            account.goldCoins = total / 10000L;
+            total %= 10000L;
+            account.silverCoins = total / 100L;
+            account.copperCoins = total % 100L;
         }
 
         private static void SelectAccount(DeverQuestGuildAccount account)
@@ -819,6 +961,15 @@ namespace EchoDevGames.DeverQuest
                 itemType = source == null
                     ? DeverQuestShopItemType.Consumable
                     : source.itemType,
+                itemCategory = source == null
+                    ? DeverQuestItemCategory.Unknown
+                    : source.itemCategory,
+                subcategory =
+                    source?.subcategory ?? string.Empty,
+                tags = source == null
+                    ? new List<string>()
+                    : new List<string>(
+                        source.tags ?? new List<string>()),
                 quantity = Math.Max(0, source?.quantity ?? 0),
                 ownershipId =
                     source?.ownershipId ?? string.Empty,
@@ -831,10 +982,34 @@ namespace EchoDevGames.DeverQuest
                 boundAccountId =
                     source?.boundAccountId ?? string.Empty,
                 tradable = source == null || source.tradable,
+                droppable = source == null || source.droppable,
+                questProtected =
+                    source != null && source.questProtected,
                 acquiredUtc =
                     source?.acquiredUtc ?? string.Empty,
                 acquisitionSource =
                     source?.acquisitionSource ?? string.Empty,
+                originKind = source == null
+                    ? DeverQuestItemOriginKind.Unknown
+                    : source.originKind,
+                originSource =
+                    source?.originSource ?? string.Empty,
+                originAcquiredUtc =
+                    source?.originAcquiredUtc ?? string.Empty,
+                sourceContractId =
+                    source?.sourceContractId ?? string.Empty,
+                sourceRunId =
+                    source?.sourceRunId ?? string.Empty,
+                sourceEncounterId =
+                    source?.sourceEncounterId ?? string.Empty,
+                sourceMonsterId =
+                    source?.sourceMonsterId ?? string.Empty,
+                sourceMonsterName =
+                    source?.sourceMonsterName ?? string.Empty,
+                equipmentId =
+                    source?.equipmentId ?? string.Empty,
+                unitValueCopper =
+                    Math.Max(0, source?.unitValueCopper ?? 0),
                 unitWeight = Math.Max(
                     0f, source?.unitWeight ?? 0.25f)
             };
@@ -876,6 +1051,19 @@ namespace EchoDevGames.DeverQuest
                     victories = Math.Max(
                         0,
                         source?.victories ?? 0),
+                    lifetimeDamageDealt = Math.Max(
+                        0L,
+                        source?.lifetimeDamageDealt ?? 0L),
+                    lifetimeDamageTaken = Math.Max(
+                        0L,
+                        source?.lifetimeDamageTaken ?? 0L),
+                    lifetimeHealingDone = Math.Max(
+                        0L,
+                        source?.lifetimeHealingDone ?? 0L),
+                    lastBattleSummary =
+                        source?.lastBattleSummary ?? string.Empty,
+                    lastBattleUtc =
+                        source?.lastBattleUtc ?? string.Empty,
                     recruitedUtc =
                         source?.recruitedUtc ?? string.Empty
                 };
@@ -1073,17 +1261,24 @@ namespace EchoDevGames.DeverQuest
                     foreach (DeverQuestGuildAccount account
                              in collection.accounts)
                     {
-                        long total =
-                            Math.Max(0L, account.copperBalance);
-                        account.platinumCoins =
-                            total / 1000000L;
-                        total %= 1000000L;
-                        account.goldCoins = total / 10000L;
-                        total %= 10000L;
-                        account.silverCoins = total / 100L;
-                        account.copperCoins = total % 100L;
+                        NormalizeAccountCoinPurse(account);
                     }
                     collection.dataVersion = 9;
+                    Save();
+                }
+                if (collection.dataVersion < 10)
+                {
+                    foreach (DeverQuestGuildAccount account
+                             in collection.accounts)
+                    {
+                        if (account != null &&
+                            string.IsNullOrWhiteSpace(
+                                account.characterName))
+                        {
+                            account.characterCreationComplete = false;
+                        }
+                    }
+                    collection.dataVersion = 10;
                     Save();
                 }
             }

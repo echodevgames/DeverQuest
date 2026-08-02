@@ -14,15 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: cc1c77837dcb4889a2add10d2edcb96e
   contractTitle: FiveMinuteChallengeQuest
-  status: 4
+  status: 3
   priority: 1
   createdBy: EchoDev
   assignedAdventurer: 
   openToAnyMember: 1
   minimumAdventurerLevel: 1
   dueDate: 8/01/26
+  archived: 0
+  availabilityPolicy: 0
+  requiredCompletions: 1
+  oneCompletionPerAdventurer: 0
   groupQuest: 0
+  minimumParticipants: 1
   maximumParticipants: 1
+  requireFullParty: 1
   assignedAdventurers: []
   partyMembers:
   - adventurerName: 
@@ -31,7 +37,21 @@ MonoBehaviour:
     joinedUtc: 2026-08-01T03:36:48.7658016Z
     submitted: 1
     submittedUtc: 2026-08-01T03:42:53.2349689Z
+    sessionId: 
+    focusedMinutes: 0
+    awardedCopper: 0
+    awardedExperience: 0
   stageProgress: []
+  activePartyRunId: 
+  activeRuns:
+  - runId: 4dd0640f12b94f57a811ab26f99a1326
+    startedUtc: 2026-08-02T02:43:32.5140269Z
+    groupRun: 0
+    adventurerNames:
+    - Ajnaag
+    developerNames:
+    - EchoDev
+  completionHistory: []
   questStory: A gentle stroll in the woods will help calm the nerves...
   restrictToClasses: 0
   eligibleClassDefinitions: []

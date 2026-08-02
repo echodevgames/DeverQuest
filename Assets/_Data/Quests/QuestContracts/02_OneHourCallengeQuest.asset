@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: 57dde95097ab4b3c89d646a72cb2a105
   contractTitle: OneHourChallengeQuest
-  status: 3
+  status: 1
   priority: 0
   createdBy: EchoDev
   assignedAdventurer: 
@@ -48,7 +48,7 @@ MonoBehaviour:
   groupBonusExperience: 0
   focusStages:
   - stageId: e36940e919184bc5871fdf66aa525e2c
-    stageTitle: 
+    stageTitle: Encounter
     workObjective: 
     focusedMinutesRequired: 1
     assignedPartyRole: 

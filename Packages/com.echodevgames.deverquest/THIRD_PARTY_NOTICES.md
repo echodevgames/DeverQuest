@@ -1,11 +1,11 @@
 # DeverQuest Third-Party Notices
 
-**Package version:** 0.30.6 Beta 1
+**Package version:** 0.31.1 Beta 1
 
 ## Bundled third-party media
 
 No third-party music, ambience, warning sound, image, font, or other media file
-is bundled in the DeverQuest 0.30.6 package tarball. DeverQuest provides fields
+is bundled in the DeverQuest 0.31.1 package tarball. DeverQuest provides fields
 that allow project administrators to assign their own Unity assets.
 
 ## Local development and test media

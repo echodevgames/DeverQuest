@@ -21,8 +21,8 @@ MonoBehaviour:
   usesMana: 1
   supportsCompanion: 1
   companionTradition: Animal Companion
-  starterCompanion: {fileID: 0}
-  abilityProfile: {fileID: 0}
+  starterCompanion: {fileID: 11400000, guid: edb5bc7c9563d6145b1ee2d488a1463f, type: 2}
+  abilityProfile: {fileID: 11400000, guid: 2dcf6ef6d9983a341955e913b591890b, type: 2}
   strength: 10
   dexterity: 16
   constitution: 14

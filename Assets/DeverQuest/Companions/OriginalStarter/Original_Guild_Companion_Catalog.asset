@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d7c944cad01f118dd54c6df57c477d6, type: 3}
+  m_Name: Original_Guild_Companion_Catalog
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestCompanionCatalog
+  displayName: Original Guild Companion Stable
+  description: Commercially clean starter Companions for DeverQuest's supported traditions.
+  companions:
+  - {fileID: 11400000, guid: 2c84de0b1e9b2e047843a46129036bb4, type: 2}
+  - {fileID: 11400000, guid: edb5bc7c9563d6145b1ee2d488a1463f, type: 2}
+  - {fileID: 11400000, guid: 7a5f1ac3294432049b643e56a8076911, type: 2}
+  - {fileID: 11400000, guid: d90ec27d1579f9e48bf122dd1643649f, type: 2}
+  - {fileID: 11400000, guid: 38c2ed07fb53d4b42a0e24f9e39efd21, type: 2}

@@ -22,7 +22,7 @@ MonoBehaviour:
   supportsCompanion: 0
   companionTradition: 
   starterCompanion: {fileID: 0}
-  abilityProfile: {fileID: 0}
+  abilityProfile: {fileID: 11400000, guid: 19503b7357d3f534ebbcfce11527e4f7, type: 2}
   strength: 16
   dexterity: 10
   constitution: 14

@@ -341,10 +341,13 @@ namespace EchoDevGames.DeverQuest
                 $"- **Ending Coin Purse:** " +
                 DeverQuestAdventurerService.FormatCoins(
                     adventurer.copperBalance));
+            DeverQuestCarrySummary carry =
+                DeverQuestEncumbranceService.Summary(adventurer);
             builder.AppendLine(
                 $"- **Carry Weight:** " +
-                $"{DeverQuestEncumbranceService.CarriedWeight(adventurer):0.0} / " +
-                $"{DeverQuestEncumbranceService.CarryCapacity(adventurer):0.0}");
+                $"{carry.TotalWeight:0.0} / {carry.Capacity:0.0} " +
+                $"({carry.Status}; inventory {carry.InventoryWeight:0.0}, " +
+                $"coin {carry.CoinWeight:0.0})");
             builder.AppendLine(
                 $"- **Inventory:** " +
                 (adventurer.inventory.Count == 0
@@ -353,7 +356,9 @@ namespace EchoDevGames.DeverQuest
                         ", ",
                         adventurer.inventory.Select(
                             item =>
-                                $"{item.displayName} ×{item.quantity}"))));
+                                $"{item.displayName} ×{item.quantity} " +
+                                $"[{item.itemCategory}; " +
+                                $"{(string.IsNullOrWhiteSpace(item.originSource) ? item.acquisitionSource : item.originSource)}]"))));
             if (totalRewardMinutes > 0d)
             {
                 builder.AppendLine(
@@ -365,7 +370,11 @@ namespace EchoDevGames.DeverQuest
 
             for (int index = 0; index < record.sessions.Count; index++)
             {
-                AppendSession(builder, record.sessions[index], index + 1);
+                AppendSession(
+                    builder,
+                    record.sessions[index],
+                    index + 1,
+                    adventurer);
             }
 
             AppendCorrections(builder, corrections);
@@ -451,7 +460,8 @@ namespace EchoDevGames.DeverQuest
         private static void AppendSession(
             StringBuilder builder,
             DeverQuestSession session,
-            int sessionNumber)
+            int sessionNumber,
+            DeverQuestAdventurer adventurer)
         {
             DateTime start =
                 DeverQuestSessionStore.GetLocalStartTime(session);
@@ -483,6 +493,13 @@ namespace EchoDevGames.DeverQuest
                 builder.AppendLine(
                     $"- **Quest Contract:** " +
                     $"{Escape(session.questContractTitle)}");
+                if (!string.IsNullOrWhiteSpace(
+                        session.questContractRunId))
+                {
+                    builder.AppendLine(
+                        $"- **Quest Run:** " +
+                        $"`{Escape(session.questContractRunId)}`");
+                }
                 builder.AppendLine(
                     $"- **Contract Creator:** " +
                     $"{Escape(session.questContractCreator)}");
@@ -551,14 +568,14 @@ namespace EchoDevGames.DeverQuest
                 session.questStages.Count > 0)
             {
                 builder.AppendLine();
-                builder.AppendLine("### Focus Stages");
+                builder.AppendLine("### Encounters");
                 builder.AppendLine();
                 foreach (DeverQuestSessionStage stage
                          in session.questStages)
                 {
                     builder.AppendLine(
                         $"- **{(stage.completed ? "Completed" : "Open")}: " +
-                        $"{Escape(stage.stageTitle)}** · " +
+                        $"{Escape(string.IsNullOrWhiteSpace(stage.stageTitle) ? "Encounter" : stage.stageTitle)}** · " +
                         $"{stage.focusedMinutesRequired}m" +
                         (stage.completedEarly
                             ? $" · Early at " +
@@ -567,7 +584,15 @@ namespace EchoDevGames.DeverQuest
                         (stage.survivalMode
                             ? $" · Survival wave {stage.survivalWave}" +
                               (stage.survivalEndedSafely
-                                  ? " · Returned safely"
+                                  ? " · Returned safely" +
+                                    (string.IsNullOrWhiteSpace(
+                                         stage.survivalExitMethod)
+                                        ? string.Empty
+                                        : " via " +
+                                          Escape(
+                                              DeverQuestCombatSummaryService
+                                                  .FriendlyExitMethod(
+                                                      stage.survivalExitMethod)))
                                   : string.Empty)
                             : string.Empty) +
                         (string.IsNullOrWhiteSpace(
@@ -635,7 +660,43 @@ namespace EchoDevGames.DeverQuest
                                 : string.Empty));
                     }
                     builder.AppendLine(
-                        $"- **Bonus Spoils:** " +
+                        $"- **Outcome:** " +
+                        Escape(
+                            DeverQuestCombatSummaryService
+                                .OutcomeSummary(battle)));
+                    builder.AppendLine(
+                        $"- **Damage Report:** " +
+                        Escape(
+                            DeverQuestCombatSummaryService
+                                .DamageSummary(
+                                    battle,
+                                    session.developerName,
+                                    adventurer == null ||
+                                    string.IsNullOrWhiteSpace(
+                                        adventurer.characterName)
+                                        ? session.developerName
+                                        : adventurer.characterName)));
+                    string conditionSummary =
+                        DeverQuestCombatSummaryService
+                            .ConditionSummary(battle);
+                    if (!string.IsNullOrWhiteSpace(conditionSummary))
+                    {
+                        builder.AppendLine(
+                            $"- **Conditions and Reactions:** " +
+                            Escape(conditionSummary));
+                    }
+                    string companionContribution =
+                        DeverQuestCombatSummaryService
+                            .CompanionContributionSummary(battle);
+                    if (!string.IsNullOrWhiteSpace(
+                            companionContribution))
+                    {
+                        builder.AppendLine(
+                            $"- **Companion Contribution:** " +
+                            Escape(companionContribution));
+                    }
+                    builder.AppendLine(
+                        $"- **Bonus Rewards:** " +
                         $"{DeverQuestAdventurerService.FormatCoins(battle.bonusCopper)} " +
                         $"+ {battle.bonusExperience} XP");
                     if (battle.defeatedMonsters.Count > 0)
@@ -705,13 +766,36 @@ namespace EchoDevGames.DeverQuest
                                     : string.Empty));
                         }
                     }
-                    builder.AppendLine();
-                    builder.AppendLine("**Combat Log**");
-                    builder.AppendLine();
-                    foreach (string line in battle.combatLog)
+                    IReadOnlyList<string> highlights =
+                        DeverQuestCombatSummaryService.Highlights(
+                            battle,
+                            10);
+                    if (highlights.Count > 0)
                     {
+                        builder.AppendLine();
+                        builder.AppendLine("**Combat Highlights**");
+                        builder.AppendLine();
+                        foreach (string line in highlights)
+                        {
+                            builder.AppendLine(
+                                $"- {Escape(line)}");
+                        }
+                    }
+                    if (battle.combatLog.Count > 0)
+                    {
+                        builder.AppendLine();
+                        builder.AppendLine("<details>");
                         builder.AppendLine(
-                            $"- {Escape(line)}");
+                            $"<summary>Full combat log " +
+                            $"({battle.combatLog.Count} entries)</summary>");
+                        builder.AppendLine();
+                        foreach (string line in battle.combatLog)
+                        {
+                            builder.AppendLine(
+                                $"- {Escape(line)}");
+                        }
+                        builder.AppendLine();
+                        builder.AppendLine("</details>");
                     }
                     builder.AppendLine();
                 }

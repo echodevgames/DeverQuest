@@ -38,6 +38,11 @@ namespace EchoDevGames.DeverQuest
         public bool isFallen;
         public int battles;
         public int victories;
+        public long lifetimeDamageDealt;
+        public long lifetimeDamageTaken;
+        public long lifetimeHealingDone;
+        public string lastBattleSummary = string.Empty;
+        public string lastBattleUtc = string.Empty;
         public string recruitedUtc = string.Empty;
 
         public void Sanitize()
@@ -55,6 +60,11 @@ namespace EchoDevGames.DeverQuest
             loyalty = Mathf.Clamp(loyalty, 0, 100);
             battles = Mathf.Max(0, battles);
             victories = Mathf.Max(0, victories);
+            lifetimeDamageDealt = Math.Max(0L, lifetimeDamageDealt);
+            lifetimeDamageTaken = Math.Max(0L, lifetimeDamageTaken);
+            lifetimeHealingDone = Math.Max(0L, lifetimeHealingDone);
+            lastBattleSummary = lastBattleSummary?.Trim() ?? string.Empty;
+            lastBattleUtc = lastBattleUtc?.Trim() ?? string.Empty;
             recruitedUtc = recruitedUtc?.Trim() ?? string.Empty;
         }
     }

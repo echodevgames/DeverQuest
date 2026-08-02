@@ -49,9 +49,12 @@ namespace EchoDevGames.DeverQuest
     {
         private const string LedgerKey =
             "EchoDevGames.DeverQuest.GuildShopLedger.v1";
+        private const string ActiveProfileGuidKey =
+            "EchoDevGames.DeverQuest.ActiveShopProfileGuid.v1";
         private static DeverQuestPurchaseLedger ledger;
         private static Dictionary<string, DeverQuestShopItem>
             itemCache;
+        private static DeverQuestShopProfile activeProfile;
 
         static DeverQuestShopService()
         {
@@ -63,7 +66,85 @@ namespace EchoDevGames.DeverQuest
         public static IReadOnlyList<DeverQuestPurchaseRecord> Records =>
             ledger.records;
 
+        public static DeverQuestShopProfile ActiveProfile
+        {
+            get
+            {
+                if (activeProfile != null)
+                {
+                    return activeProfile;
+                }
+
+                string guid = EditorPrefs.GetString(
+                    ActiveProfileGuidKey, string.Empty);
+                if (!string.IsNullOrWhiteSpace(guid))
+                {
+                    activeProfile = AssetDatabase.LoadAssetAtPath<
+                        DeverQuestShopProfile>(
+                        AssetDatabase.GUIDToAssetPath(guid));
+                }
+                if (activeProfile == null)
+                {
+                    string first = AssetDatabase.FindAssets(
+                        "t:DeverQuestShopProfile").FirstOrDefault();
+                    if (!string.IsNullOrWhiteSpace(first))
+                    {
+                        activeProfile = AssetDatabase.LoadAssetAtPath<
+                            DeverQuestShopProfile>(
+                            AssetDatabase.GUIDToAssetPath(first));
+                    }
+                }
+                return activeProfile;
+            }
+        }
+
+        public static void SetActiveProfile(
+            DeverQuestShopProfile profile)
+        {
+            activeProfile = profile;
+            if (profile == null)
+            {
+                EditorPrefs.DeleteKey(ActiveProfileGuidKey);
+                return;
+            }
+            string path = AssetDatabase.GetAssetPath(profile);
+            string guid = AssetDatabase.AssetPathToGUID(path);
+            EditorPrefs.SetString(ActiveProfileGuidKey, guid);
+        }
+
+        public static bool CanBrowse(
+            DeverQuestShopProfile profile,
+            out string message)
+        {
+            return CanTransact(profile, false, out message);
+        }
+
+        public static bool CanSellAtActiveShop(out string message)
+        {
+            DeverQuestShopProfile profile = ActiveProfile;
+            if (!CanTransact(profile, false, out message))
+            {
+                return false;
+            }
+            if (!profile.buyItemsFromMembers)
+            {
+                message =
+                    "The active Quartermaster is not buying items from " +
+                    "members.";
+                return false;
+            }
+            return true;
+        }
+
         public static bool Purchase(
+            DeverQuestShopItem item,
+            out string message)
+        {
+            return Purchase(ActiveProfile, item, out message);
+        }
+
+        public static bool Purchase(
+            DeverQuestShopProfile profile,
             DeverQuestShopItem item,
             out string message)
         {
@@ -75,6 +156,17 @@ namespace EchoDevGames.DeverQuest
             if (item == null || account == null)
             {
                 message = "Select a valid Shop Item.";
+                return false;
+            }
+            if (!CanTransact(profile, true, out message))
+            {
+                return false;
+            }
+            if (!(profile.items ?? new List<DeverQuestShopItem>())
+                    .Contains(item))
+            {
+                message =
+                    "This item is not stocked by the active Quartermaster.";
                 return false;
             }
             if (adventurer.level < item.minimumLevel)
@@ -91,11 +183,20 @@ namespace EchoDevGames.DeverQuest
 
             DeverQuestPurchaseRecord record = CreateRecord(
                 account, item);
-            if (item.requiresLeadershipApproval)
+            bool thresholdApproval =
+                profile.leadershipApprovalThresholdCopper > 0 &&
+                item.copperCost >=
+                profile.leadershipApprovalThresholdCopper;
+            bool requiresApproval =
+                (item.requiresLeadershipApproval || thresholdApproval) &&
+                !DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild);
+            if (requiresApproval)
             {
                 record.status = DeverQuestPurchaseStatus.Requested;
                 ledger.records.Insert(0, record);
                 Save();
+                DeverQuestEconomyService.RecordPurchaseRequest(record);
                 DeverQuestGuildAccountService.AddAudit(
                     "Purchase Requested",
                     item.displayName,
@@ -114,6 +215,7 @@ namespace EchoDevGames.DeverQuest
             record.resolvedUtc = DateTime.UtcNow.ToString("O");
             ledger.records.Insert(0, record);
             Save();
+            DeverQuestEconomyService.RecordPurchase(record);
             RecordCoinSpend(item);
             DeverQuestGuildAccountService.AddAudit(
                 "Shop Purchase",
@@ -152,6 +254,7 @@ namespace EchoDevGames.DeverQuest
             {
                 record.status = DeverQuestPurchaseStatus.Denied;
                 Save();
+                DeverQuestEconomyService.RecordPurchaseDenied(record);
                 message = "Purchase request denied.";
                 return true;
             }
@@ -171,10 +274,12 @@ namespace EchoDevGames.DeverQuest
             }
             account.copperBalance -= record.copperCost;
             account.totalCopperSpent += record.copperCost;
+            NormalizeAccountCoinPurse(account);
             GrantToAccount(account, item);
             record.status = DeverQuestPurchaseStatus.Approved;
             DeverQuestGuildAccountService.CommitAccountChanges(account);
             Save();
+            DeverQuestEconomyService.RecordPurchaseApproved(record);
             DeverQuestGuildAccountService.AddAudit(
                 "Purchase Approved",
                 item.displayName,
@@ -188,14 +293,60 @@ namespace EchoDevGames.DeverQuest
             out string message)
         {
             message = string.Empty;
+            if (item == null)
+            {
+                message = "Select a valid inventory item.";
+                return false;
+            }
+
+            DeverQuestInventoryEntry entry =
+                DeverQuestAdventurerService.Adventurer.inventory
+                    .FirstOrDefault(value =>
+                        value != null &&
+                        value.shopItemId == item.ShopItemId &&
+                        value.quantity > 0);
+            return UseResolvedEntry(entry, item, out message);
+        }
+
+        public static bool UseInventoryEntry(
+            string ownershipId,
+            out string message)
+        {
+            message = string.Empty;
+            DeverQuestInventoryEntry entry =
+                DeverQuestAdventurerService.Adventurer.inventory
+                    .FirstOrDefault(value =>
+                        value != null &&
+                        value.ownershipId == ownershipId &&
+                        value.quantity > 0);
+            if (entry == null)
+            {
+                message = "This inventory entry was not found.";
+                return false;
+            }
+
+            DeverQuestShopItem item =
+                FindItem(entry.shopItemId);
+            return UseResolvedEntry(entry, item, out message);
+        }
+
+        private static bool UseResolvedEntry(
+            DeverQuestInventoryEntry entry,
+            DeverQuestShopItem item,
+            out string message)
+        {
+            message = string.Empty;
             DeverQuestAdventurer adventurer =
                 DeverQuestAdventurerService.Adventurer;
-            DeverQuestInventoryEntry entry =
-                adventurer.inventory.FirstOrDefault(
-                    value => value.shopItemId == item.ShopItemId);
             if (entry == null || entry.quantity <= 0)
             {
                 message = "This item is not in your inventory.";
+                return false;
+            }
+            if (item == null)
+            {
+                message =
+                    "The source Shop Item asset could not be resolved.";
                 return false;
             }
             if (item.itemType ==
@@ -215,12 +366,13 @@ namespace EchoDevGames.DeverQuest
                     "Begin a running Quest before using a break permit.";
                 return false;
             }
+
             ApplyWellness(adventurer, item);
             if (!item.reusable)
             {
                 entry.quantity--;
                 adventurer.inventory.RemoveAll(
-                    value => value.quantity <= 0);
+                    value => value == null || value.quantity <= 0);
             }
             DeverQuestAdventurerService.Save();
             DeverQuestGuildAccountService.AddAudit(
@@ -287,6 +439,7 @@ namespace EchoDevGames.DeverQuest
                 }
             }
             Save();
+            DeverQuestEconomyService.RecordRedemptionFulfilled(record);
             DeverQuestGuildAccountService.AddAudit(
                 "Real Reward Fulfilled",
                 record.itemName,
@@ -324,14 +477,16 @@ namespace EchoDevGames.DeverQuest
             DeverQuestAdventurer adventurer,
             DeverQuestShopItem item)
         {
-            AddInventory(
+            DeverQuestInventoryService.AddItem(
                 adventurer.inventory,
                 item,
                 DeverQuestGuildAccountService.CurrentAccount
                     ?.accountId ?? string.Empty,
+                DeverQuestItemOriginKind.GuildShop,
                 "Guild Shop");
             if (item.itemType == DeverQuestShopItemType.Equipment &&
-                item.equipment != null)
+                item.equipment != null &&
+                item.autoEquipOnAcquire)
             {
                 DeverQuestRulesService.Equip(
                     adventurer, item.equipment);
@@ -348,13 +503,15 @@ namespace EchoDevGames.DeverQuest
             DeverQuestGuildAccount account,
             DeverQuestShopItem item)
         {
-            AddInventory(
+            DeverQuestInventoryService.AddItem(
                 account.inventory,
                 item,
                 account.accountId,
+                DeverQuestItemOriginKind.GuildShop,
                 "Guild Shop Approval");
             if (item.itemType == DeverQuestShopItemType.Equipment &&
-                item.equipment != null)
+                item.equipment != null &&
+                item.autoEquipOnAcquire)
             {
                 account.equippedEquipmentIds.RemoveAll(
                     id =>
@@ -375,45 +532,20 @@ namespace EchoDevGames.DeverQuest
             }
         }
 
-        private static void AddInventory(
-            List<DeverQuestInventoryEntry> inventory,
-            DeverQuestShopItem item,
-            string accountId,
-            string source)
+        private static void NormalizeAccountCoinPurse(
+            DeverQuestGuildAccount account)
         {
-            bool unique =
-                item.itemType ==
-                DeverQuestShopItemType.Equipment ||
-                item.itemType ==
-                DeverQuestShopItemType.Redemption ||
-                item.rarity >= DeverQuestItemRarity.Rare;
-            DeverQuestInventoryEntry entry = unique
-                ? null
-                : inventory.FirstOrDefault(
-                    value =>
-                        value.shopItemId == item.ShopItemId &&
-                        value.binding == item.binding &&
-                        value.rarity == item.rarity);
-            if (entry == null)
+            if (account == null)
             {
-                entry = new DeverQuestInventoryEntry
-                {
-                    shopItemId = item.ShopItemId,
-                    displayName = item.displayName,
-                    itemType = item.itemType,
-                    rarity = item.rarity,
-                    binding = item.binding,
-                    tradable = item.tradable,
-                    acquiredUtc = DateTime.UtcNow.ToString("O"),
-                    acquisitionSource = source,
-                    unitWeight = item.equipment == null
-                        ? item.unitWeight
-                        : item.equipment.weight
-                };
-                inventory.Add(entry);
+                return;
             }
-            entry.quantity++;
-            entry.EnsureOwnership(accountId);
+            long total = Math.Max(0L, account.copperBalance);
+            account.platinumCoins = total / 1000000L;
+            total %= 1000000L;
+            account.goldCoins = total / 10000L;
+            total %= 10000L;
+            account.silverCoins = total / 100L;
+            account.copperCoins = total % 100L;
         }
 
         private static int OwnedQuantity(
@@ -491,6 +623,44 @@ namespace EchoDevGames.DeverQuest
         private static void ClearItemCache()
         {
             itemCache = null;
+            activeProfile = null;
+        }
+
+        private static bool CanTransact(
+            DeverQuestShopProfile profile,
+            bool purchase,
+            out string message)
+        {
+            if (profile == null)
+            {
+                message =
+                    "Select an active Shop Profile in Guild Economy.";
+                return false;
+            }
+            bool leadership =
+                DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageGuild);
+            if (!profile.shopOpen && !leadership)
+            {
+                message = string.IsNullOrWhiteSpace(profile.closedMessage)
+                    ? "The Quartermaster is currently closed."
+                    : profile.closedMessage;
+                return false;
+            }
+            if (!profile.availableToMembers && !leadership)
+            {
+                message =
+                    "This Quartermaster is restricted to Guild leadership.";
+                return false;
+            }
+            if (purchase && !profile.allowPurchases)
+            {
+                message =
+                    "Purchases are currently disabled for this Shop Profile.";
+                return false;
+            }
+            message = string.Empty;
+            return true;
         }
 
         private static void Load()

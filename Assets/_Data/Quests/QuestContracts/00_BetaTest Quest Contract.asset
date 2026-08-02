@@ -21,11 +21,20 @@ MonoBehaviour:
   openToAnyMember: 1
   minimumAdventurerLevel: 1
   dueDate: 7/31/26
+  archived: 0
+  availabilityPolicy: 0
+  requiredCompletions: 1
+  oneCompletionPerAdventurer: 0
   groupQuest: 0
+  minimumParticipants: 1
   maximumParticipants: 1
+  requireFullParty: 1
   assignedAdventurers: []
   partyMembers: []
   stageProgress: []
+  activePartyRunId: 
+  activeRuns: []
+  completionHistory: []
   questStory: For my Beta test the quest is Minimal of course.
   restrictToClasses: 0
   eligibleClassDefinitions: []
@@ -39,7 +48,7 @@ MonoBehaviour:
   groupBonusExperience: 0
   focusStages:
   - stageId: 7d792e99628f4d3eb2aecd9b9b8d5d16
-    stageTitle: 
+    stageTitle: Encounter
     workObjective: 
     focusedMinutesRequired: 1
     assignedPartyRole: 
@@ -51,8 +60,8 @@ MonoBehaviour:
     encounterProfileId: 
     encounterProfile: {fileID: 0}
   questProfile: {fileID: 11400000, guid: a77b68ba458d528479d9c8c363fac85e, type: 2}
-  projectName: 
-  taskName: 
+  projectName: DeverQuest
+  taskName: BetaTestTask
   department: Programming
   objective: "Using this as a test environment for the entire projects beta. \n-This
     objective should just inherit from the task or not be exposed to the inspector..."

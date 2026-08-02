@@ -70,6 +70,42 @@ namespace EchoDevGames.DeverQuest
 
         public static int TrackIndex => trackIndex;
 
+        public static void SelectTrack(int index)
+        {
+            if (playlist == null || playlist.TrackCount <= 0)
+            {
+                return;
+            }
+
+            index = Mathf.Clamp(index, 0, playlist.TrackCount - 1);
+            if (index == trackIndex)
+            {
+                return;
+            }
+
+            bool resumePlayback =
+                State == DeverQuestPlaybackState.Playing;
+            Stop();
+            trackIndex = index;
+            TrackHistory.Clear();
+            ShuffleVisited.Clear();
+            SaveSelection();
+
+            if (resumePlayback)
+            {
+                PlayCurrent();
+            }
+        }
+
+        public static void ClearPlaybackState()
+        {
+            playingClip = null;
+            State = DeverQuestPlaybackState.Stopped;
+            pausedBySession = false;
+            notPlayingObservedSince = -1d;
+            LastError = string.Empty;
+        }
+
         public static void SetPlaylist(DeverQuestPlaylist value)
         {
             if (playlist == value)
@@ -110,7 +146,7 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
 
-            DeverQuestEditorAudioBridge.Pause(
+            DeverQuestAudioTransport.Pause(
                 DeverQuestEditorAudioChannel.Music);
             State = DeverQuestPlaybackState.Paused;
         }
@@ -122,7 +158,7 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
 
-            DeverQuestEditorAudioBridge.Resume(
+            DeverQuestAudioTransport.Resume(
                 DeverQuestEditorAudioChannel.Music);
             State = DeverQuestPlaybackState.Playing;
             trackStartedEditorTime =
@@ -133,7 +169,7 @@ namespace EchoDevGames.DeverQuest
         {
             if (playingClip != null)
             {
-                DeverQuestEditorAudioBridge.Stop(
+                DeverQuestAudioTransport.Stop(
                     DeverQuestEditorAudioChannel.Music);
             }
             playingClip = null;
@@ -196,7 +232,7 @@ namespace EchoDevGames.DeverQuest
         {
             if (playlist != null && CurrentTrack != null)
             {
-                DeverQuestEditorAudioBridge.SetVolume(
+                DeverQuestAudioTransport.SetVolume(
                     DeverQuestEditorAudioChannel.Music,
                     playlist.Volume);
             }
@@ -216,7 +252,7 @@ namespace EchoDevGames.DeverQuest
             bool loop =
                 playlist.RepeatMode == DeverQuestRepeatMode.One;
 
-            if (!DeverQuestEditorAudioBridge.Play(
+            if (!DeverQuestAudioTransport.Play(
                     DeverQuestEditorAudioChannel.Music,
                     clip,
                     loop,
@@ -339,10 +375,10 @@ namespace EchoDevGames.DeverQuest
                 return false;
             }
 
-            if (!DeverQuestEditorAudioBridge.IsAvailable)
+            if (!DeverQuestAudioTransport.IsAvailable)
             {
                 LastError =
-                    "Unity editor preview audio is unavailable.";
+                    "No DeverQuest Editor audio transport is available.";
                 return false;
             }
 
@@ -352,7 +388,7 @@ namespace EchoDevGames.DeverQuest
         private static void Update()
         {
             if (State != DeverQuestPlaybackState.Playing ||
-                !DeverQuestEditorAudioBridge.PlaybackStatusSupported ||
+                !DeverQuestAudioTransport.PlaybackStatusSupported ||
                 CurrentTrack == null ||
                 !InternalEditorUtility.isApplicationActive ||
                 EditorApplication.timeSinceStartup -
@@ -362,7 +398,7 @@ namespace EchoDevGames.DeverQuest
                 return;
             }
 
-            if (DeverQuestEditorAudioBridge.IsPlaying(
+            if (DeverQuestAudioTransport.IsPlaying(
                     DeverQuestEditorAudioChannel.Music))
             {
                 notPlayingObservedSince = -1d;

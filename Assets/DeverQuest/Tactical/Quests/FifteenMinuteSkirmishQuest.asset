@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94d364b1d2c383442b4a4db50228f911, type: 3}
+  m_Name: FifteenMinuteSkirmishQuest
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
+  contractId: fed778aff3f54117b86aac7ebc0cf118
+  contractTitle: Fifteen-Minute Skirmish
+  status: 1
+  priority: 1
+  createdBy: 
+  assignedAdventurer: 
+  openToAnyMember: 1
+  minimumAdventurerLevel: 1
+  dueDate: 
+  archived: 0
+  availabilityPolicy: 0
+  requiredCompletions: 1
+  oneCompletionPerAdventurer: 0
+  groupQuest: 0
+  minimumParticipants: 1
+  maximumParticipants: 1
+  requireFullParty: 1
+  assignedAdventurers: []
+  partyMembers: []
+  stageProgress: []
+  activePartyRunId: 
+  activeRuns: []
+  completionHistory: []
+  questStory: 
+  restrictToClasses: 0
+  eligibleClassDefinitions: []
+  eligibleClasses: []
+  restrictToAncestries: 0
+  eligibleAncestries: []
+  restrictToDepartments: 0
+  eligibleDepartments: []
+  groupBonusCopper: 0
+  groupBonusExperience: 0
+  focusStages:
+  - stageId: 
+    stageTitle: Hold the Old Road
+    workObjective: Complete the assigned task.
+    focusedMinutesRequired: 15
+    assignedPartyRole: 
+    copperReward: 10
+    experienceReward: 20
+    allowEarlyTurnIn: 1
+    earlyCompletionCopperBonus: 10
+    earlyCompletionExperienceBonus: 20
+    encounterProfileId: 6fbf3353df664fddbb5463e4d3976bc6
+    encounterProfile: {fileID: 11400000, guid: 3750aa48e7bc74942a9932a6146a1291, type: 2}
+  questProfile: {fileID: 0}
+  projectName: Current Project
+  taskName: Complete one focused development objective
+  department: Programming
+  objective: Finish the assigned development task while the Adventurer resolves the
+    staged encounter.
+  deliverables: 
+  suggestedFocusMinutes: 50
+  baseCopper: 10
+  baseExperience: 10
+  workBlockMinutes: 30
+  copperPerWorkBlock: 25
+  experiencePerWorkBlock: 50
+  encounterProfileId: 
+  encounterNotes: 

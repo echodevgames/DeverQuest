@@ -119,6 +119,15 @@ namespace EchoDevGames.DeverQuest
                             "A tutorial focus for a new Necromancer.";
                         item.slot =
                             DeverQuestEquipmentSlot.MainHand;
+                        item.equipmentFamily =
+                            DeverQuestEquipmentFamily.Wand;
+                        item.requiredSkillId = "Wand";
+                        item.tags = new List<string>
+                        {
+                            "Tutorial",
+                            "Necromancer",
+                            "Arcane Focus"
+                        };
                         item.materialTier = "Bone";
                         item.rarity = "Common";
                         item.minimumLevel = 1;
@@ -143,6 +152,14 @@ namespace EchoDevGames.DeverQuest
                             "Rare tutorial loot recovered from the Crypt.";
                         item.slot =
                             DeverQuestEquipmentSlot.RingLeft;
+                        item.equipmentFamily =
+                            DeverQuestEquipmentFamily.Trinket;
+                        item.tags = new List<string>
+                        {
+                            "Tutorial",
+                            "Rare Loot",
+                            "Fire Resistance"
+                        };
                         item.materialTier = "Silver";
                         item.rarity = "Rare";
                         item.abilityBonusType =
@@ -204,7 +221,16 @@ namespace EchoDevGames.DeverQuest
                             "A basic tutorial provision.";
                         item.itemType =
                             DeverQuestShopItemType.Food;
+                        item.itemCategory =
+                            DeverQuestItemCategory.Provision;
+                        item.subcategory = "Rations";
+                        item.tags = new List<string>
+                        {
+                            "Tutorial",
+                            "Provision"
+                        };
                         item.copperCost = 5;
+                        item.merchantSellValueCopper = 2;
                         item.hungerChange = 20;
                     });
             DeverQuestShopItem rareRingLoot =
@@ -220,6 +246,14 @@ namespace EchoDevGames.DeverQuest
                             "tutorial loot and trading flow.";
                         item.itemType =
                             DeverQuestShopItemType.Equipment;
+                        item.itemCategory =
+                            DeverQuestItemCategory.Equipment;
+                        item.subcategory = "Ring";
+                        item.tags = new List<string>
+                        {
+                            "Tutorial",
+                            "Rare Loot"
+                        };
                         item.equipment = rareRing;
                         item.copperCost = 125;
                         item.maximumOwned = 1;
@@ -242,6 +276,14 @@ namespace EchoDevGames.DeverQuest
                             "approval and fulfillment workflow.";
                         item.itemType =
                             DeverQuestShopItemType.Redemption;
+                        item.itemCategory =
+                            DeverQuestItemCategory.Service;
+                        item.subcategory = "Real Reward";
+                        item.tags = new List<string>
+                        {
+                            "Tutorial",
+                            "Leadership Approval"
+                        };
                         item.copperCost = 500;
                         item.realRewardType =
                             DeverQuestRealRewardType.Custom;

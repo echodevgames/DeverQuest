@@ -123,6 +123,9 @@ namespace EchoDevGames.DeverQuest
         public int survivalFleeAttempts;
         public string survivalPauseReason = string.Empty;
         public bool survivalEndedSafely;
+        public string survivalExitMethod = string.Empty;
+        public string survivalExitSummary = string.Empty;
+        public long survivalExitUtcTicks;
         public bool encounterResolved;
     }
 
@@ -216,6 +219,7 @@ namespace EchoDevGames.DeverQuest
         public int questExperiencePerWorkBlock;
         public bool usesQuestContract;
         public string questContractId = string.Empty;
+        public string questContractRunId = string.Empty;
         public string questContractTitle = string.Empty;
         public string questContractCreator = string.Empty;
         public string questContractAssignee = string.Empty;
@@ -304,6 +308,8 @@ namespace EchoDevGames.DeverQuest
             questExperiencePerWorkBlock =
                 Math.Max(0, questExperiencePerWorkBlock);
             questContractId = questContractId?.Trim() ?? string.Empty;
+            questContractRunId =
+                questContractRunId?.Trim() ?? string.Empty;
             questContractTitle =
                 questContractTitle?.Trim() ?? string.Empty;
             questContractCreator =
@@ -331,6 +337,32 @@ namespace EchoDevGames.DeverQuest
                 Math.Max(0, questGroupBonusExperience);
             questStages = questStages ??
                           new List<DeverQuestSessionStage>();
+            foreach (DeverQuestSessionStage stage in questStages)
+            {
+                if (stage == null)
+                {
+                    continue;
+                }
+                stage.stageId = stage.stageId?.Trim() ?? string.Empty;
+                stage.stageTitle = stage.stageTitle?.Trim() ?? string.Empty;
+                stage.workObjective =
+                    stage.workObjective?.Trim() ?? string.Empty;
+                stage.assignedPartyRole =
+                    stage.assignedPartyRole?.Trim() ?? string.Empty;
+                stage.encounterProfileId =
+                    stage.encounterProfileId?.Trim() ?? string.Empty;
+                stage.survivalPauseReason =
+                    stage.survivalPauseReason?.Trim() ?? string.Empty;
+                stage.survivalExitMethod =
+                    stage.survivalExitMethod?.Trim() ?? string.Empty;
+                stage.survivalExitSummary =
+                    stage.survivalExitSummary?.Trim() ?? string.Empty;
+                stage.survivalWave = Math.Max(0, stage.survivalWave);
+                stage.survivalFleeAttempts =
+                    Math.Max(0, stage.survivalFleeAttempts);
+                stage.survivalExitUtcTicks =
+                    Math.Max(0L, stage.survivalExitUtcTicks);
+            }
             battleResults = battleResults ??
                             new List<DeverQuestBattleResult>();
             foreach (DeverQuestBattleResult battle in battleResults)

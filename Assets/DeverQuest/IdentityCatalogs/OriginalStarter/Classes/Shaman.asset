@@ -21,8 +21,8 @@ MonoBehaviour:
   usesMana: 1
   supportsCompanion: 1
   companionTradition: Spirit Companion
-  starterCompanion: {fileID: 0}
-  abilityProfile: {fileID: 0}
+  starterCompanion: {fileID: 11400000, guid: d90ec27d1579f9e48bf122dd1643649f, type: 2}
+  abilityProfile: {fileID: 11400000, guid: 38a920db17279c644b272c2d13e87421, type: 2}
   strength: 10
   dexterity: 12
   constitution: 14

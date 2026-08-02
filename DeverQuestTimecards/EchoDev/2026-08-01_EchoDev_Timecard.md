@@ -1,32 +1,86 @@
 # DeverQuest Daily Timecard
 
 **Developer:** EchoDev  
-**Adventurer:** EchoDev  
-**Class:** Warrior · **Level:** 2 · **Guild Rank:** Member  
-**Ancestry:** Freefolk · **Alignment:** True Neutral · **Faith:** Agnostic  
-**Character Rules:** HP 17/22 · Mana 8/8 · AC 11 · Proficiency +2  
+**Adventurer:** Ajnaag  
+**Class:** Necromancer · **Level:** 3 · **Guild Rank:** CEO  
+**Ancestry:** Ashscale · **Alignment:** Chaotic Evil · **Faith:** The Keeper Below  
+**Character Rules:** HP 14/14 · Mana 21/21 · AC 12 · Proficiency +2  
 **Adventurer Needs:** Hunger 100 · Rest 100 · Happiness 100  
 **Date:** August 1, 2026  
 **Chronicle:** 1  
-**Sessions:** 1
+**Sessions:** 2
 
 ## Daily Totals
 
-- **Focused Work:** 1h 0m 15s
-- **Paused Time:** 0h 36m 38s
-- **Commit Entries:** 4
-- **Breaks Taken:** 4
+- **Focused Work:** 1h 15m 32s
+- **Paused Time:** 1h 7m 11s
+- **Commit Entries:** 6
+- **Breaks Taken:** 5
 - **External Craft Activity:** 0h 0m 0s
 - **Media Attachments:** 1
-- **Coin Earned:** 0p 0g 2s 0c
-- **Experience Earned:** 200 XP
-- **Ending Coin Purse:** 0p 0g 2s 10c
-- **Carry Weight:** 2.1 / 64.0
+- **Coin Earned:** 0p 0g 3s 25c
+- **Experience Earned:** 325 XP
+- **Ending Coin Purse:** 0p 0g 6s 25c
+- **Carry Weight:** 1.3 / 49.0
 - **Inventory:** Empty
 
 ---
 
 ## Session 1 — OneHourChallengeTask
+
+- **Project:** DeverQuest
+- **Department:** Any
+- **Quest Profile:** OneHourChallenge
+- **Profile Spoils:** 0p 0g 1s 0c + 100 XP base; 0p 0g 0s 25c + 25 XP per 15m block
+- **Quest Contract:** OneHourChallengeQuest
+- **Contract Creator:** EchoDev
+- **Assigned Adventurer:** 
+- **Priority:** Low
+- **Due Date:** 8/02/26
+- **Started:** 1:43 AM
+- **Ended:** 4:10 AM
+- **Focused Work:** 0h 15m 17s
+- **Paused Time:** 0h 30m 32s
+- **Time Classification:** Focused 0h 15m 17s · Meditation 0h 0m 0s · Approved Break 0h 5m 0s · Idle/Unverified 0h 25m 32s
+
+### Goal
+
+Any one hours stand up
+
+### Quest Story
+
+We need to visi the forest nymphs.
+
+### Encounters
+
+- **Completed: Encounter** · 1m · 0p 0g 0s 0c + 0 XP
+
+### Contract Deliverables
+
+Show us whatcu' got!
+
+### Commit Journal
+
+- **1:46 AM** [Git Commit] `+0h 2m 56s` — Stuck already but its time for bed... i can make a guild identity catalog that is being accepted in the guild hall field ambience also not accepting the ambience profile i made... im calling it for the night we'll start tomorrow with a huge testing session | Branch: `main` | Commit: `362f8eb`
+- **3:58 AM** [Git Commit] `+0h 15m 17s` — ? | Branch: `main` | Commit: `c7260a0`
+
+### Closing Notes
+
+No closing notes recorded.
+
+### Wellness Journal
+
+- **1:58 AM** — CheckIn: Break Started
+
+### Reward Journal
+
+- **Focus Stage:** +0 minutes (Stage Completion) —  completed in 1.0 minutes
+- **Quest Completion:** +0p 0g 1s 0c · +100 XP · Level 2 → 3 — Quest successfully turned in
+- **Work Block:** +0p 0g 0s 25c · +25 XP — 1 completed work block(s)
+
+---
+
+## Session 2 — OneHourChallengeTask
 
 - **Project:** DeverQuest
 - **Department:** Any
@@ -51,9 +105,9 @@ Any one hours stand up
 
 We need to visi the forest nymphs.
 
-### Focus Stages
+### Encounters
 
-- **Completed: ** · 1m · 0p 0g 0s 0c + 0 XP
+- **Completed: Encounter** · 1m · 0p 0g 0s 0c + 0 XP
 
 ### Contract Deliverables
 
