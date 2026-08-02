@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: fed778aff3f54117b86aac7ebc0cf118
   contractTitle: Fifteen-Minute Skirmish
-  status: 7
+  status: 1
   priority: 1
   createdBy: 
   assignedAdventurer: 
@@ -63,7 +63,7 @@ MonoBehaviour:
   groupBonusCopper: 0
   groupBonusExperience: 0
   focusStages:
-  - stageId: db706d443e1c4a569d8bab5272b1c018
+  - stageId: 
     stageTitle: Hold the Old Road
     workObjective: Complete the assigned task.
     focusedMinutesRequired: 15
