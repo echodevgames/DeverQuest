@@ -415,6 +415,23 @@ namespace EchoDevGames.DeverQuest
                         : MessageType.Warning);
             }
 
+            if (DeverQuestSessionStore.GetMeditationRecoveryPreview(
+                    out int meditationMinutes,
+                    out int meditationHitPoints,
+                    out int meditationMana))
+            {
+                EditorGUILayout.LabelField(
+                    "Meditation Recovery",
+                    $"+{meditationHitPoints} HP · +{meditationMana} Mana");
+                EditorGUILayout.LabelField(
+                    "Completed Meditation",
+                    meditationMinutes + " full minute(s)");
+                EditorGUILayout.LabelField(
+                    "Recovery Rate",
+                    $"{DeverQuestSessionStore.MeditationHitPointsPerMinute} HP · " +
+                    $"{DeverQuestSessionStore.MeditationManaPerMinute} Mana / minute");
+            }
+
             if (session.approvedBreakUntilUtcTicks >
                 DateTime.UtcNow.Ticks)
             {

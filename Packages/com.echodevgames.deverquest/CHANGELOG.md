@@ -1,3 +1,18 @@
+## [0.32.0] - 2026-08-02
+
+### Changed
+
+- Completed one-time and fully satisfied limited Contracts no longer remain on the live Guild Assignment Board for administrators; their history remains available through Chronicle, Quest Run Management, and asset inspection.
+- Manual Meditation now restores capped Health and Mana when the Quest resumes.
+- Beta Administration now offers an explicit, confirmed stable-ID regeneration action for selected duplicate Quest Profile and Identity assets.
+- Updated package, readiness, and Beta health-report version declarations to 0.32.0.
+
+### Fixed
+
+- Removed completed board listings from the active Guild Assignment Board while preserving archived history.
+- Added clear Meditation recovery reporting to the active Quest, Quest HUD, and generated Timecards.
+- Added a practical recovery path for duplicate IDs reported by Beta content validation.
+
 # Changelog
 
 ## [0.31.9] - 2026-08-01

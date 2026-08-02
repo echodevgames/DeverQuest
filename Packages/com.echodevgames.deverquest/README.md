@@ -1,9 +1,11 @@
 # DeverQuest Developer Companion
 
-Current package version: **0.31.9 Beta 1**
+Current package version: **0.32.0 Beta 1**
 
 
+## 0.32.0 Board Cleanup, Meditation Recovery, and ID Repair
 
+Version 0.32.0 removes completed one-time and fully satisfied limited Contracts from the live Guild Assignment Board for every account, including administrators, while preserving their history in Chronicle and Quest Run Management. Manual Meditation restores 1 Hit Point and 2 Mana per full minute when the Quest resumes, capped at the Adventurer's maximum values and unable to revive a Fallen character. Beta Administration also provides an explicit, confirmed ID-regeneration action for the copied or newer asset in duplicate Quest Profile and Identity ID groups.
 
 ## 0.31.8 Beta Administration and Content Validation
 

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: afcaec81fe974afc9220196314f8d65b
   contractTitle: Wayfarer Survival Expedition
-  status: 7
+  status: 1
   priority: 1
   createdBy: 
   assignedAdventurer: 
@@ -75,7 +75,7 @@ MonoBehaviour:
     earlyCompletionExperienceBonus: 0
     encounterProfileId: 8027a146809749ad9d1908e72136e1dd
     encounterProfile: {fileID: 11400000, guid: 91ae83e767b67ef4cac23a959b8f0fcc, type: 2}
-  questProfile: {fileID: 0}
+  questProfile: {fileID: 11400000, guid: d82df38bb07cb754baa5b9f9fe57174e, type: 2}
   projectName: Current Project
   taskName: Survive repeating fifteen-minute Focus waves
   department: Programming

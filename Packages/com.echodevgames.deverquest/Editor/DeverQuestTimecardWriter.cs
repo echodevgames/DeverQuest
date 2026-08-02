@@ -546,6 +546,14 @@ namespace EchoDevGames.DeverQuest
                     ? $" · Legacy Unclassified " +
                       $"{FormatDuration(legacyUnclassified)}"
                     : string.Empty));
+            if (session.meditationHitPointsRestored > 0 ||
+                session.meditationManaRestored > 0)
+            {
+                builder.AppendLine(
+                    $"- **Meditation Recovery:** +" +
+                    $"{session.meditationHitPointsRestored} HP · +" +
+                    $"{session.meditationManaRestored} Mana");
+            }
 
             if (!string.IsNullOrWhiteSpace(session.goal))
             {

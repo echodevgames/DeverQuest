@@ -249,6 +249,8 @@ namespace EchoDevGames.DeverQuest
         public double accumulatedFocusedSeconds;
         public double accumulatedPausedSeconds;
         public double meditationSeconds;
+        public int meditationHitPointsRestored;
+        public int meditationManaRestored;
         public double idleUnverifiedSeconds;
         public double approvedBreakSeconds;
         public long approvedBreakUntilUtcTicks;
@@ -468,6 +470,10 @@ namespace EchoDevGames.DeverQuest
             accumulatedPausedSeconds =
                 Math.Max(0d, accumulatedPausedSeconds);
             meditationSeconds = Math.Max(0d, meditationSeconds);
+            meditationHitPointsRestored =
+                Math.Max(0, meditationHitPointsRestored);
+            meditationManaRestored =
+                Math.Max(0, meditationManaRestored);
             idleUnverifiedSeconds =
                 Math.Max(0d, idleUnverifiedSeconds);
             approvedBreakSeconds =

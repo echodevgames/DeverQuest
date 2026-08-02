@@ -10,20 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 50c046ee1bb6e9f4aa16412efb430faa, type: 3}
-  m_Name: 01_FiveMinuteChallengeTask
+  m_Name: 04_FifteenMinuteChallengeTask
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestProfile
-  profileId: d3bc4345a25242f2ba2a7586a16f7b08
-  displayName: FiveMinuteCallengeTask
-  description: Walk away for five minutes
+  profileId: 53c995a26c72473da83d417f062d0d5d
+  displayName: 04_FifteenMinuteChallengeTask
+  description: Do something simple...
   availableToMembers: 1
   minimumAdventurerLevel: 1
   projectName: DeverQuest
-  taskName: FiveMinuteChallengeTask
+  taskName: 04_FifteenMinuteChallengeTask
   department: Any
-  goalTemplate: Be away from me...
-  suggestedFocusMinutes: 5
-  baseCopper: 5
-  baseExperience: 5
+  goalTemplate: Set up your git's with a good devlog or organize to prep for a longer
+    sprint.
+  suggestedFocusMinutes: 15
+  baseCopper: 25
+  baseExperience: 25
   workBlockMinutes: 5
-  copperPerWorkBlock: 5
-  experiencePerWorkBlock: 30
+  copperPerWorkBlock: 10
+  experiencePerWorkBlock: 25

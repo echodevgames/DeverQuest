@@ -52,7 +52,7 @@ namespace EchoDevGames.DeverQuest
     [Serializable]
     internal sealed class DeverQuestContentHealthJson
     {
-        public string packageVersion = "0.31.9";
+        public string packageVersion = "0.32.0";
         public string generatedUtc = string.Empty;
         public int scannedAssets;
         public int errors;
@@ -294,6 +294,65 @@ namespace EchoDevGames.DeverQuest
             return changed;
         }
 
+        public static bool CanRegenerateStableId(
+            UnityEngine.Object asset)
+        {
+            return asset is DeverQuestQuestProfile ||
+                   asset is DeverQuestIdentityAsset;
+        }
+
+        public static bool RegenerateStableId(
+            UnityEngine.Object asset,
+            out string previousId,
+            out string replacementId,
+            out string error)
+        {
+            previousId = string.Empty;
+            replacementId = string.Empty;
+            error = string.Empty;
+
+            if (!CanRegenerateStableId(asset))
+            {
+                error =
+                    "This asset type does not expose an approved explicit " +
+                    "stable-ID repair.";
+                return false;
+            }
+
+            string propertyName =
+                asset is DeverQuestQuestProfile
+                    ? "profileId"
+                    : "identityId";
+            SerializedObject serialized =
+                new SerializedObject(asset);
+            serialized.Update();
+            SerializedProperty idProperty =
+                serialized.FindProperty(propertyName);
+            if (idProperty == null)
+            {
+                error =
+                    $"The serialized ID field '{propertyName}' could not " +
+                    "be found.";
+                return false;
+            }
+
+            previousId = idProperty.stringValue?.Trim() ??
+                         string.Empty;
+            replacementId = Guid.NewGuid().ToString("N");
+
+            Undo.RecordObject(
+                asset,
+                "Regenerate DeverQuest Stable ID");
+            idProperty.stringValue = replacementId;
+            serialized.ApplyModifiedProperties();
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.ImportAsset(
+                AssetDatabase.GetAssetPath(asset),
+                ImportAssetOptions.ForceUpdate);
+            return true;
+        }
+
         public static string RunSafeStarterRepairs()
         {
             DeverQuestIdentityGenerationReport identity =
@@ -329,7 +388,7 @@ namespace EchoDevGames.DeverQuest
         public static string BuildMarkdown(DeverQuestContentValidationReport report)
         {
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine("# DeverQuest 0.31.9 Beta Content Health Report");
+            builder.AppendLine("# DeverQuest 0.32.0 Beta Content Health Report");
             builder.AppendLine();
             builder.AppendLine($"**Generated UTC:** {report.generatedUtc}");
             builder.AppendLine($"**Summary:** {report.Summary}");
@@ -787,7 +846,10 @@ namespace EchoDevGames.DeverQuest
                 {
                     Add(report, DeverQuestContentFindingSeverity.Error,
                         code, title,
-                        $"ID {group.Key} is shared by {group.Count()} assets.",
+                        $"ID {group.Key} is shared by {group.Count()} assets. " +
+                        "Choose the copied or newer asset and use the explicit " +
+                        "Regenerate This Asset ID action. Do not regenerate " +
+                        "every asset in the duplicate group.",
                         asset, false);
                 }
             }

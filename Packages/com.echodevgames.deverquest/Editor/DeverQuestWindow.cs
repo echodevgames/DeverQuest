@@ -964,7 +964,7 @@ namespace EchoDevGames.DeverQuest
             {
                 EditorGUILayout.LabelField(
                     $"{entry.actorName}: {entry.action} → {entry.target}",
-                    EditorStyles.wordWrappedMiniLabel);
+                    EditorStyles.wordWrappedLabel);
             }
 
             if (!string.IsNullOrWhiteSpace(guildMessage))
@@ -1681,7 +1681,56 @@ namespace EchoDevGames.DeverQuest
                 }
                 if (finding.safelyRepairable)
                 {
-                    GUILayout.Label("Safe repair available", EditorStyles.miniLabel);
+                    GUILayout.Label(
+                        "Safe repair available",
+                        EditorStyles.miniLabel);
+                }
+                if (canManage &&
+                    DeverQuestContentValidationService
+                        .CanRegenerateStableId(finding.asset) &&
+                    (finding.code == "DQ-CONTENT-101" ||
+                     finding.code == "DQ-CONTENT-301"))
+                {
+                    if (GUILayout.Button("Regenerate This Asset ID"))
+                    {
+                        bool confirmed =
+                            EditorUtility.DisplayDialog(
+                                "Regenerate Stable ID?",
+                                "Use this only on the copied or newer asset " +
+                                "inside a duplicate-ID group. The selected " +
+                                "asset receives a new stable ID; object " +
+                                "references remain, but historical records " +
+                                "that stored the old ambiguous ID are not " +
+                                "rewritten.\n\nAsset:\n" +
+                                finding.assetPath,
+                                "Regenerate ID",
+                                "Cancel");
+                        if (confirmed)
+                        {
+                            if (DeverQuestContentValidationService
+                                .RegenerateStableId(
+                                    finding.asset,
+                                    out string previousId,
+                                    out string replacementId,
+                                    out string repairError))
+                            {
+                                administrationReport =
+                                    DeverQuestContentValidationService.Run();
+                                administrationMessage =
+                                    "Regenerated stable ID on " +
+                                    finding.assetPath + "\n" +
+                                    previousId + " → " +
+                                    replacementId;
+                            }
+                            else
+                            {
+                                EditorUtility.DisplayDialog(
+                                    "ID Repair Failed",
+                                    repairError,
+                                    "Close");
+                            }
+                        }
+                    }
                 }
                 EditorGUILayout.EndHorizontal();
                 EditorGUILayout.EndVertical();
@@ -2415,6 +2464,12 @@ namespace EchoDevGames.DeverQuest
                 }
                 else
                 {
+                    if (session.state ==
+                        DeverQuestSessionState.Paused)
+                    {
+                        DrawMeditationRecoveryStatus();
+                    }
+
                     EditorGUILayout.BeginHorizontal();
                     if (session.state ==
                         DeverQuestSessionState.Running)
@@ -9133,6 +9188,17 @@ namespace EchoDevGames.DeverQuest
                 {
                     continue;
                 }
+
+                bool retiredFromLiveBoard =
+                    contract.archived ||
+                    (contract.status ==
+                     DeverQuestContractStatus.Completed &&
+                     contract.IsBoardComplete);
+                if (retiredFromLiveBoard)
+                {
+                    continue;
+                }
+
                 bool canManageContract =
                     DeverQuestGuildAccountService.HasPermission(
                         DeverQuestGuildPermission.ManageContracts,
@@ -9338,9 +9404,11 @@ namespace EchoDevGames.DeverQuest
             {
                 EditorGUILayout.LabelField(
                     canManage
-                        ? "No Quest Contracts have been created."
+                        ? "No active Quest Contracts are on the Guild Board. " +
+                          "Completed and archived listings remain available " +
+                          "through Chronicle and Quest Run Management."
                         : "No Contracts are currently assigned to you.",
-                    EditorStyles.miniLabel);
+                    EditorStyles.wordWrappedLabel);
             }
         }
 
@@ -9718,6 +9786,30 @@ namespace EchoDevGames.DeverQuest
                 return $"{age.TotalHours:0.#} hour(s)";
             }
             return $"{age.TotalDays:0.#} day(s)";
+        }
+
+        private static void DrawMeditationRecoveryStatus()
+        {
+            if (!DeverQuestSessionStore.GetMeditationRecoveryPreview(
+                    out int completedMinutes,
+                    out int hitPoints,
+                    out int mana))
+            {
+                return;
+            }
+
+            string recovery = hitPoints <= 0 && mana <= 0
+                ? "No additional Health or Mana is currently recoverable."
+                : $"Recovery on Resume: +{hitPoints} HP · +{mana} Mana";
+
+            EditorGUILayout.HelpBox(
+                $"{recovery}\n" +
+                $"{completedMinutes} full meditation minute(s) completed. " +
+                $"Rate: {DeverQuestSessionStore.MeditationHitPointsPerMinute} " +
+                "HP and " +
+                $"{DeverQuestSessionStore.MeditationManaPerMinute} Mana " +
+                "per full minute, capped at maximum values.",
+                MessageType.Info);
         }
 
         private static string BuildContractAvailabilityLabel(
@@ -10128,6 +10220,7 @@ namespace EchoDevGames.DeverQuest
                     session.pauseReason == "Unity Project Lost Focus"
                         ? MessageType.Warning
                         : MessageType.Info);
+                DrawMeditationRecoveryStatus();
             }
 
             EditorGUILayout.Space(12f);

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: fed778aff3f54117b86aac7ebc0cf118
   contractTitle: Fifteen-Minute Skirmish
-  status: 7
+  status: 1
   priority: 1
   createdBy: 
   assignedAdventurer: 
@@ -75,18 +75,18 @@ MonoBehaviour:
     earlyCompletionExperienceBonus: 20
     encounterProfileId: 6fbf3353df664fddbb5463e4d3976bc6
     encounterProfile: {fileID: 11400000, guid: 3750aa48e7bc74942a9932a6146a1291, type: 2}
-  questProfile: {fileID: 0}
+  questProfile: {fileID: 11400000, guid: 5a4ecbacdd0befe42a22a8f3bb9c0ef0, type: 2}
   projectName: Current Project
   taskName: Complete one focused development objective
   department: Programming
   objective: Finish the assigned development task while the Adventurer resolves the
     staged encounter.
   deliverables: 
-  suggestedFocusMinutes: 50
-  baseCopper: 10
-  baseExperience: 10
-  workBlockMinutes: 30
+  suggestedFocusMinutes: 15
+  baseCopper: 25
+  baseExperience: 25
+  workBlockMinutes: 5
   copperPerWorkBlock: 25
-  experiencePerWorkBlock: 50
+  experiencePerWorkBlock: 30
   encounterProfileId: 
   encounterNotes: 

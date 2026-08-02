@@ -52,7 +52,7 @@ namespace EchoDevGames.DeverQuest
         {
             StringBuilder builder = new StringBuilder();
             builder.AppendLine(
-                "[DeverQuest 0.31.9 Beta 1] Release Readiness Report");
+                "[DeverQuest 0.32.0 Beta 1] Release Readiness Report");
             builder.AppendLine(Summary);
 
             foreach (DeverQuestReadinessFinding finding in findings)
@@ -70,7 +70,7 @@ namespace EchoDevGames.DeverQuest
 
     internal static class DeverQuestReleaseReadinessService
     {
-        private const string ExpectedPackageVersion = "0.31.9";
+        private const string ExpectedPackageVersion = "0.32.0";
 
         [MenuItem(
             "Tools/DeverQuest/Run Release Readiness Check",

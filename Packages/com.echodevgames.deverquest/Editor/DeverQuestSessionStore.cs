@@ -18,6 +18,9 @@ namespace EchoDevGames.DeverQuest
         public static event Action SessionFinalized;
         public static event Action SessionDiscarded;
 
+        public const int MeditationHitPointsPerMinute = 1;
+        public const int MeditationManaPerMinute = 2;
+
         private const string ActiveSessionKey =
             "EchoDevGames.DeverQuest.ActiveSession.v1";
 
@@ -257,7 +260,7 @@ namespace EchoDevGames.DeverQuest
             SessionStarted?.Invoke();
         }
 
-        public static void PauseSession(string reason = "Manual")
+        public static void PauseSession(string reason = "Meditation")
         {
             if (!HasActiveSession ||
                 ActiveSession.state != DeverQuestSessionState.Running)
@@ -354,6 +357,9 @@ namespace EchoDevGames.DeverQuest
             else
             {
                 ActiveSession.meditationSeconds += pausedSeconds;
+                ApplyMeditationRecovery(
+                    pausedSeconds,
+                    ActiveSession.pauseReason);
             }
 
             ActiveSession.lastStateChangeUtcTicks = nowTicks;
@@ -365,6 +371,119 @@ namespace EchoDevGames.DeverQuest
             ActiveSession.approvedBreakPlannedMinutes = 0;
             SaveActiveSession();
             SessionResumed?.Invoke();
+        }
+
+        public static bool GetMeditationRecoveryPreview(
+            out int completedMinutes,
+            out int hitPoints,
+            out int mana)
+        {
+            completedMinutes = 0;
+            hitPoints = 0;
+            mana = 0;
+
+            if (!HasActiveSession ||
+                ActiveSession.state != DeverQuestSessionState.Paused ||
+                !IsMeditationPauseReason(ActiveSession.pauseReason))
+            {
+                return false;
+            }
+
+            double pausedSeconds = GetSecondsBetween(
+                ActiveSession.lastStateChangeUtcTicks,
+                DateTime.UtcNow.Ticks);
+            completedMinutes = Math.Max(
+                0,
+                (int)Math.Floor(pausedSeconds / 60d));
+
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            if (adventurer == null ||
+                adventurer.isFallen ||
+                adventurer.currentHitPoints <= 0)
+            {
+                return true;
+            }
+
+            hitPoints = Math.Min(
+                Math.Max(
+                    0,
+                    adventurer.maximumHitPoints -
+                    adventurer.currentHitPoints),
+                completedMinutes * MeditationHitPointsPerMinute);
+            mana = Math.Min(
+                Math.Max(
+                    0,
+                    adventurer.maximumMana -
+                    adventurer.currentMana),
+                completedMinutes * MeditationManaPerMinute);
+            return true;
+        }
+
+        private static void ApplyMeditationRecovery(
+            double pausedSeconds,
+            string reason)
+        {
+            if (!IsMeditationPauseReason(reason))
+            {
+                return;
+            }
+
+            int completedMinutes = Math.Max(
+                0,
+                (int)Math.Floor(pausedSeconds / 60d));
+            if (completedMinutes <= 0)
+            {
+                return;
+            }
+
+            DeverQuestAdventurer adventurer =
+                DeverQuestAdventurerService.Adventurer;
+            if (adventurer == null ||
+                adventurer.isFallen ||
+                adventurer.currentHitPoints <= 0)
+            {
+                return;
+            }
+
+            int priorHitPoints = adventurer.currentHitPoints;
+            int priorMana = adventurer.currentMana;
+
+            adventurer.currentHitPoints = Math.Min(
+                adventurer.maximumHitPoints,
+                adventurer.currentHitPoints +
+                completedMinutes * MeditationHitPointsPerMinute);
+            adventurer.currentMana = Math.Min(
+                adventurer.maximumMana,
+                adventurer.currentMana +
+                completedMinutes * MeditationManaPerMinute);
+
+            int restoredHitPoints =
+                adventurer.currentHitPoints - priorHitPoints;
+            int restoredMana =
+                adventurer.currentMana - priorMana;
+
+            if (restoredHitPoints <= 0 && restoredMana <= 0)
+            {
+                return;
+            }
+
+            ActiveSession.meditationHitPointsRestored +=
+                restoredHitPoints;
+            ActiveSession.meditationManaRestored += restoredMana;
+            DeverQuestAdventurerService.Save();
+        }
+
+        private static bool IsMeditationPauseReason(string reason)
+        {
+            return string.Equals(
+                       reason,
+                       "Meditation",
+                       StringComparison.Ordinal) ||
+                   string.Equals(
+                       reason,
+                       "Manual",
+                       StringComparison.Ordinal);
         }
 
         private static void CompleteWellnessBreakIfEligible(

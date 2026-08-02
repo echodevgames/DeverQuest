@@ -12,8 +12,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 546c3fe9274660d4893b29caa506ac4b, type: 3}
   m_Name: Garfield - Caught In The Act
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestPlaylist
-  tracks: []
-  trackWeights: 
+  tracks:
+  - {fileID: 8300000, guid: bbfd8f169b5445749993545395ea8e9a, type: 3}
+  - {fileID: 8300000, guid: 74e38a5e2b263b2429522f17bea2d3b9, type: 3}
+  - {fileID: 8300000, guid: 666fe4430d0b48241b9f0b37a94df112, type: 3}
+  - {fileID: 8300000, guid: 49b31cc88d5306a43b818b65385bc480, type: 3}
+  - {fileID: 8300000, guid: 25c564a3cd39929419fe61520976a481, type: 3}
+  - {fileID: 8300000, guid: d645e2adc0224b74ba79c7dc42ed6cba, type: 3}
+  - {fileID: 8300000, guid: a8919e72bcbc96141b3fd42b6f72b7c3, type: 3}
+  - {fileID: 8300000, guid: 80d42b360b4e52f4c84d4ca8dd87514d, type: 3}
+  - {fileID: 8300000, guid: acf09b3cf6888b041949392cadbb5801, type: 3}
+  - {fileID: 8300000, guid: 5fb6f00e6c2df0444a2ff90d0cc5e8b1, type: 3}
+  - {fileID: 8300000, guid: dd556023665bcb54abf4dbbe6ac415a3, type: 3}
+  - {fileID: 8300000, guid: cd5fc5865fe285a4287cca564ac05389, type: 3}
+  - {fileID: 8300000, guid: 5dcd42880c72ea34a9b24f596fd2bf8c, type: 3}
+  - {fileID: 8300000, guid: f49dfcb28cf1bca428d8110b93b80d5f, type: 3}
+  - {fileID: 8300000, guid: 59768fe31c1e7cb4ab57e7ae4396841b, type: 3}
+  - {fileID: 8300000, guid: 523fe886c66af5343a7c9b1fa2e35df4, type: 3}
+  - {fileID: 8300000, guid: 55a5ad39a57f582488651a02e1b4400d, type: 3}
+  - {fileID: 8300000, guid: 25d4a8e78f6fa4549b79a32d77767af7, type: 3}
+  - {fileID: 8300000, guid: ea8278376c922b143bc1a166d979fe7d, type: 3}
+  - {fileID: 8300000, guid: 594d37eddf559f04abb6f13a7e1c3ee8, type: 3}
+  - {fileID: 8300000, guid: 7b3f548ded3877b45b4459009bfdeb52, type: 3}
+  - {fileID: 8300000, guid: 8c0114ec771a0aa4395f7e30c286c34c, type: 3}
+  trackWeights: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
   shuffle: 0
   repeatMode: 1
   volume: 0.75

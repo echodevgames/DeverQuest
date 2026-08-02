@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84d60aa7b65252b5402f49a92aa63590, type: 3}
   m_Name: Agnostic 1
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestDeity
-  identityId: 0a5e5d6101b74072b801d86f5e817f78
+  identityId: a4acd510d33a4ef7a481bca28f23e88d
   displayName: Agnostic
   lore: No declared patron; conscience and Guild oath guide the Adventurer.
   allowsAgnosticFollowers: 1
