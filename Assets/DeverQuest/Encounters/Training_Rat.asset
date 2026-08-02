@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestMonsterProfile
   monsterId: c4ff4c035922492ea23ddb12d7b4200f
   displayName: Training Rat
-  description: 
+  description: Rat
   level: 1
   maximumHitPoints: 6
   armorClass: 10
