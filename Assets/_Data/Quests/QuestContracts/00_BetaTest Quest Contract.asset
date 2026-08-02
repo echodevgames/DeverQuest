@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: b3d53712f8314a5496a34403c73cfabd
   contractTitle: BetaTestQuestContract
-  status: 3
+  status: 7
   priority: 3
   createdBy: EchoDev
   assignedAdventurer: 
@@ -32,17 +32,27 @@ MonoBehaviour:
   requireFullParty: 1
   assignedAdventurers: []
   partyMembers: []
-  stageProgress: []
+  stageProgress:
+  - stageId: 7d792e99628f4d3eb2aecd9b9b8d5d16
+    stageTitle: Encounter
+    adventurerName: Ajnaag
+    completedUtc: 2026-08-02T13:09:33.3890452Z
   activePartyRunId: 
-  activeRuns:
-  - runId: d36704cb1fb8454fbeaee411b29428e6
-    startedUtc: 2026-08-02T13:08:17.0879522Z
-    groupRun: 0
+  activeRuns: []
+  completionHistory:
+  - completionId: 16611c1eccab4e1ea06a6aacc9a6a54e
+    runId: d36704cb1fb8454fbeaee411b29428e6
+    sessionId: b867ff1ecf6d4b048e47376d911e8fa3
+    sessionIds:
+    - b867ff1ecf6d4b048e47376d911e8fa3
+    completedUtc: 2026-08-02T13:47:13.0870176Z
     adventurerNames:
     - Ajnaag
     developerNames:
     - EchoDev
-  completionHistory: []
+    focusedMinutes: 30.973527214999997
+    awardedCopper: 430
+    awardedExperience: 3003
   questStory: For my Beta test the quest is Minimal of course.
   restrictToClasses: 0
   eligibleClassDefinitions: []
