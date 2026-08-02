@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: afcaec81fe974afc9220196314f8d65b
   contractTitle: Wayfarer Survival Expedition
-  status: 1
+  status: 7
   priority: 1
   createdBy: 
   assignedAdventurer: 
@@ -37,15 +37,21 @@ MonoBehaviour:
     adventurerName: Ajnaag
     completedUtc: 2026-08-02T09:57:51.6435071Z
   activePartyRunId: 
-  activeRuns:
-  - runId: 0adc0a845ace401ea67e627970945af8
-    startedUtc: 2026-08-02T03:16:36.6921973Z
-    groupRun: 0
+  activeRuns: []
+  completionHistory:
+  - completionId: 5df54509f91241d986991840ec7842b3
+    runId: 0adc0a845ace401ea67e627970945af8
+    sessionId: 1f8e63d18f7349d39642829030cddbe9
+    sessionIds:
+    - 1f8e63d18f7349d39642829030cddbe9
+    completedUtc: 2026-08-02T10:34:09.2430759Z
     adventurerNames:
     - Ajnaag
     developerNames:
     - EchoDev
-  completionHistory: []
+    focusedMinutes: 52.355426064999996
+    awardedCopper: 55
+    awardedExperience: 90
   questStory: 
   restrictToClasses: 0
   eligibleClassDefinitions: []

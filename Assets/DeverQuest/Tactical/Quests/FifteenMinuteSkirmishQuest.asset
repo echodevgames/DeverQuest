@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: fed778aff3f54117b86aac7ebc0cf118
   contractTitle: Fifteen-Minute Skirmish
-  status: 1
+  status: 7
   priority: 1
   createdBy: 
   assignedAdventurer: 
   openToAnyMember: 1
   minimumAdventurerLevel: 1
   dueDate: 
-  archived: 0
+  archived: 1
   availabilityPolicy: 0
   requiredCompletions: 1
   oneCompletionPerAdventurer: 0

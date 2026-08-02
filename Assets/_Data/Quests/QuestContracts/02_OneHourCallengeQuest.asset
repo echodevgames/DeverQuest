@@ -14,15 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: 57dde95097ab4b3c89d646a72cb2a105
   contractTitle: OneHourChallengeQuest
-  status: 1
+  status: 3
   priority: 0
   createdBy: EchoDev
   assignedAdventurer: 
   openToAnyMember: 1
   minimumAdventurerLevel: 1
   dueDate: 8/02/26
+  archived: 0
+  availabilityPolicy: 0
+  requiredCompletions: 1
+  oneCompletionPerAdventurer: 0
   groupQuest: 0
+  minimumParticipants: 1
   maximumParticipants: 1
+  requireFullParty: 1
   assignedAdventurers: []
   partyMembers:
   - adventurerName: 
@@ -31,11 +37,29 @@ MonoBehaviour:
     joinedUtc: 2026-08-01T03:51:42.5923733Z
     submitted: 1
     submittedUtc: 2026-08-01T05:29:38.3702759Z
+    sessionId: 
+    focusedMinutes: 0
+    awardedCopper: 0
+    awardedExperience: 0
   stageProgress:
   - stageId: e36940e919184bc5871fdf66aa525e2c
     stageTitle: 
     adventurerName: 
     completedUtc: 2026-08-01T03:53:44.9517878Z
+  - stageId: e36940e919184bc5871fdf66aa525e2c
+    stageTitle: Encounter
+    adventurerName: Ajnaag
+    completedUtc: 2026-08-02T10:36:37.6788320Z
+  activePartyRunId: 
+  activeRuns:
+  - runId: 0d5a48e6825b403dbabdabc8fc290e83
+    startedUtc: 2026-08-02T10:35:37.4460511Z
+    groupRun: 0
+    adventurerNames:
+    - Ajnaag
+    developerNames:
+    - EchoDev
+  completionHistory: []
   questStory: We need to visi the forest nymphs.
   restrictToClasses: 0
   eligibleClassDefinitions: []
