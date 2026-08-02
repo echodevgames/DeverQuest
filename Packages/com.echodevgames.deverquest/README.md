@@ -1,11 +1,21 @@
 # DeverQuest Developer Companion
 
-Current package version: **0.32.0 Beta 1**
+Current package version: **0.32.3 Beta 1**
 
 
-## 0.32.0 Board Cleanup, Meditation Recovery, and ID Repair
 
-Version 0.32.0 removes completed one-time and fully satisfied limited Contracts from the live Guild Assignment Board for every account, including administrators, while preserving their history in Chronicle and Quest Run Management. Manual Meditation restores 1 Hit Point and 2 Mana per full minute when the Quest resumes, capped at the Adventurer's maximum values and unable to revive a Fallen character. Beta Administration also provides an explicit, confirmed ID-regeneration action for the copied or newer asset in duplicate Quest Profile and Identity ID groups.
+## 0.32.3 Companion Profile Asset Association Hotfix
+
+Version 0.32.3 moves `DeverQuestCompanionProfile` into its own matching runtime source file with a stable package GUID. Existing Companion Profile assets whose script association is missing are repaired automatically after installation, with backups written under `Library/DeverQuest/Migrations/0.32.3`. Repaired Original Starter profiles are reconnected to the Original Guild Companion Catalog. A manual repair command is available at **Tools > DeverQuest > QA > Repair Companion Profile Asset Scripts**.
+
+## 0.32.2 Monster Profile Asset Association Hotfix
+
+Version 0.32.2 moves `DeverQuestMonsterProfile` into its own matching runtime source file with a stable package GUID. Existing generated Monster Profile assets whose script association is missing are repaired automatically after installation, with backups written under `Library/DeverQuest/Migrations/0.32.2`. A manual repair command remains available at **Tools > DeverQuest > QA > Repair Monster Profile Asset Scripts**.
+
+
+## 0.32.1 Board Administration and Layout Stabilization
+
+Version 0.32.1 keeps completed Contracts visible to authorized Guild leadership until they are explicitly archived. Leadership may restore a completed one-time or limited Contract to Offered without deleting its prior Completion History; DeverQuest opens one additional completion slot and preserves every earlier reward and Chronicle record. Long Quest Log, Git commit, Final Quest Log, and Closing Notes fields now wrap within the Editor window instead of expanding the entire workspace horizontally. Beta Administration also shows every asset in a duplicate-ID group and can preserve one selected ID while regenerating the other copies.
 
 ## 0.31.8 Beta Administration and Content Validation
 

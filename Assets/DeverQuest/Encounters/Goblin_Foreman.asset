@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 0e56bfa6a5c3488c846b2a1cd9ce2365, type: 3}
   m_Name: Goblin_Foreman
-  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestMonsterProfile
-  monsterId: 3321cf1c64f3418aa10b7c5e9b77dfb9
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestMonsterProfile
+  monsterId: 685cd5946a9e4da694dae0273a320e83
   displayName: Goblin Foreman
   description: 
   level: 1

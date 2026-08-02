@@ -24,6 +24,7 @@ MonoBehaviour:
   archived: 1
   availabilityPolicy: 0
   requiredCompletions: 1
+  reopenedCompletionAllowance: 0
   oneCompletionPerAdventurer: 0
   groupQuest: 0
   minimumParticipants: 1

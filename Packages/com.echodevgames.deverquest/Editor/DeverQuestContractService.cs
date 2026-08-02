@@ -638,6 +638,63 @@ namespace EchoDevGames.DeverQuest
                 adventurerName);
         }
 
+        public static bool ReopenForAnotherRun(
+            DeverQuestQuestContract contract,
+            out string error)
+        {
+            error = string.Empty;
+            if (contract == null)
+            {
+                error = "Contract was unavailable.";
+                return false;
+            }
+            if (!DeverQuestGuildAccountService.HasPermission(
+                    DeverQuestGuildPermission.ManageContracts,
+                    contract.projectName))
+            {
+                error =
+                    "Current Guild account cannot restore this Contract.";
+                return false;
+            }
+            if (contract.archived)
+            {
+                error =
+                    "Restore the archived listing before reopening it.";
+                return false;
+            }
+            if (contract.ActiveRunCount > 0 ||
+                (contract.partyMembers != null &&
+                 contract.partyMembers.Count > 0))
+            {
+                error =
+                    "Finish or cancel active Quest Runs and waiting Party " +
+                    "reservations before reopening this listing.";
+                return false;
+            }
+            if (contract.availabilityPolicy ==
+                DeverQuestContractAvailabilityPolicy.Repeatable)
+            {
+                error =
+                    "Repeatable Contracts already remain available.";
+                return false;
+            }
+            if (!contract.IsBoardComplete)
+            {
+                error =
+                    "This Contract already has an available completion slot.";
+                return false;
+            }
+
+            contract.AddReopenedCompletionSlot();
+            contract.status = DeverQuestContractStatus.Offered;
+            SaveContract(contract);
+            DeverQuestGuildAccountService.AddAudit(
+                "Completed Contract Reopened",
+                contract.contractTitle,
+                $"Completion target is now {contract.CompletionTarget}.");
+            return true;
+        }
+
         public static bool SetArchived(
             DeverQuestQuestContract contract,
             bool archived,

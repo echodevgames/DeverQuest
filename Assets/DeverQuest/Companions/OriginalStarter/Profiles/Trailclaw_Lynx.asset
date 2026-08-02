@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Trailclaw_Lynx
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestCompanionProfile
-  companionId: c1832f0ad7a5456c9dbd8d193dd31d80
+  companionId: e4c64d7c7e974e428758e2102934e508
   displayName: Trailclaw Lynx
   lore: A swift woodland hunter that chooses its Adventurer through earned trust.
   kind: 0

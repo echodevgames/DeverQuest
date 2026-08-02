@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Ancestor_Echo
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestCompanionProfile
-  companionId: caf6cb4fe3bc47cda2898477ecbf2e47
+  companionId: b930e6cc9adc4279b1b84a30da1f689e
   displayName: Ancestor Echo
   lore: A willing memory-spirit that guides its companion through rhythm, warning,
     and song.

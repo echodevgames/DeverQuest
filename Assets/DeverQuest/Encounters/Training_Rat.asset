@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 0e56bfa6a5c3488c846b2a1cd9ce2365, type: 3}
   m_Name: Training_Rat
-  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestMonsterProfile
-  monsterId: b9be789856c94d2d85130846dc39209e
+  m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestMonsterProfile
+  monsterId: e36284b8769d4e96bbaa98e501fea2f4
   displayName: Training Rat
   description: 
   level: 1

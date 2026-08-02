@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: b3d53712f8314a5496a34403c73cfabd
   contractTitle: BetaTestQuestContract
-  status: 1
+  status: 3
   priority: 3
   createdBy: EchoDev
   assignedAdventurer: 
@@ -24,6 +24,7 @@ MonoBehaviour:
   archived: 0
   availabilityPolicy: 0
   requiredCompletions: 1
+  reopenedCompletionAllowance: 0
   oneCompletionPerAdventurer: 0
   groupQuest: 0
   minimumParticipants: 1
@@ -33,7 +34,14 @@ MonoBehaviour:
   partyMembers: []
   stageProgress: []
   activePartyRunId: 
-  activeRuns: []
+  activeRuns:
+  - runId: d36704cb1fb8454fbeaee411b29428e6
+    startedUtc: 2026-08-02T13:08:17.0879522Z
+    groupRun: 0
+    adventurerNames:
+    - Ajnaag
+    developerNames:
+    - EchoDev
   completionHistory: []
   questStory: For my Beta test the quest is Minimal of course.
   restrictToClasses: 0

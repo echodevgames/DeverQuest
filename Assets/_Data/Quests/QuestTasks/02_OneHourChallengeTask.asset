@@ -27,4 +27,4 @@ MonoBehaviour:
   baseExperience: 100
   workBlockMinutes: 15
   copperPerWorkBlock: 25
-  experiencePerWorkBlock: 25
+  experiencePerWorkBlock: 30

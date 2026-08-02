@@ -24,6 +24,7 @@ MonoBehaviour:
   archived: 0
   availabilityPolicy: 0
   requiredCompletions: 1
+  reopenedCompletionAllowance: 1
   oneCompletionPerAdventurer: 0
   groupQuest: 0
   minimumParticipants: 1
@@ -63,7 +64,7 @@ MonoBehaviour:
   groupBonusCopper: 0
   groupBonusExperience: 0
   focusStages:
-  - stageId: 
+  - stageId: 985930248f9d49e695ee5a4702e564bb
     stageTitle: Push Beyond the Map
     workObjective: Continue development through repeating survival waves.
     focusedMinutesRequired: 15
@@ -82,11 +83,11 @@ MonoBehaviour:
   objective: Work for as long as the Adventurer can safely survive and carry the
     earned spoils.
   deliverables: 
-  suggestedFocusMinutes: 50
-  baseCopper: 10
-  baseExperience: 10
-  workBlockMinutes: 30
+  suggestedFocusMinutes: 60
+  baseCopper: 100
+  baseExperience: 100
+  workBlockMinutes: 15
   copperPerWorkBlock: 25
-  experiencePerWorkBlock: 50
+  experiencePerWorkBlock: 30
   encounterProfileId: 
   encounterNotes: 

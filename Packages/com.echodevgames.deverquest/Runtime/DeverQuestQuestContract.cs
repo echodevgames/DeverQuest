@@ -154,6 +154,9 @@ namespace EchoDevGames.DeverQuest
             DeverQuestContractAvailabilityPolicy.SingleCompletion;
         [Min(1)]
         public int requiredCompletions = 1;
+        [SerializeField, Min(0),
+         Tooltip("Leadership-controlled extra completion slots added when a completed listing is restored to Offered. Prior Completion History remains intact.")]
+        private int reopenedCompletionAllowance;
         [Tooltip("When enabled, one Adventurer cannot satisfy more than one completion of this Contract.")]
         public bool oneCompletionPerAdventurer;
 
@@ -239,6 +242,25 @@ namespace EchoDevGames.DeverQuest
         public int ActiveRunCount =>
             activeRuns == null ? 0 : activeRuns.Count;
 
+        public int CompletionTarget
+        {
+            get
+            {
+                if (availabilityPolicy ==
+                    DeverQuestContractAvailabilityPolicy.Repeatable)
+                {
+                    return int.MaxValue;
+                }
+
+                int baseTarget = availabilityPolicy ==
+                    DeverQuestContractAvailabilityPolicy.SingleCompletion
+                        ? 1
+                        : Mathf.Max(1, requiredCompletions);
+                return baseTarget +
+                       Mathf.Max(0, reopenedCompletionAllowance);
+            }
+        }
+
         public int RemainingCompletions
         {
             get
@@ -249,12 +271,22 @@ namespace EchoDevGames.DeverQuest
                     return int.MaxValue;
                 }
 
-                int target = availabilityPolicy ==
-                    DeverQuestContractAvailabilityPolicy.SingleCompletion
-                        ? 1
-                        : Mathf.Max(1, requiredCompletions);
-                return Mathf.Max(0, target - CompletedRunCount);
+                return Mathf.Max(
+                    0,
+                    CompletionTarget - CompletedRunCount);
             }
+        }
+
+        public void AddReopenedCompletionSlot()
+        {
+            if (availabilityPolicy ==
+                DeverQuestContractAvailabilityPolicy.Repeatable)
+            {
+                return;
+            }
+
+            reopenedCompletionAllowance =
+                Mathf.Max(0, reopenedCompletionAllowance) + 1;
         }
 
         public bool IsBoardComplete =>
@@ -466,6 +498,8 @@ namespace EchoDevGames.DeverQuest
                         maximumParticipants)
                     : 1;
             requiredCompletions = Mathf.Max(1, requiredCompletions);
+            reopenedCompletionAllowance =
+                Mathf.Max(0, reopenedCompletionAllowance);
             if (availabilityPolicy ==
                 DeverQuestContractAvailabilityPolicy.SingleCompletion)
             {

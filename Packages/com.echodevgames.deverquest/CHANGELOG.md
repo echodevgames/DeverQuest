@@ -1,3 +1,35 @@
+## [0.32.3] - 2026-08-02
+
+### Fixed
+
+- Moved `DeverQuestCompanionProfile` into a correctly named standalone runtime source file with stable package metadata.
+- Added automatic and manual migration for Companion Profile assets created with missing script associations.
+- Reconnects repaired Original Starter Companion Profiles to the Original Guild Companion Catalog through the idempotent generator.
+- Added content-health error `DQ-CONTENT-404` for unresolved Companion Profile script associations.
+- Updated package, readiness, and Beta health-report version declarations to 0.32.3.
+
+## [0.32.2] - 2026-08-02
+
+### Fixed
+
+- Moved `DeverQuestMonsterProfile` into a correctly named standalone runtime source file.
+- Added a stable package script GUID for Monster Profile assets.
+- Added a narrow automatic migration that repairs existing project Monster Profile YAML associations without recreating or discarding authored data.
+- Added a manual QA repair command and Library-backed migration backups.
+- Updated package, readiness, and Beta health-report version declarations to 0.32.2.
+
+## [0.32.1] - 2026-08-02
+
+### Changed
+
+- Kept completed one-time and satisfied limited Contracts visible to authorized leadership on the Guild Assignment Board until explicitly archived.
+- Added **Restore to Offered**, which preserves Completion History and opens one additional completion slot.
+- Added archive/restore controls to completed Quest Run history.
+- Added wrapped, width-constrained Quest Log, Git commit, Final Quest Log, and Closing Notes text areas.
+- Added duplicate-ID group display and **Keep This ID; Regenerate Other Copies** repair.
+- Preserved 0.32.0 Meditation Health and Mana recovery behavior.
+- Updated package, readiness, and Beta health-report version declarations to 0.32.1.
+
 ## [0.32.0] - 2026-08-02
 
 ### Changed

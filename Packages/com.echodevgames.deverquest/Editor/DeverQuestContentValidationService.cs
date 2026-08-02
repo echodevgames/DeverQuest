@@ -52,7 +52,7 @@ namespace EchoDevGames.DeverQuest
     [Serializable]
     internal sealed class DeverQuestContentHealthJson
     {
-        public string packageVersion = "0.32.0";
+        public string packageVersion = "0.32.3";
         public string generatedUtc = string.Empty;
         public int scannedAssets;
         public int errors;
@@ -353,6 +353,125 @@ namespace EchoDevGames.DeverQuest
             return true;
         }
 
+        public static List<UnityEngine.Object>
+            FindDuplicateStableIdAssets(UnityEngine.Object asset)
+        {
+            List<UnityEngine.Object> results =
+                new List<UnityEngine.Object>();
+            if (!CanRegenerateStableId(asset))
+            {
+                return results;
+            }
+
+            string propertyName =
+                asset is DeverQuestQuestProfile
+                    ? "profileId"
+                    : "identityId";
+            string id = ReadSerializedId(asset, propertyName);
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return results;
+            }
+
+            if (asset is DeverQuestQuestProfile)
+            {
+                results.AddRange(
+                    LoadAssets<DeverQuestQuestProfile>()
+                        .Where(value =>
+                            string.Equals(
+                                ReadSerializedId(
+                                    value,
+                                    propertyName),
+                                id,
+                                StringComparison.OrdinalIgnoreCase))
+                        .Cast<UnityEngine.Object>());
+                return results;
+            }
+
+            List<DeverQuestIdentityAsset> identities =
+                new List<DeverQuestIdentityAsset>();
+            identities.AddRange(LoadAssets<DeverQuestAncestry>());
+            identities.AddRange(
+                LoadAssets<DeverQuestClassDefinition>());
+            identities.AddRange(LoadAssets<DeverQuestDeity>());
+            results.AddRange(
+                identities
+                    .Where(value =>
+                        string.Equals(
+                            ReadSerializedId(
+                                value,
+                                propertyName),
+                            id,
+                            StringComparison.OrdinalIgnoreCase))
+                    .Cast<UnityEngine.Object>());
+            return results;
+        }
+
+        public static bool RegenerateDuplicateIdsKeeping(
+            UnityEngine.Object keeper,
+            out string summary,
+            out string error)
+        {
+            summary = string.Empty;
+            error = string.Empty;
+            if (!CanRegenerateStableId(keeper))
+            {
+                error =
+                    "The selected asset does not support stable-ID repair.";
+                return false;
+            }
+
+            List<UnityEngine.Object> duplicates =
+                FindDuplicateStableIdAssets(keeper);
+            if (duplicates.Count <= 1)
+            {
+                error =
+                    "No duplicate-ID group was found for the selected asset.";
+                return false;
+            }
+
+            List<string> changes = new List<string>();
+            foreach (UnityEngine.Object duplicate in duplicates)
+            {
+                if (duplicate == null || duplicate == keeper)
+                {
+                    continue;
+                }
+
+                if (!RegenerateStableId(
+                        duplicate,
+                        out string previousId,
+                        out string replacementId,
+                        out string repairError))
+                {
+                    error =
+                        "Could not repair " +
+                        AssetDatabase.GetAssetPath(duplicate) +
+                        ": " +
+                        repairError;
+                    return false;
+                }
+
+                changes.Add(
+                    AssetDatabase.GetAssetPath(duplicate) +
+                    " · " +
+                    previousId +
+                    " → " +
+                    replacementId);
+            }
+
+            summary =
+                "Kept the stable ID on " +
+                AssetDatabase.GetAssetPath(keeper) +
+                " and regenerated " +
+                changes.Count +
+                " duplicate copy/copies." +
+                (changes.Count == 0
+                    ? string.Empty
+                    : "\n" + string.Join("\n", changes));
+            return true;
+        }
+
         public static string RunSafeStarterRepairs()
         {
             DeverQuestIdentityGenerationReport identity =
@@ -388,7 +507,7 @@ namespace EchoDevGames.DeverQuest
         public static string BuildMarkdown(DeverQuestContentValidationReport report)
         {
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine("# DeverQuest 0.32.0 Beta Content Health Report");
+            builder.AppendLine("# DeverQuest 0.32.3 Beta Content Health Report");
             builder.AppendLine();
             builder.AppendLine($"**Generated UTC:** {report.generatedUtc}");
             builder.AppendLine($"**Summary:** {report.Summary}");
@@ -641,6 +760,25 @@ namespace EchoDevGames.DeverQuest
             List<DeverQuestCompanionCatalog> catalogs,
             List<DeverQuestCompanionProfile> companions)
         {
+            foreach (string brokenPath in
+                     DeverQuestCompanionProfileMigrationService
+                         .FindBrokenCompanionProfilePaths())
+            {
+                report.findings.Add(new DeverQuestContentFinding
+                {
+                    severity = DeverQuestContentFindingSeverity.Error,
+                    code = "DQ-CONTENT-404",
+                    title = "Companion Profile script is missing",
+                    detail =
+                        "Run Tools > DeverQuest > QA > Repair Companion " +
+                        "Profile Asset Scripts, then rerun the Original " +
+                        "Companion Stable generator.",
+                    asset = null,
+                    assetPath = brokenPath,
+                    safelyRepairable = false
+                });
+            }
+
             ValidateDuplicateIds(report, companions, value => ReadSerializedId(value, "companionId"),
                 "DQ-CONTENT-401", "Duplicate Companion ID");
             foreach (DeverQuestCompanionCatalog catalog in catalogs)

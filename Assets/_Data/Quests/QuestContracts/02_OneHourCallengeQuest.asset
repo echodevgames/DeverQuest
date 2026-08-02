@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: 57dde95097ab4b3c89d646a72cb2a105
   contractTitle: OneHourChallengeQuest
-  status: 3
+  status: 7
   priority: 0
   createdBy: EchoDev
   assignedAdventurer: 
@@ -24,6 +24,7 @@ MonoBehaviour:
   archived: 0
   availabilityPolicy: 0
   requiredCompletions: 1
+  reopenedCompletionAllowance: 0
   oneCompletionPerAdventurer: 0
   groupQuest: 0
   minimumParticipants: 1
@@ -51,15 +52,21 @@ MonoBehaviour:
     adventurerName: Ajnaag
     completedUtc: 2026-08-02T10:36:37.6788320Z
   activePartyRunId: 
-  activeRuns:
-  - runId: 0d5a48e6825b403dbabdabc8fc290e83
-    startedUtc: 2026-08-02T10:35:37.4460511Z
-    groupRun: 0
+  activeRuns: []
+  completionHistory:
+  - completionId: 0a92571a454047f48a07d209edbd85f3
+    runId: 0d5a48e6825b403dbabdabc8fc290e83
+    sessionId: ff4cb0cb921143de8d9694fac4ec62c5
+    sessionIds:
+    - ff4cb0cb921143de8d9694fac4ec62c5
+    completedUtc: 2026-08-02T11:23:12.2916086Z
     adventurerNames:
     - Ajnaag
     developerNames:
     - EchoDev
-  completionHistory: []
+    focusedMinutes: 41.35265417666666
+    awardedCopper: 150
+    awardedExperience: 155
   questStory: We need to visi the forest nymphs.
   restrictToClasses: 0
   eligibleClassDefinitions: []
@@ -94,6 +101,6 @@ MonoBehaviour:
   baseExperience: 100
   workBlockMinutes: 15
   copperPerWorkBlock: 25
-  experiencePerWorkBlock: 25
+  experiencePerWorkBlock: 30
   encounterProfileId: 
   encounterNotes: 

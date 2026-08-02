@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Gravebound_Wisp
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestCompanionProfile
-  companionId: e759db7745cd4de69a09270dec6e3b05
+  companionId: 5e8addd19d454ceab7b09c9fbba39b78
   displayName: Gravebound Wisp
   lore: A patient lantern-spirit bound by mutual oath, never by stolen will.
   kind: 2

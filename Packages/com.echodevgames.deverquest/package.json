@@ -1,6 +1,6 @@
 {
   "name": "com.echodevgames.deverquest",
-  "version": "0.32.0",
+  "version": "0.32.3",
   "displayName": "DeverQuest Developer Companion",
   "description": "A medieval productivity RPG for Unity with Beta administration, bulk content validation and health exports, wellness command center, supported independent audio mixing, organized workspaces, a dockable Quest HUD, Chronicle navigation, Guild Economy, Inventory, Tactical Operations, reusable Contracts, and release diagnostics.",
   "unity": "2022.3",
@@ -74,5 +74,5 @@
     "board-cleanup",
     "duplicate-id-repair"
   ],
-  "_fingerprint": "f2cb73b5fdd928daf5f474f693a3e157"
+  "_fingerprint": "097743c9417970b29e98ddabc95ff9ac"
 }

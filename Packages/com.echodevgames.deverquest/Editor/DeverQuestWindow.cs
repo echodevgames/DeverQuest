@@ -43,6 +43,7 @@ namespace EchoDevGames.DeverQuest
         private GUIStyle titleStyle;
         private GUIStyle subtitleStyle;
         private GUIStyle wrappedLabelStyle;
+        private GUIStyle wrappedTextAreaStyle;
         private GUIStyle timerStyle;
         private GUIStyle accentLabelStyle;
 
@@ -1691,6 +1692,72 @@ namespace EchoDevGames.DeverQuest
                     (finding.code == "DQ-CONTENT-101" ||
                      finding.code == "DQ-CONTENT-301"))
                 {
+                    List<UnityEngine.Object> duplicateGroup =
+                        DeverQuestContentValidationService
+                            .FindDuplicateStableIdAssets(
+                                finding.asset);
+                    if (duplicateGroup.Count > 1)
+                    {
+                        string duplicatePaths = string.Join(
+                            "\n",
+                            duplicateGroup
+                                .Where(value => value != null)
+                                .Select(value =>
+                                    AssetDatabase.GetAssetPath(value)));
+                        EditorGUILayout.EndHorizontal();
+                        EditorGUILayout.HelpBox(
+                            "Duplicate group:\n" +
+                            duplicatePaths,
+                            MessageType.Warning);
+                        EditorGUILayout.BeginHorizontal();
+                        if (GUILayout.Button(
+                                "Keep This ID; Regenerate Other Copies"))
+                        {
+                            bool keepConfirmed =
+                                EditorUtility.DisplayDialog(
+                                    "Choose Stable-ID Keeper?",
+                                    "The selected asset keeps its current ID. " +
+                                    "Every other asset in this duplicate " +
+                                    "group receives a new ID. Completion " +
+                                    "history is not rewritten.\n\nKeep:\n" +
+                                    finding.assetPath +
+                                    "\n\nOther copies:\n" +
+                                    string.Join(
+                                        "\n",
+                                        duplicateGroup
+                                            .Where(value =>
+                                                value != null &&
+                                                value != finding.asset)
+                                            .Select(value =>
+                                                AssetDatabase
+                                                    .GetAssetPath(value))),
+                                    "Keep Selected Asset",
+                                    "Cancel");
+                            if (keepConfirmed)
+                            {
+                                if (DeverQuestContentValidationService
+                                    .RegenerateDuplicateIdsKeeping(
+                                        finding.asset,
+                                        out string groupSummary,
+                                        out string groupError))
+                                {
+                                    administrationReport =
+                                        DeverQuestContentValidationService
+                                            .Run();
+                                    administrationMessage =
+                                        groupSummary;
+                                }
+                                else
+                                {
+                                    EditorUtility.DisplayDialog(
+                                        "Duplicate Group Repair Failed",
+                                        groupError,
+                                        "Close");
+                                }
+                            }
+                        }
+                    }
+
                     if (GUILayout.Button("Regenerate This Asset ID"))
                     {
                         bool confirmed =
@@ -9189,9 +9256,14 @@ namespace EchoDevGames.DeverQuest
                     continue;
                 }
 
+                bool canManageContract =
+                    DeverQuestGuildAccountService.HasPermission(
+                        DeverQuestGuildPermission.ManageContracts,
+                        contract.projectName);
                 bool retiredFromLiveBoard =
                     contract.archived ||
-                    (contract.status ==
+                    (!canManageContract &&
+                     contract.status ==
                      DeverQuestContractStatus.Completed &&
                      contract.IsBoardComplete);
                 if (retiredFromLiveBoard)
@@ -9199,10 +9271,6 @@ namespace EchoDevGames.DeverQuest
                     continue;
                 }
 
-                bool canManageContract =
-                    DeverQuestGuildAccountService.HasPermission(
-                        DeverQuestGuildPermission.ManageContracts,
-                        contract.projectName);
 
                 bool assigned =
                     DeverQuestContractService.CanJoin(
@@ -9341,20 +9409,47 @@ namespace EchoDevGames.DeverQuest
                     }
                     Repaint();
                 }
+                EditorGUILayout.EndHorizontal();
+
                 if (canManageContract)
                 {
-                    string archiveLabel = contract.archived
-                        ? "Restore Listing"
-                        : "Archive Listing";
-                    if (GUILayout.Button(archiveLabel))
+                    EditorGUILayout.BeginHorizontal();
+                    if (contract.status ==
+                            DeverQuestContractStatus.Completed &&
+                        contract.IsBoardComplete &&
+                        GUILayout.Button("Restore to Offered"))
+                    {
+                        bool confirmed = EditorUtility.DisplayDialog(
+                            "Restore Completed Quest?",
+                            "This preserves every Completion History record " +
+                            "and opens one additional completion slot for " +
+                            "this Contract. It does not remove prior rewards " +
+                            "or Chronicle evidence.",
+                            "Restore to Offered",
+                            "Cancel");
+                        if (confirmed &&
+                            !DeverQuestContractService
+                                .ReopenForAnotherRun(
+                                    contract,
+                                    out string reopenError))
+                        {
+                            EditorUtility.DisplayDialog(
+                                "Cannot Restore Quest",
+                                reopenError,
+                                "Close");
+                        }
+                        Repaint();
+                    }
+
+                    if (GUILayout.Button("Archive Listing"))
                     {
                         if (!DeverQuestContractService.SetArchived(
                                 contract,
-                                !contract.archived,
+                                true,
                                 out string archiveError))
                         {
                             EditorUtility.DisplayDialog(
-                                "Cannot Change Board State",
+                                "Cannot Archive Listing",
                                 archiveError,
                                 "Close");
                         }
@@ -9395,8 +9490,8 @@ namespace EchoDevGames.DeverQuest
                             contract,
                             DeverQuestContractStatus.Completed);
                     }
+                    EditorGUILayout.EndHorizontal();
                 }
-                EditorGUILayout.EndHorizontal();
                 EditorGUILayout.EndVertical();
             }
 
@@ -9404,8 +9499,9 @@ namespace EchoDevGames.DeverQuest
             {
                 EditorGUILayout.LabelField(
                     canManage
-                        ? "No active Quest Contracts are on the Guild Board. " +
-                          "Completed and archived listings remain available " +
+                        ? "No Quest Contracts are on the live Guild Board. " +
+                          "Completed listings remain visible to leadership " +
+                          "until archived. Archived history remains available " +
                           "through Chronicle and Quest Run Management."
                         : "No Contracts are currently assigned to you.",
                     EditorStyles.wordWrappedLabel);
@@ -9715,6 +9811,47 @@ namespace EchoDevGames.DeverQuest
                         record.runId ?? string.Empty;
                 }
                 EditorGUILayout.EndHorizontal();
+
+                bool canManageContract =
+                    DeverQuestGuildAccountService.HasPermission(
+                        DeverQuestGuildPermission.ManageContracts,
+                        contract.projectName);
+                if (canManageContract)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    if (contract.archived &&
+                        GUILayout.Button("Restore Listing"))
+                    {
+                        if (!DeverQuestContractService.SetArchived(
+                                contract,
+                                false,
+                                out string restoreError))
+                        {
+                            EditorUtility.DisplayDialog(
+                                "Cannot Restore Listing",
+                                restoreError,
+                                "Close");
+                        }
+                    }
+                    if (!contract.archived &&
+                        contract.status ==
+                            DeverQuestContractStatus.Completed &&
+                        contract.IsBoardComplete &&
+                        GUILayout.Button("Restore to Offered"))
+                    {
+                        if (!DeverQuestContractService
+                            .ReopenForAnotherRun(
+                                contract,
+                                out string reopenError))
+                        {
+                            EditorUtility.DisplayDialog(
+                                "Cannot Restore Quest",
+                                reopenError,
+                                "Close");
+                        }
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
                 EditorGUILayout.EndVertical();
             }
 
@@ -9833,7 +9970,7 @@ namespace EchoDevGames.DeverQuest
                 case DeverQuestContractAvailabilityPolicy
                     .LimitedCompletions:
                     return $"{contract.CompletedRunCount}/" +
-                           $"{Math.Max(1, contract.requiredCompletions)} " +
+                           $"{contract.CompletionTarget} " +
                            "completed" +
                            (contract.oneCompletionPerAdventurer
                                ? " · unique Adventurers"
@@ -10317,9 +10454,9 @@ namespace EchoDevGames.DeverQuest
             DrawExternalActivityAndMedia(session);
 
             EditorGUILayout.LabelField("Quest Log Entry");
-            commitComment = EditorGUILayout.TextArea(
+            commitComment = DrawWrappedTextArea(
                 commitComment,
-                GUILayout.MinHeight(46f));
+                46f);
 
             EditorGUILayout.BeginHorizontal();
             if (gitStatus != null && gitStatus.IsRepository)
@@ -10780,9 +10917,9 @@ namespace EchoDevGames.DeverQuest
             EditorGUILayout.LabelField(
                 "Commit Message",
                 EditorStyles.boldLabel);
-            gitCommitMessage = EditorGUILayout.TextArea(
+            gitCommitMessage = DrawWrappedTextArea(
                 gitCommitMessage,
-                GUILayout.MinHeight(58f));
+                58f);
 
             using (new EditorGUI.DisabledScope(
                        gitOperationInProgress ||
@@ -11146,9 +11283,9 @@ namespace EchoDevGames.DeverQuest
 
                 EditorGUILayout.Space(6f);
                 EditorGUILayout.LabelField("Final Quest Log Entry");
-                commitComment = EditorGUILayout.TextArea(
+                commitComment = DrawWrappedTextArea(
                     commitComment,
-                    GUILayout.MinHeight(54f));
+                    54f);
                 DrawGitPanel();
                 DrawQuestLogReview(session);
 
@@ -11156,9 +11293,9 @@ namespace EchoDevGames.DeverQuest
                 EditorGUILayout.LabelField(
                     "Closing Notes",
                     EditorStyles.boldLabel);
-                closingNotes = EditorGUILayout.TextArea(
+                closingNotes = DrawWrappedTextArea(
                     closingNotes,
-                    GUILayout.MinHeight(72f));
+                    72f);
 
                 if (GUILayout.Button(
                         "Review Spoils",
@@ -11728,6 +11865,32 @@ namespace EchoDevGames.DeverQuest
                 }
             }
             }
+        }
+
+        private string DrawWrappedTextArea(
+            string value,
+            float minimumHeight)
+        {
+            if (wrappedTextAreaStyle == null)
+            {
+                wrappedTextAreaStyle =
+                    new GUIStyle(EditorStyles.textArea)
+                    {
+                        wordWrap = true,
+                        stretchWidth = true,
+                        clipping = TextClipping.Clip
+                    };
+            }
+
+            float availableWidth = Mathf.Max(
+                180f,
+                position.width - 44f);
+            return EditorGUILayout.TextArea(
+                value ?? string.Empty,
+                wrappedTextAreaStyle,
+                GUILayout.MinHeight(minimumHeight),
+                GUILayout.MaxWidth(availableWidth),
+                GUILayout.ExpandWidth(true));
         }
 
         private static void DrawReadOnlyValue(
