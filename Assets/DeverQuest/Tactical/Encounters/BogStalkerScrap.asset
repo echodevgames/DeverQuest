@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: BogStalkerScrap
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestShopItem
-  shopItemId: 00a4c84ffd7144babcdae5293e9cc03f
+  shopItemId: ba9a74c5aeed4ff285c2812b70194b8c
   displayName: Bog-Stalker Scrap
   description: Heavy salvage that can fill an expedition pack.
   loreText: 

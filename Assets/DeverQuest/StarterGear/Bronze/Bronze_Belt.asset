@@ -33,4 +33,6 @@ MonoBehaviour:
   weight: 1
   damageDice: 
   weaponDamageType: 2
-  damageAffinities: []
+  damageAffinities:
+  - damageType: 0
+    response: 0

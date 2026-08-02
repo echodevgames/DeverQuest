@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Training_Rat
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestMonsterProfile
-  monsterId: 1a6a7279962b489a8489e1d2be8b49af
+  monsterId: c4ff4c035922492ea23ddb12d7b4200f
   displayName: Training Rat
   description: 
   level: 1

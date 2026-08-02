@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: fed778aff3f54117b86aac7ebc0cf118
   contractTitle: Fifteen-Minute Skirmish
-  status: 1
+  status: 7
   priority: 1
   createdBy: 
   assignedAdventurer: 
@@ -31,10 +31,27 @@ MonoBehaviour:
   requireFullParty: 1
   assignedAdventurers: []
   partyMembers: []
-  stageProgress: []
+  stageProgress:
+  - stageId: 09ae1f96dfd344e7a09eb46f5c44aee6
+    stageTitle: Hold the Old Road
+    adventurerName: Ajnaag
+    completedUtc: 2026-08-02T03:14:11.2268519Z
   activePartyRunId: 
   activeRuns: []
-  completionHistory: []
+  completionHistory:
+  - completionId: 562e8449db8e42039e59511fc8c7463e
+    runId: e311f921307a4317903a24050210f81c
+    sessionId: 3ed57d89e3644bce874f954ff7b8736c
+    sessionIds:
+    - 3ed57d89e3644bce874f954ff7b8736c
+    completedUtc: 2026-08-02T03:15:24.8040203Z
+    adventurerNames:
+    - Ajnaag
+    developerNames:
+    - EchoDev
+    focusedMinutes: 16.06109648
+    awardedCopper: 48
+    awardedExperience: 77
   questStory: 
   restrictToClasses: 0
   eligibleClassDefinitions: []
@@ -46,7 +63,7 @@ MonoBehaviour:
   groupBonusCopper: 0
   groupBonusExperience: 0
   focusStages:
-  - stageId: 
+  - stageId: db706d443e1c4a569d8bab5272b1c018
     stageTitle: Hold the Old Road
     workObjective: Complete the assigned task.
     focusedMinutesRequired: 15

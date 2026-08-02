@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Brasswing_Sentry
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestCompanionProfile
-  companionId: fcb0caf8c72b45f3a6e89267af2a8b69
+  companionId: 9b03077b05e341028b21a3cfc16d457d
   displayName: Brasswing Sentry
   lore: A Guild-built clockwork guardian available to any Adventurer able to earn
     its charter.

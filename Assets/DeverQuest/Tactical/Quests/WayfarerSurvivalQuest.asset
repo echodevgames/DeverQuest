@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestQuestContract
   contractId: afcaec81fe974afc9220196314f8d65b
   contractTitle: Wayfarer Survival Expedition
-  status: 1
+  status: 3
   priority: 1
   createdBy: 
   assignedAdventurer: 
@@ -33,7 +33,14 @@ MonoBehaviour:
   partyMembers: []
   stageProgress: []
   activePartyRunId: 
-  activeRuns: []
+  activeRuns:
+  - runId: 0adc0a845ace401ea67e627970945af8
+    startedUtc: 2026-08-02T03:16:36.6921973Z
+    groupRun: 0
+    adventurerNames:
+    - Ajnaag
+    developerNames:
+    - EchoDev
   completionHistory: []
   questStory: 
   restrictToClasses: 0
@@ -46,7 +53,7 @@ MonoBehaviour:
   groupBonusCopper: 0
   groupBonusExperience: 0
   focusStages:
-  - stageId: 
+  - stageId: 85d055d7495b404488c722dbdc835f69
     stageTitle: Push Beyond the Map
     workObjective: Continue development through repeating survival waves.
     focusedMinutesRequired: 15

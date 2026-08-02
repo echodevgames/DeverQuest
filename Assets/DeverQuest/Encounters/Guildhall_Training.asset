@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95c2b42b4e454449a85232181983f0cc, type: 3}
   m_Name: Guildhall_Training
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime::EchoDevGames.DeverQuest.DeverQuestEncounterProfile
-  encounterId: 
+  encounterId: 97b12ecfedcb47e4975a97f526c99aec
   displayName: Guildhall Training Bout
   storyIntroduction: A controlled Guildhall trial for new Adventurers.
   waves:

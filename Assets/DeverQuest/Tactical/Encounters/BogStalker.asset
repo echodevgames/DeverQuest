@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: BogStalker
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestMonsterProfile
-  monsterId: b04a3cb83e3c49159cbc2663bcbe6b30
+  monsterId: d64733e4c878417aa255fe04cea08c93
   displayName: Bog Stalker
   description: An original marsh predator used for starter tactical encounters.
   level: 1

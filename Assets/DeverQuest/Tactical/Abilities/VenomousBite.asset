@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: VenomousBite
   m_EditorClassIdentifier: EchoDevGames.DeverQuest.Runtime:EchoDevGames.DeverQuest:DeverQuestAttackTechnique
-  techniqueId: 60d6ff7d35b540e7ae46367df1094e5b
+  techniqueId: 271e544e9a8e4cd0819538b0cf8f69c6
   displayName: Venomous Bite
   description: A creature attack that leaves ongoing venom.
   attackAbility: 0
